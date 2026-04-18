@@ -1,0 +1,54 @@
+---
+# gobmp-nats: a second GoBMP instance that publishes to NATS JetStream.
+# The existing gobmp deployment continues publishing to Kafka for the
+# Jalapeno igp-graph / linkstate-edge / gobmp-arango consumers.
+#
+# Routers must send BMP to BOTH NodePorts:
+#   port 30511 → gobmp (Kafka, existing)
+#   port 30512 → gobmp-nats (NATS, for scoville)
+apiVersion: v1
+kind: Service
+metadata:
+  name: gobmp-nats
+  namespace: jalapeno
+spec:
+  selector:
+    app: gobmp-nats
+  ports:
+    - name: bmp
+      port: 5001
+      targetPort: 5001
+      nodePort: 30512
+      protocol: TCP
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gobmp-nats
+  namespace: jalapeno
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gobmp-nats
+  template:
+    metadata:
+      labels:
+        app: gobmp-nats
+    spec:
+      containers:
+        - name: gobmp-nats
+          image: gobmp:nats          # built from source — see instructions below
+          imagePullPolicy: Never     # local image, not from a registry
+          args:
+            - --v
+            - "5"
+            - --source-port
+            - "5001"
+            - --nats-server
+            - nats://nats.jalapeno:4222
+          ports:
+            - containerPort: 5001
+              protocol: TCP
+              name: bmp
