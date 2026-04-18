@@ -9,6 +9,10 @@ kubectl apply -f deploy/k8s/nats.yaml
 # Wait for it to be ready
 kubectl -n jalapeno rollout status deployment/nats
 
+```
+nats-server: /etc/nats/nats-server.conf:15:3: "$G" is a Reserved Account
+```
+
 # Quick sanity check — JetStream should show up
 kubectl -n jalapeno port-forward svc/nats 8222:8222 &
 curl -s http://localhost:8222/jsz | python3 -m json.tool | grep -E "config|memory"
