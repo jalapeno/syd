@@ -1,33 +1,6 @@
-$ kubectl -n scoville rollout status deployment/scoville
-deployment "scoville" successfully rolled out
-cisco@jalapeno-host:~/scoville$ kubectl -n scoville logs -f deployment/scoville
-time=2026-04-18T18:49:46.892Z level=INFO msg="southbound: host mode (pull via /flows)"
-time=2026-04-18T18:49:46.892Z level=INFO msg="bmp collector configured" nats_url=nats://nats.gobmp.svc.cluster.local:4222 topo_id=underlay
-time=2026-04-18T18:49:46.892Z level=INFO msg="scoville starting" addr=:8080 bmp=true encap_mode=host
-time=2026-04-18T18:49:46.896Z level=ERROR msg="bmp collector error" err="nats connect nats://nats.gobmp.svc.cluster.local:4222: dial tcp: lookup nats.gobmp.svc.cluster.local on 10.96.0.10:53: no such host"
-^C
-cisco@jalapeno-host:~/scoville$ kubectl get svc -A
-NAMESPACE        NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                          AGE
-cert-manager     cert-manager              ClusterIP   10.102.97.78     <none>        9402/TCP                         79d
-cert-manager     cert-manager-webhook      ClusterIP   10.103.247.159   <none>        443/TCP                          79d
-default          kubernetes                ClusterIP   10.96.0.1        <none>        443/TCP                          424d
-jalapeno         arango-np                 NodePort    10.105.66.114    <none>        8529:30852/TCP                   44d
-jalapeno         arangodb                  ClusterIP   10.110.96.162    <none>        8529/TCP                         44d
-jalapeno         broker                    ClusterIP   10.107.229.2     <none>        9092/TCP                         44d
-jalapeno         gobmp                     NodePort    10.101.200.66    <none>        5000:30511/TCP,56767:30767/TCP   37m
-jalapeno         grafana                   ClusterIP   10.111.59.99     <none>        3000/TCP                         44d
-jalapeno         grafana-np                NodePort    10.104.116.227   <none>        3000:30300/TCP                   44d
-jalapeno         influxdb                  ClusterIP   10.110.216.251   <none>        8086/TCP                         44d
-jalapeno         influxdb-np               NodePort    10.102.87.194    <none>        8086:30308/TCP                   44d
-jalapeno         jalapeno-api              NodePort    10.100.182.110   <none>        80:30800/TCP                     44d
-jalapeno         jalapeno-ui               NodePort    10.110.190.80    <none>        80:30700/TCP                     44d
-jalapeno         kafka                     NodePort    10.97.111.20     <none>        9094:30092/TCP                   44d
-jalapeno         nats                      ClusterIP   10.104.114.187   <none>        4222/TCP,8222/TCP                40m
-jalapeno         telegraf-ingress-np       NodePort    10.105.177.59    <none>        57400:32400/TCP                  44d
-jalapeno         zookeeper                 ClusterIP   10.108.140.245   <none>        2888/TCP,3888/TCP,2181/TCP       44d
-kube-system      cilium-envoy              ClusterIP   None             <none>        9964/TCP                         424d
-kube-system      hubble-peer               ClusterIP   10.110.213.58    <none>        443/TCP                          424d
-kube-system      kube-dns                  ClusterIP   10.96.0.10       <none>        53/UDP,53/TCP,9153/TCP           424d
-metallb-system   metallb-webhook-service   ClusterIP   10.101.180.156   <none>        443/TCP                          79d
-scoville         scoville                  ClusterIP   10.102.24.69     <none>        8080/TCP                         3m46s
-scoville         scoville-external         NodePort    10.100.58.245    <none>        8080:30080/TCP                   3m46s
+$ kubectl logs -n scoville -f deployment/scoville
+time=2026-04-18T18:54:04.419Z level=INFO msg="southbound: host mode (pull via /flows)"
+time=2026-04-18T18:54:04.419Z level=INFO msg="bmp collector configured" nats_url=nats://nats.jalapeno.svc.cluster.local:4222 topo_id=underlay
+time=2026-04-18T18:54:04.419Z level=INFO msg="scoville starting" addr=:8080 bmp=true encap_mode=host
+time=2026-04-18T18:54:04.423Z level=ERROR msg="bmp collector error" err="subscribe gobmp.parsed.peer: nats: stream not found"
+time=2026-04-18T18:54:04.434Z level=WARN msg="nats disconnected" err=<nil>
