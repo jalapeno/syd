@@ -16,6 +16,7 @@ package bmpcollector
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -134,8 +135,16 @@ func (c *Collector) Start(ctx context.Context) error {
 	}
 	c.js = js
 
-	// GoBMP creates its stream lazily on first connect. Retry subscribing
-	// with backoff until the stream exists or ctx is cancelled.
+	// Ensure the GoBMP JetStream stream exists. GoBMP creates it with
+	// FileStorage on its own startup, but our NATS deployment uses memory
+	// storage only. We create it here with MemoryStorage so scoville can
+	// subscribe even if GoBMP's stream creation failed. If GoBMP already
+	// created it, AddStream returns ErrStreamNameAlreadyInUse which we ignore.
+	if err := c.ensureStream(); err != nil {
+		c.log.Warn("could not ensure goBMP stream", "err", err)
+	}
+
+	// Retry subscribing with backoff until the stream exists or ctx is cancelled.
 	retryDelay := 3 * time.Second
 	for {
 		err := c.subscribeAll()
@@ -190,6 +199,26 @@ func (c *Collector) Stop() {
 	if c.nc != nil {
 		_ = c.nc.Drain()
 	}
+}
+
+// ensureStream creates the goBMP JetStream stream with MemoryStorage if it
+// does not already exist. GoBMP normally creates this stream itself, but our
+// NATS deployment may not support FileStorage. Idempotent: safe to call when
+// the stream already exists.
+func (c *Collector) ensureStream() error {
+	cfg := &nats.StreamConfig{
+		Name:      GoBMPStream,
+		Subjects:  []string{"gobmp.parsed.*"},
+		Storage:   nats.MemoryStorage,
+		Retention: nats.InterestPolicy,
+		MaxAge:    15 * time.Minute,
+		Replicas:  1,
+	}
+	_, err := c.js.AddStream(cfg)
+	if err != nil && !errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
+		return fmt.Errorf("add stream: %w", err)
+	}
+	return nil
 }
 
 // subscribe creates a durable JetStream push consumer for h. The consumer
