@@ -162,23 +162,16 @@ func (u *Updater) UpsertLinkEdge(g *graph.Graph, edge *graph.LinkEdge) {
 	_ = g.AddEdge(edge)
 }
 
-// UpsertBGPSession adds or replaces a BGPSessionEdge. If the src/dst vertices
-// don't exist as proper nodes, the edge is stored as-is (the graph allows
-// edges between existing vertices; BGP peer IDs may not correspond to Node
-// vertices in pure BGP-LS topologies).
+// UpsertBGPSession adds or replaces a BGPSessionEdge only when both endpoint
+// vertices already exist in the graph. BGP peer IDs (IPv4 router-ID addresses)
+// do not match IS-IS system IDs, so creating stub nodes for missing endpoints
+// would pollute the topology with IP-addressed duplicates of IS-IS nodes.
+// The edge is silently skipped if either endpoint is not yet known.
 func (u *Updater) UpsertBGPSession(g *graph.Graph, sess *graph.BGPSessionEdge) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	// Ensure placeholder vertices so AddEdge's existence check passes.
-	if g.GetVertex(sess.SrcID) == nil {
-		_ = g.AddVertex(&graph.Node{
-			BaseVertex: graph.BaseVertex{ID: sess.SrcID, Type: graph.VTNode},
-		})
-	}
-	if g.GetVertex(sess.DstID) == nil {
-		_ = g.AddVertex(&graph.Node{
-			BaseVertex: graph.BaseVertex{ID: sess.DstID, Type: graph.VTNode},
-		})
+	if g.GetVertex(sess.SrcID) == nil || g.GetVertex(sess.DstID) == nil {
+		return
 	}
 	_ = g.AddEdge(sess)
 }

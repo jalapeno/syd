@@ -255,7 +255,7 @@ func (c *Collector) subscribe(h MessageHandler) (*nats.Subscription, error) {
 			_ = msg.Ack()
 		},
 		nats.Durable(durableName),
-		nats.DeliverLastPerSubject(), // replay last known state per subject on startup
+		nats.DeliverAll(), // replay full stream history so all routers are learned on startup
 		nats.AckExplicit(),
 		// No BindStream: let NATS auto-find the stream by subject match.
 	)
