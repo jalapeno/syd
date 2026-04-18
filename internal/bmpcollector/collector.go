@@ -107,9 +107,9 @@ func (c *Collector) Register(h MessageHandler) {
 }
 
 // Start connects to NATS, creates a durable JetStream consumer for each
-// registered handler using DeliverLastPerSubjectPolicy (replays the latest
-// message per subject on connect or restart), and dispatches incoming
-// messages. It blocks until ctx is cancelled.
+// registered handler, and dispatches incoming messages. It blocks until ctx
+// is cancelled. If GoBMP's JetStream stream does not exist yet (startup race),
+// Start retries with backoff until the stream appears or ctx is cancelled.
 func (c *Collector) Start(ctx context.Context) error {
 	nc, err := nats.Connect(c.cfg.NATSUrl,
 		nats.Name("scoville-bmpcollector"),
@@ -134,13 +134,24 @@ func (c *Collector) Start(ctx context.Context) error {
 	}
 	c.js = js
 
-	for _, h := range c.handlers {
-		sub, err := c.subscribe(h)
-		if err != nil {
-			c.Stop()
-			return fmt.Errorf("subscribe %s: %w", h.Subject(), err)
+	// GoBMP creates its stream lazily on first connect. Retry subscribing
+	// with backoff until the stream exists or ctx is cancelled.
+	retryDelay := 3 * time.Second
+	for {
+		err := c.subscribeAll()
+		if err == nil {
+			break
 		}
-		c.subs = append(c.subs, sub)
+		c.log.Warn("bmp subscribe failed, retrying", "err", err, "delay", retryDelay)
+		select {
+		case <-ctx.Done():
+			c.Stop()
+			return nil
+		case <-time.After(retryDelay):
+			if retryDelay < 30*time.Second {
+				retryDelay *= 2
+			}
+		}
 	}
 
 	c.log.Info("bmp collector started",
@@ -149,6 +160,25 @@ func (c *Collector) Start(ctx context.Context) error {
 	)
 
 	<-ctx.Done()
+	return nil
+}
+
+// subscribeAll attempts to create JetStream consumers for all registered
+// handlers. Returns the first error encountered.
+func (c *Collector) subscribeAll() error {
+	// Drain any previous subscriptions from a prior attempt.
+	for _, sub := range c.subs {
+		_ = sub.Drain()
+	}
+	c.subs = nil
+
+	for _, h := range c.handlers {
+		sub, err := c.subscribe(h)
+		if err != nil {
+			return fmt.Errorf("subscribe %s: %w", h.Subject(), err)
+		}
+		c.subs = append(c.subs, sub)
+	}
 	return nil
 }
 
@@ -183,9 +213,10 @@ func (c *Collector) subscribe(h MessageHandler) (*nats.Subscription, error) {
 			_ = msg.Ack()
 		},
 		nats.Durable(durableName),
-		nats.DeliverLastPerSubject(),
+		nats.DeliverNew(),   // InterestPolicy stream: no stored msgs to replay
 		nats.AckExplicit(),
-		nats.BindStream(GoBMPStream),
+		// No BindStream: let NATS auto-find the stream by subject match.
+		// GoBMP creates "goBMP" stream covering gobmp.parsed.* on startup.
 	)
 	if err != nil {
 		return nil, err
