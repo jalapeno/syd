@@ -5,6 +5,7 @@
 //	POST   /topology               — upload/replace a topology (push-via-JSON)
 //	GET    /topology               — list topology IDs
 //	GET    /topology/{id}          — describe a topology (stats)
+//	GET    /topology/{id}/nodes    — list node IDs in a topology
 //	DELETE /topology/{id}          — remove a topology
 //
 //	POST   /paths/request                  — request SRv6 paths for a workload
@@ -89,6 +90,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /topology", s.handleTopologyPush)
 	mux.HandleFunc("GET /topology", s.handleTopologyList)
 	mux.HandleFunc("GET /topology/{id}", s.handleTopologyGet)
+	mux.HandleFunc("GET /topology/{id}/nodes", s.handleTopologyNodes)
 	mux.HandleFunc("DELETE /topology/{id}", s.handleTopologyDelete)
 
 	mux.HandleFunc("POST /paths/request", s.handlePathRequest)

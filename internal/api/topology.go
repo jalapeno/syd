@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/jalapeno/scoville/internal/allocation"
+	"github.com/jalapeno/scoville/internal/graph"
 	"github.com/jalapeno/scoville/internal/topology"
 	"github.com/jalapeno/scoville/pkg/apitypes"
 )
@@ -62,6 +63,28 @@ func (s *Server) handleTopologyGet(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, apitypes.TopologyResponse{
 		TopologyID: g.ID(),
 		Stats:      g.Stats(),
+	})
+}
+
+func (s *Server) handleTopologyNodes(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	g := s.store.Get(id)
+	if g == nil {
+		writeError(w, http.StatusNotFound, fmt.Sprintf("topology %q not found", id))
+		return
+	}
+	verts := g.VerticesByType(graph.VTNode)
+	nodes := make([]apitypes.NodeSummary, len(verts))
+	for i, v := range verts {
+		n := apitypes.NodeSummary{ID: v.GetID()}
+		if nd, ok := v.(*graph.Node); ok {
+			n.Name = nd.Name
+		}
+		nodes[i] = n
+	}
+	writeJSON(w, http.StatusOK, apitypes.TopologyNodesResponse{
+		TopologyID: id,
+		Nodes:      nodes,
 	})
 }
 

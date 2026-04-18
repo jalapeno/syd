@@ -21,6 +21,18 @@ type TopologyListResponse struct {
 	TopologyIDs []string `json:"topology_ids"`
 }
 
+// NodeSummary is one entry in a TopologyNodesResponse.
+type NodeSummary struct {
+	ID   string `json:"id"`
+	Name string `json:"name,omitempty"`
+}
+
+// TopologyNodesResponse is returned by GET /topology/{id}/nodes.
+type TopologyNodesResponse struct {
+	TopologyID string        `json:"topology_id"`
+	Nodes      []NodeSummary `json:"nodes"`
+}
+
 // --- Path request API -----------------------------------------------------
 
 // EndpointSpec identifies a workload endpoint in a path request.
