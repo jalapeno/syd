@@ -9,21 +9,9 @@ data:
     port: 4222
     monitor_port: 8222
 
+    # Enable JetStream globally (memory store, no persistence needed for dev/test).
     jetstream {
-      # Memory store is fine for dev/test.
-      # For persistence across pod restarts, switch to:
-      #   store_dir: /data
-      # and uncomment the PersistentVolumeClaim below.
       max_memory_store: 1GB
-    }
-
-    # Allow all clients without auth (adjust for production).
-    no_auth_user: anon
-    accounts {
-      $G {
-        users: [{user: anon, password: ""}]
-        jetstream: enabled
-      }
     }
 ---
 apiVersion: apps/v1
