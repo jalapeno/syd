@@ -107,10 +107,11 @@ func (c *Collector) Register(h MessageHandler) {
 	c.handlers[h.Subject()] = h
 }
 
-// Start connects to NATS, creates a durable JetStream consumer for each
-// registered handler, and dispatches incoming messages. It blocks until ctx
-// is cancelled. If GoBMP's JetStream stream does not exist yet (startup race),
-// Start retries with backoff until the stream appears or ctx is cancelled.
+// Start connects to NATS, ensures the goBMP stream uses LimitsPolicy (so
+// messages are retained for replay), creates a durable DeliverLastPerSubject
+// consumer for each registered handler, and dispatches incoming messages.
+// It blocks until ctx is cancelled. Retries with backoff if the stream is
+// not yet available (GoBMP startup race).
 func (c *Collector) Start(ctx context.Context) error {
 	nc, err := nats.Connect(c.cfg.NATSUrl,
 		nats.Name("scoville-bmpcollector"),
@@ -201,21 +202,33 @@ func (c *Collector) Stop() {
 	}
 }
 
-// ensureStream creates the goBMP JetStream stream with MemoryStorage if it
-// does not already exist. GoBMP normally creates this stream itself, but our
-// NATS deployment may not support FileStorage. Idempotent: safe to call when
-// the stream already exists.
+// ensureStream creates or updates the goBMP JetStream stream to use
+// LimitsPolicy retention with MemoryStorage. LimitsPolicy retains the last
+// message per subject for up to MaxAge, which allows DeliverLastPerSubject
+// consumers to replay current topology state on startup or reconnect.
+//
+// GoBMP creates the stream with InterestPolicy + FileStorage; we update it
+// here so that messages survive even when scoville restarts.
 func (c *Collector) ensureStream() error {
 	cfg := &nats.StreamConfig{
 		Name:      GoBMPStream,
 		Subjects:  []string{"gobmp.parsed.*"},
 		Storage:   nats.MemoryStorage,
-		Retention: nats.InterestPolicy,
-		MaxAge:    15 * time.Minute,
+		Retention: nats.LimitsPolicy,
+		MaxAge:    1 * time.Hour,
 		Replicas:  1,
 	}
 	_, err := c.js.AddStream(cfg)
-	if err != nil && !errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
+	if errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
+		// Stream already exists (created by GoBMP or a prior scoville run).
+		// Update it to LimitsPolicy so DeliverLastPerSubject works correctly.
+		_, err = c.js.UpdateStream(cfg)
+		if err != nil {
+			return fmt.Errorf("update stream to LimitsPolicy: %w", err)
+		}
+		return nil
+	}
+	if err != nil {
 		return fmt.Errorf("add stream: %w", err)
 	}
 	return nil
@@ -242,10 +255,9 @@ func (c *Collector) subscribe(h MessageHandler) (*nats.Subscription, error) {
 			_ = msg.Ack()
 		},
 		nats.Durable(durableName),
-		nats.DeliverNew(),   // InterestPolicy stream: no stored msgs to replay
+		nats.DeliverLastPerSubject(), // replay last known state per subject on startup
 		nats.AckExplicit(),
 		// No BindStream: let NATS auto-find the stream by subject match.
-		// GoBMP creates "goBMP" stream covering gobmp.parsed.* on startup.
 	)
 	if err != nil {
 		return nil, err
