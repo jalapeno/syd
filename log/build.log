@@ -1,0 +1,30 @@
+$ docker build -t scoville:latest .
+[+] Building 6.0s (9/14)                                                                                                    docker:default
+ => [internal] load build definition from Dockerfile                                                                                  0.0s
+ => => transferring dockerfile: 1.00kB                                                                                                0.0s
+ => [internal] load metadata for docker.io/library/golang:1.26-alpine                                                                 5.8s
+ => [auth] library/golang:pull token for registry-1.docker.io                                                                         0.0s
+ => [internal] load .dockerignore                                                                                                     0.0s
+ => => transferring context: 161B                                                                                                     0.0s
+ => CANCELED [build 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c8639  0.1s
+ => => resolve docker.io/library/golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1           0.0s
+ => => sha256:37a932cac16c0188b9a431afa69b0f64063cba293bb362177242913cadbb94bd 2.19kB / 2.19kB                                        0.0s
+ => => sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1 10.29kB / 10.29kB                                      0.0s
+ => => sha256:80fbb8f9b2fa541a7d34378f1ad10f4f1c433817c4ed39ddb3e2f3ec3e961271 1.92kB / 1.92kB                                        0.0s
+ => [internal] load build context                                                                                                     0.0s
+ => => transferring context: 429.80kB                                                                                                 0.0s
+ => CACHED [build 2/7] WORKDIR /src                                                                                                   0.0s
+ => CACHED [build 3/7] COPY go.mod go.sum ./                                                                                          0.0s
+ => ERROR [build 4/7] COPY ../gobmp/ /gobmp/                                                                                          0.0s
+------
+ > [build 4/7] COPY ../gobmp/ /gobmp/:
+------
+Dockerfile:10
+--------------------
+   8 |     # If the gobmp replace directive points to a sibling directory, copy it too.
+   9 |     # Adjust the path below if your layout differs.
+  10 | >>> COPY ../gobmp/ /gobmp/
+  11 |     RUN go mod download
+  12 |     
+--------------------
+ERROR: failed to solve: failed to compute cache key: failed to calculate checksum of ref 5e0001ca-46e1-4b45-bc09-3338d5a388fb::mvemk2j385ke5d51ah0fa5wqt: "/gobmp": not found
