@@ -55,3 +55,26 @@ You should see:
 level=INFO msg="bmp collector configured" nats_url=nats://nats.jalapeno:4222
 level=INFO msg="scoville starting" addr=:8080 bmp=true encap_mode=host
 Once the containerlab BMP streams are flowing, the topology will start populating and you can hit curl http://<node-ip>:30080/topology from your laptop.
+
+### BMP
+
+First grab a couple of node IDs from the graph:
+
+```
+curl -s http://<node-ip>:30080/topology/underlay | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+nodes = [v['id'] for v in d.get('vertices', []) if v.get('type') == 'node']
+print('nodes:', nodes[:6])
+"
+```
+
+Then point the scheduler at it:
+```
+python3 examples/scheduler-sim/scheduler.py \
+  --scoville http://<node-ip>:30080 \
+  --topology underlay \
+  --endpoints <node-id-1>,<node-id-2> \
+  --scenario basic
+```
+This will request SRv6 paths across your live BGP-LS topology — the first real end-to-end test of the whole stack.
