@@ -1,6 +1,7 @@
 package bmpcollector
 
 import (
+	"math"
 	"testing"
 
 	gobmpmsg "github.com/sbezverk/gobmp/pkg/message"
@@ -306,9 +307,10 @@ func TestTranslateLSLink_BasicLink(t *testing.T) {
 		RemoteLinkIP:      "10.0.0.2",
 		LocalLinkID:       1,
 		RemoteLinkID:      2,
-		IGPMetric:         10,
-		MaxLinkBWKbps:     100000,
-		Protocol:          "IS-IS Level-2",
+		IGPMetric: 10,
+		// 12,500,000 bytes/sec = 100 Mbps; exact in float32 (< 2^24).
+		MaxLinkBW: math.Float32bits(12_500_000),
+		Protocol:  "IS-IS Level-2",
 	}
 
 	iface, edge, own := translateLSLink(msg)
@@ -324,7 +326,7 @@ func TestTranslateLSLink_BasicLink(t *testing.T) {
 	if iface.OwnerNodeID != "0000.0000.0001" {
 		t.Errorf("iface.OwnerNodeID = %q, want %q", iface.OwnerNodeID, "0000.0000.0001")
 	}
-	if iface.Bandwidth != 100_000_000 { // 100000 kbps * 1000 = bps
+	if iface.Bandwidth != 100_000_000 { // 12_500_000 bytes/sec * 8 = 100 Mbps
 		t.Errorf("iface.Bandwidth = %d, want 100_000_000", iface.Bandwidth)
 	}
 
@@ -342,7 +344,7 @@ func TestTranslateLSLink_BasicLink(t *testing.T) {
 	if edge.IGPMetric != 10 {
 		t.Errorf("edge.IGPMetric = %d, want 10", edge.IGPMetric)
 	}
-	if edge.MaxBW != 100_000_000 {
+	if edge.MaxBW != 100_000_000 { // 12_500_000 bytes/sec * 8
 		t.Errorf("edge.MaxBW = %d, want 100_000_000", edge.MaxBW)
 	}
 
@@ -396,23 +398,25 @@ func TestTranslateLSLink_BWConversion(t *testing.T) {
 		IGPRouterID:       "r1",
 		RemoteIGPRouterID: "r2",
 		LocalLinkIP:       "10.1.1.1",
-		MaxLinkBWKbps:     400_000_000, // 400 Gbps in kbps
-		MaxResvBWKbps:     200_000_000,
-		UnResvBWKbps:      []uint64{100_000_000, 50_000_000},
+		// Use small exact float32 values: bytes/sec * 8 = bits/sec.
+		// 1,000,000 bytes/sec = 8 Mbps; 500,000 = 4 Mbps; etc. All < 2^24 (exact).
+		MaxLinkBW: math.Float32bits(1_000_000),
+		MaxResvBW: math.Float32bits(500_000),
+		UnResvBW:  []uint32{math.Float32bits(250_000), math.Float32bits(125_000)},
 	}
 
 	iface, edge, _ := translateLSLink(msg)
-	if iface.Bandwidth != 400_000_000_000 {
-		t.Errorf("iface.Bandwidth = %d, want 400_000_000_000", iface.Bandwidth)
+	if iface.Bandwidth != 8_000_000 { // 1_000_000 bytes/sec * 8 = 8 Mbps
+		t.Errorf("iface.Bandwidth = %d, want 8_000_000", iface.Bandwidth)
 	}
-	if edge.MaxBW != 400_000_000_000 {
-		t.Errorf("edge.MaxBW = %d, want 400_000_000_000", edge.MaxBW)
+	if edge.MaxBW != 8_000_000 {
+		t.Errorf("edge.MaxBW = %d, want 8_000_000", edge.MaxBW)
 	}
-	if edge.MaxResvBW != 200_000_000_000 {
-		t.Errorf("edge.MaxResvBW = %d, want 200_000_000_000", edge.MaxResvBW)
+	if edge.MaxResvBW != 4_000_000 { // 500_000 * 8
+		t.Errorf("edge.MaxResvBW = %d, want 4_000_000", edge.MaxResvBW)
 	}
-	if len(edge.UnresvBW) != 2 || edge.UnresvBW[0] != 100_000_000_000 {
-		t.Errorf("edge.UnresvBW = %v, want [100_000_000_000 50_000_000_000]", edge.UnresvBW)
+	if len(edge.UnresvBW) != 2 || edge.UnresvBW[0] != 2_000_000 { // 250_000 * 8
+		t.Errorf("edge.UnresvBW = %v, want [2_000_000 1_000_000]", edge.UnresvBW)
 	}
 }
 

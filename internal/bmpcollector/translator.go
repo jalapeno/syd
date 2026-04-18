@@ -3,6 +3,7 @@ package bmpcollector
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 
 	gobmpmsg "github.com/sbezverk/gobmp/pkg/message"
@@ -219,17 +220,17 @@ func translateLSLink(msg *gobmpmsg.LSLink) (iface *graph.Interface, edge *graph.
 		OwnerNodeID: localNID,
 		Name:        msg.LinkName,
 		LinkLocalID: msg.LocalLinkID,
-		Bandwidth:   msg.MaxLinkBWKbps * 1000, // Kbps → bps
+		Bandwidth:   uint64(math.Float32frombits(msg.MaxLinkBW) * 8), // bytes/sec → bits/sec
 		SRv6uASIDs:  uaSIDs,
 		AdjSIDs:     adjSIDs,
 	}
 
-	// Build unreserved BW slice in bps (from Kbps values when available).
+	// Build unreserved BW slice in bits/sec (IEEE 754 float32 bytes/sec → bits/sec).
 	var unresvBW []uint64
-	if len(msg.UnResvBWKbps) > 0 {
-		unresvBW = make([]uint64, len(msg.UnResvBWKbps))
-		for i, v := range msg.UnResvBWKbps {
-			unresvBW[i] = v * 1000
+	if len(msg.UnResvBW) > 0 {
+		unresvBW = make([]uint64, len(msg.UnResvBW))
+		for i, v := range msg.UnResvBW {
+			unresvBW[i] = uint64(math.Float32frombits(v) * 8)
 		}
 	}
 
@@ -255,8 +256,8 @@ func translateLSLink(msg *gobmpmsg.LSLink) (iface *graph.Interface, edge *graph.
 		IGPMetric:     msg.IGPMetric,
 		TEMetric:      msg.TEDefaultMetric,
 		AdminGroup:    msg.AdminGroup,
-		MaxBW:         msg.MaxLinkBWKbps * 1000,
-		MaxResvBW:     msg.MaxResvBWKbps * 1000,
+		MaxBW:         uint64(math.Float32frombits(msg.MaxLinkBW) * 8),
+		MaxResvBW:     uint64(math.Float32frombits(msg.MaxResvBW) * 8),
 		UnresvBW:      unresvBW,
 		SRLG:          msg.SRLG,
 		// Unidirectional performance metrics (RFC 7471 / RFC 8570).
@@ -300,7 +301,6 @@ func translatePeer(msg *gobmpmsg.PeerStateChange) *graph.BGPSessionEdge {
 		RemoteASN: msg.RemoteASN,
 		LocalIP:   msg.LocalIP,
 		RemoteIP:  msg.RemoteIP,
-		PeerType:  msg.PeerType,
 		IsUp:      isUp,
 	}
 }
