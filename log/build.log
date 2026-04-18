@@ -1,30 +1,52 @@
 $ docker build -t scoville:latest .
-[+] Building 6.0s (9/14)                                                                                                    docker:default
+[+] Building 20.5s (11/13)                                                                                                  docker:default
  => [internal] load build definition from Dockerfile                                                                                  0.0s
- => => transferring dockerfile: 1.00kB                                                                                                0.0s
- => [internal] load metadata for docker.io/library/golang:1.26-alpine                                                                 5.8s
+ => => transferring dockerfile: 855B                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/golang:1.26-alpine                                                                 0.2s
  => [auth] library/golang:pull token for registry-1.docker.io                                                                         0.0s
  => [internal] load .dockerignore                                                                                                     0.0s
  => => transferring context: 161B                                                                                                     0.0s
- => CANCELED [build 1/7] FROM docker.io/library/golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c8639  0.1s
+ => [build 1/6] FROM docker.io/library/golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1     6.2s
  => => resolve docker.io/library/golang:1.26-alpine@sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1           0.0s
- => => sha256:37a932cac16c0188b9a431afa69b0f64063cba293bb362177242913cadbb94bd 2.19kB / 2.19kB                                        0.0s
+ => => sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 3.86MB / 3.86MB                                        0.2s
+ => => sha256:4c3aca1499f06ff02939c8f744463049feecb3965f1319b86b5e91790a9631e6 290.24kB / 290.24kB                                    0.4s
+ => => sha256:b55da06e3b41084804b2e5dbba71d35d26478b19ba8055d07a393cae22e9935f 67.22MB / 67.22MB                                      1.4s
  => => sha256:f85330846cde1e57ca9ec309382da3b8e6ae3ab943d2739500e08c86393a21b1 10.29kB / 10.29kB                                      0.0s
  => => sha256:80fbb8f9b2fa541a7d34378f1ad10f4f1c433817c4ed39ddb3e2f3ec3e961271 1.92kB / 1.92kB                                        0.0s
+ => => sha256:37a932cac16c0188b9a431afa69b0f64063cba293bb362177242913cadbb94bd 2.19kB / 2.19kB                                        0.0s
+ => => extracting sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb                                             0.1s
+ => => sha256:973f1b4898e9c2c22c54ff9d1bc2e2d45d59d4c2e53c60281dde84ef43df4c79 126B / 126B                                            0.3s
+ => => extracting sha256:4c3aca1499f06ff02939c8f744463049feecb3965f1319b86b5e91790a9631e6                                             0.0s
+ => => sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1 32B / 32B                                              0.4s
+ => => extracting sha256:b55da06e3b41084804b2e5dbba71d35d26478b19ba8055d07a393cae22e9935f                                             4.4s
+ => => extracting sha256:973f1b4898e9c2c22c54ff9d1bc2e2d45d59d4c2e53c60281dde84ef43df4c79                                             0.0s
+ => => extracting sha256:4f4fb700ef54461cfa02571ae0db9a0dc1e0cdb5577484a6d75e68dc38e8acc1                                             0.0s
  => [internal] load build context                                                                                                     0.0s
- => => transferring context: 429.80kB                                                                                                 0.0s
- => CACHED [build 2/7] WORKDIR /src                                                                                                   0.0s
- => CACHED [build 3/7] COPY go.mod go.sum ./                                                                                          0.0s
- => ERROR [build 4/7] COPY ../gobmp/ /gobmp/                                                                                          0.0s
+ => => transferring context: 22.40kB                                                                                                  0.0s
+ => [build 2/6] WORKDIR /src                                                                                                          0.7s
+ => [build 3/6] COPY go.mod go.sum ./                                                                                                 0.0s
+ => [build 4/6] RUN go mod download                                                                                                   2.3s
+ => [build 5/6] COPY . .                                                                                                              0.1s
+ => ERROR [build 6/6] RUN CGO_ENABLED=0 GOOS=linux go build       -trimpath       -ldflags="-s -w"       -o /out/scoville       ./c  11.0s
+------                                                                                                                                     
+ > [build 6/6] RUN CGO_ENABLED=0 GOOS=linux go build       -trimpath       -ldflags="-s -w"       -o /out/scoville       ./cmd/scoville:   
+10.67 # github.com/jalapeno/scoville/internal/bmpcollector                                                                                 
+10.67 internal/bmpcollector/translator.go:222:20: msg.MaxLinkBWKbps undefined (type *message.LSLink has no field or method MaxLinkBWKbps)  
+10.67 internal/bmpcollector/translator.go:229:13: msg.UnResvBWKbps undefined (type *message.LSLink has no field or method UnResvBWKbps)    
+10.67 internal/bmpcollector/translator.go:230:37: msg.UnResvBWKbps undefined (type *message.LSLink has no field or method UnResvBWKbps)    
+10.67 internal/bmpcollector/translator.go:231:25: msg.UnResvBWKbps undefined (type *message.LSLink has no field or method UnResvBWKbps)
+10.67 internal/bmpcollector/translator.go:258:22: msg.MaxLinkBWKbps undefined (type *message.LSLink has no field or method MaxLinkBWKbps)
+10.67 internal/bmpcollector/translator.go:259:22: msg.MaxResvBWKbps undefined (type *message.LSLink has no field or method MaxResvBWKbps)
+10.67 internal/bmpcollector/translator.go:303:18: msg.PeerType undefined (type *message.PeerStateChange has no field or method PeerType)
 ------
- > [build 4/7] COPY ../gobmp/ /gobmp/:
-------
-Dockerfile:10
+Dockerfile:13
 --------------------
-   8 |     # If the gobmp replace directive points to a sibling directory, copy it too.
-   9 |     # Adjust the path below if your layout differs.
-  10 | >>> COPY ../gobmp/ /gobmp/
-  11 |     RUN go mod download
-  12 |     
+  12 |     # CGO_ENABLED=0 produces a fully static binary safe for a scratch base.
+  13 | >>> RUN CGO_ENABLED=0 GOOS=linux go build \
+  14 | >>>       -trimpath \
+  15 | >>>       -ldflags="-s -w" \
+  16 | >>>       -o /out/scoville \
+  17 | >>>       ./cmd/scoville
+  18 |     
 --------------------
-ERROR: failed to solve: failed to compute cache key: failed to calculate checksum of ref 5e0001ca-46e1-4b45-bc09-3338d5a388fb::mvemk2j385ke5d51ah0fa5wqt: "/gobmp": not found
+ERROR: failed to solve: process "/bin/sh -c CGO_ENABLED=0 GOOS=linux go build       -trimpath       -ldflags=\"-s -w\"       -o /out/scoville       ./cmd/scoville" did not complete successfully: exit code: 1
