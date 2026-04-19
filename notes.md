@@ -78,3 +78,31 @@ python3 examples/scheduler-sim/scheduler.py \
   --scenario basic
 ```
 This will request SRv6 paths across your live BGP-LS topology — the first real end-to-end test of the whole stack.
+
+
+
+### Debugging gobmp-nats
+
+```
+curl -s http://localhost:30080/topology/underlay/nodes | python3 -m json.tool | grep name
+```
+
+nats cli:
+```
+ kubectl -n jalapeno port-forward svc/nats 4222:4222 &
+```
+
+```
+curl -s 'http://localhost:8222/jsz/streams/goBMP/subjects' | python3 -m json.tool
+```
+```
+nats -s nats://localhost:4222 consumer next goBMP   --subject gobmp.parsed.ls_node   --all --count 500 --raw 2>/dev/null   | python3 -c "
+import sys, json
+for line in sys.stdin:
+    line = line.strip()
+    if not line: continue
+    try:
+        m = json.loads(line)
+        print(m)
+    except: pass"
+
