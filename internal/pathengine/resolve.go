@@ -52,7 +52,8 @@ func resolveOne(g *graph.Graph, spec apitypes.EndpointSpec) (ResolvedEndpoint, e
 		}
 		switch v.GetType() {
 		case graph.VTNode:
-			return ResolvedEndpoint{Spec: spec, NodeID: spec.ID}, nil
+			// When the spec ID is a Node directly, EndpointID == NodeID.
+			return ResolvedEndpoint{Spec: spec, EndpointID: spec.ID, NodeID: spec.ID}, nil
 		case graph.VTEndpoint:
 			nodeID, err := attachedNode(g, spec.ID)
 			if err != nil {
