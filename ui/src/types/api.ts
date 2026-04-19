@@ -56,14 +56,22 @@ export interface PathResultMetric {
   hop_count: number;
 }
 
+export interface SegmentList {
+  encap: string;
+  flavor: string;
+  sids: string[];
+}
+
 export interface PathResult {
   src_id: string;
   dst_id: string;
   src_address?: string;
   dst_address?: string;
-  segment_list: unknown;
+  segment_list: SegmentList;
   metric: PathResultMetric;
   path_id: string;
+  vertex_ids?: string[];
+  edge_ids?: string[];
 }
 
 export interface AllocationSummary {

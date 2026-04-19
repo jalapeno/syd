@@ -344,22 +344,52 @@ function PathsContent({ response }: { response: PathResponse }) {
           </span>
         </div>
       </div>
-      <div className="space-y-2 max-h-96 overflow-y-auto">
+      <div className="space-y-3 max-h-[calc(100vh-320px)] overflow-y-auto">
         {response.paths.map((p, i) => (
           <div
             key={p.path_id || i}
-            className="p-2 bg-kraken-dark rounded border border-kraken-border/50"
+            className="p-3 bg-kraken-dark rounded border border-kraken-border/50"
           >
-            <div className="flex items-center gap-1 text-xs">
+            {/* Flow direction */}
+            <div className="flex items-center gap-1 text-xs mb-2">
               <span className="font-mono text-kraken-ice">{p.src_id}</span>
               <ChevronRight className="w-3 h-3 text-kraken-muted" />
               <span className="font-mono text-kraken-ice">{p.dst_id}</span>
             </div>
-            <div className="mt-1 flex gap-2 text-xs text-kraken-muted">
+
+            {/* Metrics */}
+            <div className="flex gap-3 text-xs text-kraken-muted mb-2">
               <span>hops: {p.metric.hop_count}</span>
               <span>metric: {p.metric.igp_metric}</span>
               {p.metric.delay_us ? <span>delay: {p.metric.delay_us}us</span> : null}
             </div>
+
+            {/* Segment List */}
+            {p.segment_list && (
+              <div className="mt-2 pt-2 border-t border-kraken-border/30">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[10px] uppercase tracking-wider text-kraken-muted font-medium">
+                    {p.segment_list.encap}
+                  </span>
+                  <span className="text-[10px] bg-kraken-mid/50 text-kraken-ice-dim px-1.5 py-0.5 rounded font-mono">
+                    {p.segment_list.flavor}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {p.segment_list.sids.map((sid, j) => (
+                    <div
+                      key={j}
+                      className="flex items-center gap-2 px-2 py-1 bg-kraken-navy rounded"
+                    >
+                      <span className="text-[10px] text-kraken-muted w-4">{j}</span>
+                      <span className="text-xs font-mono text-kraken-frost break-all">
+                        {sid}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>

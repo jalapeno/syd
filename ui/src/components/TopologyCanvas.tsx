@@ -347,23 +347,76 @@ export default function TopologyCanvas({
         .attr('stroke', '#3a7faa')
         .attr('stroke-width', 1.8)
         .attr('stroke-opacity', 0.7);
+      svg.selectAll('.nodes g').each(function (d: any) {
+        const tier = d.id.includes('spine') ? 0 : d.id.includes('leaf') ? 1 : 2;
+        d3.select(this)
+          .select('circle')
+          .attr('stroke', tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a')
+          .attr('stroke-width', 2.5)
+          .attr('fill', tier === 0 ? '#0f4477' : tier === 1 ? '#0a3358' : '#061e38');
+      });
       return;
     }
 
-    // Highlight links that connect path endpoints (simplified — full path
-    // visualization would need the actual hop-by-hop path from the API)
-    const pNodes = new Set(pathResponse.paths.flatMap((p) => [p.src_id, p.dst_id]));
+    // Collect all vertex IDs and edge IDs from the computed paths
+    const pathVertices = new Set<string>();
+    const pathEdges = new Set<string>();
+    for (const p of pathResponse.paths) {
+      pathVertices.add(p.src_id);
+      pathVertices.add(p.dst_id);
+      if (p.vertex_ids) {
+        for (const v of p.vertex_ids) pathVertices.add(v);
+      }
+      if (p.edge_ids) {
+        for (const e of p.edge_ids) pathEdges.add(e);
+      }
+    }
 
+    // Highlight links on the path in bright cyan, dim others
     svg.selectAll('.links line').each(function (d: any) {
-      const srcId = typeof d.source === 'string' ? d.source : d.source.id;
-      const tgtId = typeof d.target === 'string' ? d.target : d.target.id;
-      const onPath = pNodes.has(srcId) || pNodes.has(tgtId);
+      const edgeId = d.id;
+      const onPath = pathEdges.has(edgeId);
       d3.select(this)
         .transition()
         .duration(300)
         .attr('stroke', onPath ? '#68e8e8' : '#1a3f5e')
-        .attr('stroke-width', onPath ? 3 : 1.5)
-        .attr('stroke-opacity', onPath ? 1.0 : 0.3);
+        .attr('stroke-width', onPath ? 3.5 : 1.2)
+        .attr('stroke-opacity', onPath ? 1.0 : 0.25);
+    });
+
+    // Highlight path nodes: endpoints in red, transit nodes in cyan
+    svg.selectAll('.nodes g').each(function (d: any) {
+      const isEndpoint = pathResponse.paths.some(
+        (p) => p.src_id === d.id || p.dst_id === d.id
+      );
+      const isTransit = !isEndpoint && pathVertices.has(d.id);
+      if (isEndpoint) {
+        d3.select(this)
+          .select('circle')
+          .transition()
+          .duration(300)
+          .attr('stroke', '#ff2d55')
+          .attr('stroke-width', 4)
+          .attr('fill', '#3d0a15');
+      } else if (isTransit) {
+        d3.select(this)
+          .select('circle')
+          .transition()
+          .duration(300)
+          .attr('stroke', '#68e8e8')
+          .attr('stroke-width', 3.5)
+          .attr('fill', '#0a4060');
+      } else {
+        const tier = d.id.includes('spine') ? 0 : d.id.includes('leaf') ? 1 : 2;
+        d3.select(this)
+          .select('circle')
+          .transition()
+          .duration(300)
+          .attr('stroke', tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a')
+          .attr('stroke-width', 2.5)
+          .attr('stroke-opacity', 0.3)
+          .attr('fill', tier === 0 ? '#0f4477' : tier === 1 ? '#0a3358' : '#061e38');
+      }
     });
   }, [pathResponse, topology]);
 

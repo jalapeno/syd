@@ -91,6 +91,8 @@ func (s *Server) handlePathRequest(w http.ResponseWriter, r *http.Request) {
 			DstID:       p.DstID,
 			SegmentList: p.SegmentList,
 			PathID:      p.ID,
+			VertexIDs:   p.VertexIDs,
+			EdgeIDs:     p.EdgeIDs,
 			Metric: apitypes.PathResultMetric{
 				IGPMetric:    p.Metric.IGPMetric,
 				DelayUS:      p.Metric.DelayUS,

@@ -137,6 +137,10 @@ type PathResult struct {
 	SegmentList srv6.SegmentList  `json:"segment_list"`
 	Metric      PathResultMetric `json:"metric"`
 	PathID      string           `json:"path_id"`
+	// VertexIDs lists the Node vertices traversed in order (for visualization).
+	VertexIDs []string `json:"vertex_ids,omitempty"`
+	// EdgeIDs lists the LinkEdge IDs traversed in order (for visualization).
+	EdgeIDs []string `json:"edge_ids,omitempty"`
 }
 
 // PathResultMetric summarises path quality for the caller.
