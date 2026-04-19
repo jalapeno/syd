@@ -40,6 +40,7 @@ import (
 	"github.com/jalapeno/syd/internal/southbound"
 	"github.com/jalapeno/syd/internal/southbound/gnmi"
 	"github.com/jalapeno/syd/internal/southbound/noop"
+	uiembed "github.com/jalapeno/syd/ui"
 )
 
 func main() {
@@ -122,12 +123,27 @@ func main() {
 	// --- HTTP API server -----------------------------------------------------
 	srv := api.NewWithDriver(store, tables, driver, log)
 
+	// Combine API routes with embedded UI static assets.
+	// API routes take priority; unmatched paths fall through to the UI SPA.
+	apiHandler := srv.Handler()
+	uiHandler := uiembed.Handler()
+	root := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// API paths are handled by the API mux
+		switch {
+		case len(r.URL.Path) >= 9 && r.URL.Path[:9] == "/topology",
+			len(r.URL.Path) >= 6 && r.URL.Path[:6] == "/paths":
+			apiHandler.ServeHTTP(w, r)
+		default:
+			uiHandler.ServeHTTP(w, r)
+		}
+	})
+
 	log.Info("syd starting",
 		"addr", *addr,
 		"bmp", *bmpEnabled,
 		"encap_mode", *encapMode,
 	)
-	if err := http.ListenAndServe(*addr, srv.Handler()); err != nil {
+	if err := http.ListenAndServe(*addr, root); err != nil {
 		log.Error("server exited", "err", err)
 		os.Exit(1)
 	}
