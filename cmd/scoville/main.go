@@ -89,6 +89,11 @@ func main() {
 
 	// --- BMP collector -------------------------------------------------------
 	if *bmpEnabled {
+		// Pre-create the allocation table for the BMP-learned topology so
+		// path requests work as soon as the graph is populated. POST /topology
+		// normally does this, but BMP-driven graphs bypass that handler.
+		tables.Put(*bmpTopo, allocation.NewTable(*bmpTopo))
+
 		updater := bmpcollector.NewUpdater()
 
 		// Wire topology invalidation: when BMP withdraws a node or link,
