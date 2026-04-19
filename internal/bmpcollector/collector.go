@@ -108,8 +108,10 @@ func (c *Collector) Register(h MessageHandler) {
 }
 
 // Start connects to NATS, ensures the goBMP stream uses LimitsPolicy (so
-// messages are retained for replay), creates a durable DeliverLastPerSubject
-// consumer for each registered handler, and dispatches incoming messages.
+// messages are retained for replay), deletes any stale durable consumers so
+// the full stream history is replayed into the in-memory store, creates fresh
+// durable DeliverAll consumers for each registered handler, and dispatches
+// incoming messages.
 // It blocks until ctx is cancelled. Retries with backoff if the stream is
 // not yet available (GoBMP startup race).
 func (c *Collector) Start(ctx context.Context) error {
@@ -144,6 +146,13 @@ func (c *Collector) Start(ctx context.Context) error {
 	if err := c.ensureStream(); err != nil {
 		c.log.Warn("could not ensure goBMP stream", "err", err)
 	}
+
+	// Delete any pre-existing durable consumers so they are recreated with
+	// DeliverAll on this run. This is necessary because the topology is held
+	// in memory: on restart the store is empty, and a durable consumer that
+	// remembers its ack position would only deliver messages published after
+	// the restart — leaving the topology permanently incomplete.
+	c.deleteConsumers()
 
 	// Retry subscribing with backoff until the stream exists or ctx is cancelled.
 	retryDelay := 3 * time.Second
@@ -232,6 +241,19 @@ func (c *Collector) ensureStream() error {
 		return fmt.Errorf("add stream: %w", err)
 	}
 	return nil
+}
+
+// deleteConsumers removes the durable consumers for all registered handlers.
+// Errors are logged and ignored — consumers may not exist on first run.
+func (c *Collector) deleteConsumers() {
+	for _, h := range c.handlers {
+		name := c.cfg.ConsumerName + "-" + sanitizeDots(h.Subject())
+		if err := c.js.DeleteConsumer(GoBMPStream, name); err != nil {
+			c.log.Debug("delete consumer (may not exist)", "consumer", name, "err", err)
+		} else {
+			c.log.Info("deleted stale consumer for replay", "consumer", name)
+		}
+	}
 }
 
 // subscribe creates a durable JetStream push consumer for h. The consumer
