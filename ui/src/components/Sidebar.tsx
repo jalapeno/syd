@@ -27,6 +27,7 @@ interface SidebarProps {
   topologyId: string;
   onTopologyChange: (id: string) => void;
   onClearSelection: () => void;
+  onClearPaths: () => void;
   onPathResponse: (resp: PathResponse) => void;
 }
 
@@ -39,6 +40,7 @@ export default function Sidebar({
   topologyId,
   onTopologyChange,
   onClearSelection,
+  onClearPaths,
 }: SidebarProps) {
   const [topologies, setTopologies] = useState<string[]>([]);
   const [policies, setPolicies] = useState<PolicyEntry[]>([]);
@@ -133,7 +135,7 @@ export default function Sidebar({
           />
         )}
         {view === 'paths' && pathResponse && (
-          <PathsContent response={pathResponse} />
+          <PathsContent response={pathResponse} onClear={onClearPaths} />
         )}
         {view === 'workloads' && (
           <WorkloadList topologyId={topologyId} />
@@ -322,12 +324,20 @@ function DetailContent({
   );
 }
 
-function PathsContent({ response }: { response: PathResponse }) {
+function PathsContent({ response, onClear }: { response: PathResponse; onClear: () => void }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-kraken-ice mb-2">
-        Computed Paths
-      </h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-kraken-ice">
+          Computed Paths
+        </h3>
+        <button
+          onClick={onClear}
+          className="px-2 py-1 text-xs rounded bg-kraken-dark border border-kraken-border text-kraken-muted hover:text-kraken-frost hover:border-kraken-ice transition-colors"
+        >
+          Clear
+        </button>
+      </div>
       <div className="mb-3 space-y-1">
         <div className="flex justify-between text-xs text-kraken-muted">
           <span>Workload</span>

@@ -61,6 +61,12 @@ function App() {
     setSidebarView('menu');
   }, []);
 
+  const handleClearPaths = useCallback(() => {
+    setPathResponse(null);
+    setSelectedNodes([]);
+    setSidebarView('menu');
+  }, []);
+
   return (
     <div className="flex h-full">
       <Sidebar
@@ -72,6 +78,7 @@ function App() {
         topologyId={topologyId}
         onTopologyChange={setTopologyId}
         onClearSelection={handleClearSelection}
+        onClearPaths={handleClearPaths}
         onPathResponse={handlePathResponse}
       />
       <main className="flex-1 relative overflow-hidden">
