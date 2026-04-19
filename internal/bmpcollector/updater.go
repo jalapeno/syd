@@ -162,18 +162,46 @@ func (u *Updater) UpsertLinkEdge(g *graph.Graph, edge *graph.LinkEdge) {
 	_ = g.AddEdge(edge)
 }
 
-// UpsertBGPSession adds or replaces a BGPSessionEdge only when both endpoint
-// vertices already exist in the graph. BGP peer IDs (IPv4 router-ID addresses)
-// do not match IS-IS system IDs, so creating stub nodes for missing endpoints
-// would pollute the topology with IP-addressed duplicates of IS-IS nodes.
-// The edge is silently skipped if either endpoint is not yet known.
+// UpsertBGPSession adds or replaces a BGPSessionEdge, creating stub Node
+// vertices for the src and dst endpoints if they do not already exist.
+// In the peers graph, node IDs are IP addresses (BGP IDs / peer IPs), which is
+// correct for that graph but would pollute an IS-IS underlay graph with
+// IP-addressed stubs — callers should route peer messages to a dedicated
+// "<topoID>-peers" graph via the peerHandler.
 func (u *Updater) UpsertBGPSession(g *graph.Graph, sess *graph.BGPSessionEdge) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	if g.GetVertex(sess.SrcID) == nil || g.GetVertex(sess.DstID) == nil {
-		return
+	if g.GetVertex(sess.SrcID) == nil {
+		_ = g.AddVertex(&graph.Node{
+			BaseVertex: graph.BaseVertex{ID: sess.SrcID, Type: graph.VTNode},
+		})
+	}
+	if g.GetVertex(sess.DstID) == nil {
+		_ = g.AddVertex(&graph.Node{
+			BaseVertex: graph.BaseVertex{ID: sess.DstID, Type: graph.VTNode},
+		})
 	}
 	_ = g.AddEdge(sess)
+}
+
+// UpsertPrefix adds or replaces a Prefix vertex and, when a nexthop node and
+// ownership edge are provided, ensures the nexthop stub Node exists and inserts
+// the OwnershipEdge linking the prefix to its nexthop.
+// The same prefix may have multiple nexthops (ECMP): each call adds a separate
+// OwnershipEdge; the Prefix vertex itself is shared across all of them.
+func (u *Updater) UpsertPrefix(g *graph.Graph, pfx *graph.Prefix, nh *graph.Node, own *graph.OwnershipEdge) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	_ = g.AddVertex(pfx)
+	if nh == nil {
+		return
+	}
+	if g.GetVertex(nh.ID) == nil {
+		_ = g.AddVertex(nh)
+	}
+	if own != nil {
+		_ = g.AddEdge(own)
+	}
 }
 
 // RemoveVertex removes the vertex and all incident edges from the graph, then

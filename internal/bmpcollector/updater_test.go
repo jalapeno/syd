@@ -403,19 +403,18 @@ func TestUpdater_ConcurrentUpserts(t *testing.T) {
 	u := NewUpdater()
 	_, g := newStore(t)
 
-	done := make(chan struct{})
+	done := make(chan struct{}, 20)
 	for i := 0; i < 20; i++ {
 		go func(i int) {
 			nID := fmt.Sprintf("r%d", i)
 			u.EnsureNode(g, nID)
 			loc := makeLocator(fmt.Sprintf("fc00:0:%d::/48", i), 0)
 			u.UpsertLocator(g, nID, loc)
-			close(done) // each goroutine closes — just need to not race/panic
+			done <- struct{}{}
 		}(i)
 	}
 	// Drain — we just want no data race (run with -race).
 	for i := 0; i < 20; i++ {
 		<-done
-		done = make(chan struct{})
 	}
 }

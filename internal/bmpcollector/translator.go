@@ -59,6 +59,29 @@ func peerEdgeID(localBGPID, remoteIP string) string {
 	return "bgpsess:" + localBGPID + ":" + remoteIP
 }
 
+// prefixVertexID returns the Prefix vertex ID for an IP prefix/len.
+func prefixVertexID(prefix string, prefixLen int32) string {
+	return fmt.Sprintf("pfx:%s/%d", prefix, prefixLen)
+}
+
+// nexthopNodeID returns the stub Node vertex ID for a nexthop IP address.
+// IPv6 nexthops may be "primary,link-local" — only the primary is used.
+func nexthopNodeID(nexthop string) string {
+	if i := strings.IndexByte(nexthop, ','); i >= 0 {
+		nexthop = nexthop[:i]
+	}
+	if nexthop == "" {
+		return ""
+	}
+	return "nh:" + nexthop
+}
+
+// prefixOwnerEdgeID returns the OwnershipEdge ID for a (prefix vertex, nexthop
+// node) pair.
+func prefixOwnerEdgeID(pfxID, nhID string) string {
+	return "pfxown:" + pfxID + ":" + nhID
+}
+
 // --- Behavior code mapping ---------------------------------------------------
 
 // behaviorFromCode maps an IANA SRv6 Endpoint Behavior code (RFC 8986 §8.1)
@@ -331,6 +354,50 @@ func translatePeer(msg *gobmpmsg.PeerStateChange) *graph.BGPSessionEdge {
 	}
 }
 
+// --- Unicast prefix translation -----------------------------------------------
+
+// translateUnicastPrefix converts a GoBMP UnicastPrefix message to:
+//   - pfx: a Prefix vertex (keyed by "<ip>/<len>")
+//   - nh:  a stub Node vertex for the nexthop (keyed by "nh:<ip>"); nil when
+//     the message carries no nexthop
+//   - own: an OwnershipEdge connecting pfx → nh; nil when nh is nil
+//
+// The same prefix announced via different nexthops produces the same pfx vertex
+// but distinct nh nodes and own edges, representing multiple equal-cost paths.
+func translateUnicastPrefix(msg *gobmpmsg.UnicastPrefix) (pfx *graph.Prefix, nh *graph.Node, own *graph.OwnershipEdge) {
+	pfxID := prefixVertexID(msg.Prefix, msg.PrefixLen)
+	pfx = &graph.Prefix{
+		BaseVertex: graph.BaseVertex{
+			ID:   pfxID,
+			Type: graph.VTPrefix,
+		},
+		Prefix:    fmt.Sprintf("%s/%d", msg.Prefix, msg.PrefixLen),
+		PrefixLen: msg.PrefixLen,
+	}
+
+	nhID := nexthopNodeID(msg.Nexthop)
+	if nhID == "" {
+		return pfx, nil, nil
+	}
+
+	nh = &graph.Node{
+		BaseVertex: graph.BaseVertex{
+			ID:   nhID,
+			Type: graph.VTNode,
+		},
+	}
+	own = &graph.OwnershipEdge{
+		BaseEdge: graph.BaseEdge{
+			ID:       prefixOwnerEdgeID(pfxID, nhID),
+			Type:     graph.ETOwnership,
+			SrcID:    pfxID,
+			DstID:    nhID,
+			Directed: true,
+		},
+	}
+	return pfx, nh, own
+}
+
 // --- MessageHandler implementations ------------------------------------------
 
 // lsNodeHandler processes gobmp.parsed.ls_node messages.
@@ -466,24 +533,65 @@ func (h *peerHandler) Handle(data []byte, store *graph.Store) error {
 	return nil
 }
 
-// DefaultHandlers returns the four BGP-LS handlers that populate the topology
-// graphs. Register these with Collector before calling Start. Additional
-// AFI/SAFI handlers can be registered independently.
+// unicastPrefixHandler processes gobmp.parsed.unicast_prefix_v4 or _v6
+// messages. A single struct handles both address families; the subject and
+// topoID differentiate them.
+type unicastPrefixHandler struct {
+	updater *Updater
+	topoID  string
+	subject string // SubjectUnicastV4 or SubjectUnicastV6
+}
+
+func (h *unicastPrefixHandler) Subject() string { return h.subject }
+
+func (h *unicastPrefixHandler) Handle(data []byte, store *graph.Store) error {
+	var msg gobmpmsg.UnicastPrefix
+	if err := json.Unmarshal(data, &msg); err != nil {
+		return fmt.Errorf("unmarshal UnicastPrefix: %w", err)
+	}
+	if msg.Prefix == "" {
+		return nil // EoR marker or incomplete message — skip
+	}
+	pfx, nh, own := translateUnicastPrefix(&msg)
+	g := h.updater.EnsureGraph(store, h.topoID)
+	if msg.Action == "del" {
+		// On withdrawal, remove the ownership edge for this (prefix, nexthop)
+		// pair. The Prefix vertex is left in place: other nexthops may still
+		// advertise the same prefix, and the vertex is harmless when orphaned.
+		if own != nil {
+			h.updater.RemoveEdge(g, own.GetID())
+		}
+		return nil
+	}
+	h.updater.UpsertPrefix(g, pfx, nh, own)
+	return nil
+}
+
+// DefaultHandlers returns the six handlers that populate all topology graphs.
+// Register these with Collector before calling Start. Additional AFI/SAFI
+// handlers can be registered independently.
 //
-// Two graphs are populated:
-//   - topoID (e.g. "underlay"): IS-IS MT-2 (IPv6/SRv6) links; used for path
-//     computation. SRv6 locators and uA SIDs live here.
-//   - topoID+"-v4" (e.g. "underlay-v4"): IS-IS base-topology (MTID=0) links
-//     carrying IPv4 adjacencies; topology-visible but not used for SRv6 SPF.
+// Six graphs are populated (all derived from topoID, e.g. "underlay"):
+//
+//   - topoID:                  IS-IS MT-2 (IPv6/SRv6) links, path computation
+//   - topoID+"-v4":            IS-IS base-topology (MTID=0) IPv4 links
+//   - topoID+"-peers":         BGP session topology (IP-addressed node stubs)
+//   - topoID+"-prefixes-v4":   BGP IPv4 unicast prefixes → nexthop nodes
+//   - topoID+"-prefixes-v6":   BGP IPv6 unicast prefixes → nexthop nodes
 //
 // Node vertices are written to the primary graph and mirrored to the v4
 // companion once the companion is created by the first IPv4 link.
 func DefaultHandlers(updater *Updater, topoID string) []MessageHandler {
 	v4TopoID := topoID + "-v4"
+	peersTopoID := topoID + "-peers"
+	prefV4TopoID := topoID + "-prefixes-v4"
+	prefV6TopoID := topoID + "-prefixes-v6"
 	return []MessageHandler{
 		&lsNodeHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
 		&lsLinkHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
 		&lsSRv6SIDHandler{updater: updater, topoID: topoID},
-		&peerHandler{updater: updater, topoID: topoID},
+		&peerHandler{updater: updater, topoID: peersTopoID},
+		&unicastPrefixHandler{updater: updater, topoID: prefV4TopoID, subject: SubjectUnicastV4},
+		&unicastPrefixHandler{updater: updater, topoID: prefV6TopoID, subject: SubjectUnicastV6},
 	}
 }

@@ -45,6 +45,8 @@ func TestDefaultHandlers_Subjects(t *testing.T) {
 		SubjectLSLink:    false,
 		SubjectLSSRv6SID: false,
 		SubjectPeer:      false,
+		SubjectUnicastV4: false,
+		SubjectUnicastV6: false,
 	}
 	for _, h := range handlers {
 		if _, ok := want[h.Subject()]; !ok {
@@ -387,7 +389,18 @@ func TestPeerHandler_Up(t *testing.T) {
 		t.Fatalf("Handle returned error: %v", err)
 	}
 
-	g := store.Get("underlay")
+	// Peer messages go to the dedicated "-peers" companion graph.
+	g := store.Get("underlay-peers")
+	if g == nil {
+		t.Fatal("underlay-peers graph not created")
+	}
+	// Stub node vertices must exist for both BGP endpoints.
+	if g.GetVertex("192.0.2.1") == nil {
+		t.Error("local BGP-ID vertex 192.0.2.1 not found in peers graph")
+	}
+	if g.GetVertex("192.0.2.2") == nil {
+		t.Error("remote IP vertex 192.0.2.2 not found in peers graph")
+	}
 	e := g.GetEdge("bgpsess:192.0.2.1:192.0.2.2")
 	if e == nil {
 		t.Fatal("BGP session edge not found")
@@ -426,7 +439,7 @@ func TestPeerHandler_Down(t *testing.T) {
 		t.Fatalf("down returned error: %v", err)
 	}
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-peers")
 	e := g.GetEdge("bgpsess:192.0.2.1:192.0.2.2")
 	if e == nil {
 		t.Fatal("BGP session edge should still exist after peer down (state updated in place)")
@@ -711,5 +724,184 @@ func TestLSNodeHandler_Del_RemovedFromBothGraphs(t *testing.T) {
 		if g.GetVertex("0000.0000.0001") != nil {
 			t.Errorf("node still present in %s after del", topoID)
 		}
+	}
+}
+
+// --- unicastPrefixHandler ----------------------------------------------------
+
+func TestUnicastPrefixV4Handler_Add(t *testing.T) {
+	_, store, handlers := newHandlerEnv()
+	h := handlerBySubject(handlers, SubjectUnicastV4)
+
+	payload := mustJSON(map[string]any{
+		"action":     "add",
+		"prefix":     "192.0.2.0",
+		"prefix_len": 24,
+		"nexthop":    "10.0.0.1",
+		"peer_asn":   65001,
+		"origin_as":  65002,
+		"is_ipv4":    true,
+	})
+
+	if err := h.Handle(payload, store); err != nil {
+		t.Fatalf("Handle returned error: %v", err)
+	}
+
+	g := store.Get("underlay-prefixes-v4")
+	if g == nil {
+		t.Fatal("underlay-prefixes-v4 graph not created")
+	}
+
+	// Prefix vertex must exist.
+	pfxID := "pfx:192.0.2.0/24"
+	v := g.GetVertex(pfxID)
+	if v == nil {
+		t.Fatalf("prefix vertex %q not found", pfxID)
+	}
+	pfx := v.(*graph.Prefix)
+	if pfx.Prefix != "192.0.2.0/24" {
+		t.Errorf("Prefix = %q, want 192.0.2.0/24", pfx.Prefix)
+	}
+	if pfx.PrefixLen != 24 {
+		t.Errorf("PrefixLen = %d, want 24", pfx.PrefixLen)
+	}
+
+	// Nexthop stub node must exist.
+	nhID := "nh:10.0.0.1"
+	if g.GetVertex(nhID) == nil {
+		t.Errorf("nexthop node %q not found", nhID)
+	}
+
+	// OwnershipEdge linking prefix → nexthop must exist.
+	ownID := "pfxown:" + pfxID + ":" + nhID
+	if g.GetEdge(ownID) == nil {
+		t.Errorf("ownership edge %q not found", ownID)
+	}
+}
+
+func TestUnicastPrefixV4Handler_Del(t *testing.T) {
+	_, store, handlers := newHandlerEnv()
+	h := handlerBySubject(handlers, SubjectUnicastV4)
+
+	// Add the prefix first.
+	add := mustJSON(map[string]any{
+		"action":     "add",
+		"prefix":     "192.0.2.0",
+		"prefix_len": 24,
+		"nexthop":    "10.0.0.1",
+		"is_ipv4":    true,
+	})
+	_ = h.Handle(add, store)
+
+	// Withdraw it.
+	del := mustJSON(map[string]any{
+		"action":     "del",
+		"prefix":     "192.0.2.0",
+		"prefix_len": 24,
+		"nexthop":    "10.0.0.1",
+		"is_ipv4":    true,
+	})
+	if err := h.Handle(del, store); err != nil {
+		t.Fatalf("del returned error: %v", err)
+	}
+
+	g := store.Get("underlay-prefixes-v4")
+	// OwnershipEdge must be removed.
+	pfxID := "pfx:192.0.2.0/24"
+	nhID := "nh:10.0.0.1"
+	ownID := "pfxown:" + pfxID + ":" + nhID
+	if g.GetEdge(ownID) != nil {
+		t.Error("ownership edge should be removed after prefix withdrawal")
+	}
+	// Prefix vertex is intentionally left in place (other nexthops may still advertise it).
+	if g.GetVertex(pfxID) == nil {
+		t.Error("prefix vertex should remain after withdrawal (other paths may exist)")
+	}
+}
+
+func TestUnicastPrefixV4Handler_MultipleNexthops(t *testing.T) {
+	// The same prefix announced by two different nexthops → two OwnershipEdges,
+	// same Prefix vertex.
+	_, store, handlers := newHandlerEnv()
+	h := handlerBySubject(handlers, SubjectUnicastV4)
+
+	for _, nh := range []string{"10.0.0.1", "10.0.0.2"} {
+		_ = h.Handle(mustJSON(map[string]any{
+			"action":     "add",
+			"prefix":     "203.0.113.0",
+			"prefix_len": 24,
+			"nexthop":    nh,
+			"is_ipv4":    true,
+		}), store)
+	}
+
+	g := store.Get("underlay-prefixes-v4")
+	pfxID := "pfx:203.0.113.0/24"
+	// Prefix vertex shared.
+	if g.GetVertex(pfxID) == nil {
+		t.Fatal("prefix vertex not found")
+	}
+	// Two distinct ownership edges.
+	for _, nh := range []string{"nh:10.0.0.1", "nh:10.0.0.2"} {
+		ownID := "pfxown:" + pfxID + ":" + nh
+		if g.GetEdge(ownID) == nil {
+			t.Errorf("ownership edge %q not found", ownID)
+		}
+	}
+}
+
+func TestUnicastPrefixV6Handler_Add(t *testing.T) {
+	// IPv6 nexthops may be "primary,link-local" — only the primary is used.
+	_, store, handlers := newHandlerEnv()
+	h := handlerBySubject(handlers, SubjectUnicastV6)
+
+	payload := mustJSON(map[string]any{
+		"action":     "add",
+		"prefix":     "2001:db8::",
+		"prefix_len": 32,
+		"nexthop":    "2001:db8:1::1,fe80::1",
+		"is_ipv4":    false,
+	})
+
+	if err := h.Handle(payload, store); err != nil {
+		t.Fatalf("Handle returned error: %v", err)
+	}
+
+	g := store.Get("underlay-prefixes-v6")
+	if g == nil {
+		t.Fatal("underlay-prefixes-v6 graph not created")
+	}
+
+	pfxID := "pfx:2001:db8::/32"
+	nhID := "nh:2001:db8:1::1" // link-local part stripped
+	if g.GetVertex(pfxID) == nil {
+		t.Errorf("prefix vertex %q not found", pfxID)
+	}
+	if g.GetVertex(nhID) == nil {
+		t.Errorf("nexthop node %q not found (link-local part must be stripped)", nhID)
+	}
+	ownID := "pfxown:" + pfxID + ":" + nhID
+	if g.GetEdge(ownID) == nil {
+		t.Errorf("ownership edge %q not found", ownID)
+	}
+}
+
+func TestUnicastPrefixHandler_EOR_Skipped(t *testing.T) {
+	// End-of-RIB marker has an empty prefix field — must be silently skipped.
+	_, store, handlers := newHandlerEnv()
+	h := handlerBySubject(handlers, SubjectUnicastV4)
+
+	payload := mustJSON(map[string]any{
+		"action":  "add",
+		"is_eor":  true,
+		"is_ipv4": true,
+		// prefix absent
+	})
+	if err := h.Handle(payload, store); err != nil {
+		t.Fatalf("EoR must not return an error: %v", err)
+	}
+	// No graph should have been created.
+	if store.Get("underlay-prefixes-v4") != nil {
+		t.Error("graph must not be created for EoR message")
 	}
 }
