@@ -137,10 +137,17 @@ containerlab XRd routers
 ```
 
 Handled NATS subjects:
-- `gobmp.parsed.ls_node` → `graph.Node`
+- `gobmp.parsed.ls_node` → `graph.Node` (primary graph + mirrored to v4 companion)
 - `gobmp.parsed.ls_link` → `graph.Interface` + `graph.LinkEdge` + uA SIDs
-- `gobmp.parsed.ls_srv6_sid` → locators / uN SIDs merged onto Node
-- `gobmp.parsed.peer` → `graph.BGPSessionEdge`
+  - MTID=2 (MT-IPv6/SRv6) → primary graph (e.g. `"underlay"`)
+  - MTID=0/absent (base/IPv4) → companion graph (e.g. `"underlay-v4"`)
+- `gobmp.parsed.ls_srv6_sid` → locators / uN SIDs merged onto Node (primary only)
+- `gobmp.parsed.peer` → `graph.BGPSessionEdge` (primary graph)
+
+Address-family graph split: IS-IS advertises IPv4 (MTID=0) and IPv6/SRv6 (MTID=2)
+links as separate BGP-LS TLVs. syd routes them to separate graphs so the SRv6 SPF
+never accidentally traverses an IPv4-only link (which has no uA SIDs). Path requests
+always target the primary graph; the `-v4` companion is topology-visible only.
 
 IOS-XR uSID behavior codes (non-standard, added to `behaviorFromCode`):
 - `0x0030` = uN (micro-node, `BehaviorEnd`, `FunctionLen=0`)

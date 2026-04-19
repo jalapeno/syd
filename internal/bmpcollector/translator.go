@@ -12,6 +12,17 @@ import (
 	"github.com/jalapeno/syd/internal/srv6"
 )
 
+// afSplitMTID is the IS-IS Multi-Topology Identifier for the IPv6/SRv6
+// topology. BGP-LS ls_link messages carrying this MTID are placed in the
+// primary topology graph (used for SRv6 path computation). All other MTID
+// values — including the base topology (MTID=0) which carries IPv4
+// adjacencies — are placed in the companion "<topoID>-v4" graph so that the
+// SRv6 path engine never accidentally traverses an IPv4 link.
+//
+// MT-2 = IPv6 Unicast (RFC 5305 §3) is the standard IS-IS MT used for SRv6
+// in IOS-XR and most other implementations.
+const afSplitMTID uint16 = 2
+
 // --- Vertex / edge ID helpers ------------------------------------------------
 
 // nodeID returns the graph vertex ID for a BGP-LS node. We use IGPRouterID
@@ -324,8 +335,9 @@ func translatePeer(msg *gobmpmsg.PeerStateChange) *graph.BGPSessionEdge {
 
 // lsNodeHandler processes gobmp.parsed.ls_node messages.
 type lsNodeHandler struct {
-	updater *Updater
-	topoID  string
+	updater  *Updater
+	topoID   string
+	v4TopoID string // companion graph; node is mirrored here when it exists
 }
 
 func (h *lsNodeHandler) Subject() string { return SubjectLSNode }
@@ -341,16 +353,31 @@ func (h *lsNodeHandler) Handle(data []byte, store *graph.Store) error {
 	g := h.updater.EnsureGraph(store, h.topoID)
 	if msg.Action == "del" {
 		h.updater.RemoveVertex(g, nodeID(msg.IGPRouterID))
+		// Also remove from the companion v4 graph if it has been created.
+		if h.v4TopoID != "" {
+			if g4 := store.Get(h.v4TopoID); g4 != nil {
+				h.updater.RemoveVertex(g4, nodeID(msg.IGPRouterID))
+			}
+		}
 		return nil
 	}
 	h.updater.UpsertNode(g, translateLSNode(&msg))
+	// Mirror to the companion v4 graph when it already exists (created lazily
+	// by lsLinkHandler on the first IPv4 link). This ensures the v4 graph has
+	// full node data (name, router-id, etc.) and not just link-created stubs.
+	if h.v4TopoID != "" {
+		if g4 := store.Get(h.v4TopoID); g4 != nil {
+			h.updater.UpsertNode(g4, translateLSNode(&msg))
+		}
+	}
 	return nil
 }
 
 // lsLinkHandler processes gobmp.parsed.ls_link messages.
 type lsLinkHandler struct {
-	updater *Updater
-	topoID  string
+	updater  *Updater
+	topoID   string // primary (IPv6/SRv6) topology graph
+	v4TopoID string // companion IPv4 topology graph (receives MTID != afSplitMTID)
 }
 
 func (h *lsLinkHandler) Subject() string { return SubjectLSLink }
@@ -364,7 +391,17 @@ func (h *lsLinkHandler) Handle(data []byte, store *graph.Store) error {
 	if iface == nil {
 		return nil // missing node IDs, skip
 	}
-	g := h.updater.EnsureGraph(store, h.topoID)
+
+	// Route to the correct graph based on the IS-IS Multi-Topology ID.
+	// MTID=2 (MT-IPv6) carries SRv6 adjacencies → primary graph.
+	// MTID=0 (base topology) and absent MTID carry IPv4 adjacencies →
+	// companion v4 graph so the SRv6 SPF never traverses IPv4-only links.
+	targetTopoID := h.topoID
+	if h.v4TopoID != "" && (msg.MTID == nil || msg.MTID.MTID != afSplitMTID) {
+		targetTopoID = h.v4TopoID
+	}
+
+	g := h.updater.EnsureGraph(store, targetTopoID)
 	if msg.Action == "del" {
 		h.updater.RemoveEdge(g, edge.GetID())
 		h.updater.RemoveVertex(g, iface.GetID())
@@ -429,13 +466,23 @@ func (h *peerHandler) Handle(data []byte, store *graph.Store) error {
 	return nil
 }
 
-// DefaultHandlers returns the four BGP-LS handlers that populate the underlay
-// topology graph. Register these with Collector before calling Start.
-// Additional AFI/SAFI handlers can be registered independently.
+// DefaultHandlers returns the four BGP-LS handlers that populate the topology
+// graphs. Register these with Collector before calling Start. Additional
+// AFI/SAFI handlers can be registered independently.
+//
+// Two graphs are populated:
+//   - topoID (e.g. "underlay"): IS-IS MT-2 (IPv6/SRv6) links; used for path
+//     computation. SRv6 locators and uA SIDs live here.
+//   - topoID+"-v4" (e.g. "underlay-v4"): IS-IS base-topology (MTID=0) links
+//     carrying IPv4 adjacencies; topology-visible but not used for SRv6 SPF.
+//
+// Node vertices are written to the primary graph and mirrored to the v4
+// companion once the companion is created by the first IPv4 link.
 func DefaultHandlers(updater *Updater, topoID string) []MessageHandler {
+	v4TopoID := topoID + "-v4"
 	return []MessageHandler{
-		&lsNodeHandler{updater: updater, topoID: topoID},
-		&lsLinkHandler{updater: updater, topoID: topoID},
+		&lsNodeHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
+		&lsLinkHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
 		&lsSRv6SIDHandler{updater: updater, topoID: topoID},
 		&peerHandler{updater: updater, topoID: topoID},
 	}
