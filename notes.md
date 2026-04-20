@@ -381,6 +381,25 @@ nats -s nats://localhost:4222 consumer rm goBMP syd-gobmp-parsed-peer
 
 ---
 
+## Deploy checklist
+
+```bash
+# Pull latest on the k8s node
+cd ~/src/syd
+git pull
+
+# Rebuild and reload image
+docker build -t syd:latest .
+docker save syd:latest | sudo k3s ctr images import -
+
+# Rolling restart to pick up new image
+kubectl -n syd rollout restart deployment/syd
+kubectl -n syd rollout status deployment/syd
+
+# Watch startup — you should now see TWO topology IDs populate
+kubectl -n syd logs -f deployment/syd | grep -E "topology|starting|bmp"
+```
+
 ### Path request with uSID packing — expected output
 
 ```bash
@@ -432,25 +451,6 @@ Actual output confirmed:
 ---
 
 ## Session: AF graph split, policy mapping, rename to syd (2026-04-19)
-
-### Deploy checklist
-
-```bash
-# Pull latest on the k8s node
-cd ~/src/syd
-git pull
-
-# Rebuild and reload image
-docker build -t syd:latest .
-docker save syd:latest | sudo k3s ctr images import -
-
-# Rolling restart to pick up new image
-kubectl -n syd rollout restart deployment/syd
-kubectl -n syd rollout status deployment/syd
-
-# Watch startup — you should now see TWO topology IDs populate
-kubectl -n syd logs -f deployment/syd | grep -E "topology|starting|bmp"
-```
 
 ---
 
