@@ -1,6 +1,6 @@
 {
   "topology_id": "clos-fabric",
-  "description": "Synthetic 4-spine 8-leaf Clos fabric with 64 GPU endpoints",
+  "description": "Synthetic 4-spine 8-leaf Clos fabric with 32 GPU endpoints (4 per leaf)",
   "nodes": [
     {
       "id": "spine-1",
@@ -278,8 +278,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-01",
-        "slot": "5"
+        "leaf": "leaf-02",
+        "slot": "1"
       }
     },
     {
@@ -288,8 +288,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-01",
-        "slot": "6"
+        "leaf": "leaf-02",
+        "slot": "2"
       }
     },
     {
@@ -298,8 +298,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-01",
-        "slot": "7"
+        "leaf": "leaf-02",
+        "slot": "3"
       }
     },
     {
@@ -308,8 +308,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-01",
-        "slot": "8"
+        "leaf": "leaf-02",
+        "slot": "4"
       }
     },
     {
@@ -318,7 +318,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
+        "leaf": "leaf-03",
         "slot": "1"
       }
     },
@@ -328,7 +328,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
+        "leaf": "leaf-03",
         "slot": "2"
       }
     },
@@ -338,7 +338,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
+        "leaf": "leaf-03",
         "slot": "3"
       }
     },
@@ -348,7 +348,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
+        "leaf": "leaf-03",
         "slot": "4"
       }
     },
@@ -358,8 +358,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
-        "slot": "5"
+        "leaf": "leaf-04",
+        "slot": "1"
       }
     },
     {
@@ -368,8 +368,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
-        "slot": "6"
+        "leaf": "leaf-04",
+        "slot": "2"
       }
     },
     {
@@ -378,8 +378,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
-        "slot": "7"
+        "leaf": "leaf-04",
+        "slot": "3"
       }
     },
     {
@@ -388,8 +388,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-02",
-        "slot": "8"
+        "leaf": "leaf-04",
+        "slot": "4"
       }
     },
     {
@@ -398,7 +398,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
+        "leaf": "leaf-05",
         "slot": "1"
       }
     },
@@ -408,7 +408,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
+        "leaf": "leaf-05",
         "slot": "2"
       }
     },
@@ -418,7 +418,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
+        "leaf": "leaf-05",
         "slot": "3"
       }
     },
@@ -428,7 +428,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
+        "leaf": "leaf-05",
         "slot": "4"
       }
     },
@@ -438,8 +438,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
-        "slot": "5"
+        "leaf": "leaf-06",
+        "slot": "1"
       }
     },
     {
@@ -448,8 +448,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
-        "slot": "6"
+        "leaf": "leaf-06",
+        "slot": "2"
       }
     },
     {
@@ -458,8 +458,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
-        "slot": "7"
+        "leaf": "leaf-06",
+        "slot": "3"
       }
     },
     {
@@ -468,8 +468,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-03",
-        "slot": "8"
+        "leaf": "leaf-06",
+        "slot": "4"
       }
     },
     {
@@ -478,7 +478,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
+        "leaf": "leaf-07",
         "slot": "1"
       }
     },
@@ -488,7 +488,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
+        "leaf": "leaf-07",
         "slot": "2"
       }
     },
@@ -498,7 +498,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
+        "leaf": "leaf-07",
         "slot": "3"
       }
     },
@@ -508,7 +508,7 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
+        "leaf": "leaf-07",
         "slot": "4"
       }
     },
@@ -518,8 +518,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
-        "slot": "5"
+        "leaf": "leaf-08",
+        "slot": "1"
       }
     },
     {
@@ -528,8 +528,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
-        "slot": "6"
+        "leaf": "leaf-08",
+        "slot": "2"
       }
     },
     {
@@ -538,8 +538,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
-        "slot": "7"
+        "leaf": "leaf-08",
+        "slot": "3"
       }
     },
     {
@@ -548,328 +548,8 @@
       "subtype": "gpu",
       "labels": {
         "tier": "gpu",
-        "leaf": "leaf-04",
-        "slot": "8"
-      }
-    },
-    {
-      "id": "gpu-033",
-      "name": "gpu-033",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "1"
-      }
-    },
-    {
-      "id": "gpu-034",
-      "name": "gpu-034",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "2"
-      }
-    },
-    {
-      "id": "gpu-035",
-      "name": "gpu-035",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "3"
-      }
-    },
-    {
-      "id": "gpu-036",
-      "name": "gpu-036",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "4"
-      }
-    },
-    {
-      "id": "gpu-037",
-      "name": "gpu-037",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "5"
-      }
-    },
-    {
-      "id": "gpu-038",
-      "name": "gpu-038",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "6"
-      }
-    },
-    {
-      "id": "gpu-039",
-      "name": "gpu-039",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "7"
-      }
-    },
-    {
-      "id": "gpu-040",
-      "name": "gpu-040",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-05",
-        "slot": "8"
-      }
-    },
-    {
-      "id": "gpu-041",
-      "name": "gpu-041",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "1"
-      }
-    },
-    {
-      "id": "gpu-042",
-      "name": "gpu-042",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "2"
-      }
-    },
-    {
-      "id": "gpu-043",
-      "name": "gpu-043",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "3"
-      }
-    },
-    {
-      "id": "gpu-044",
-      "name": "gpu-044",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "4"
-      }
-    },
-    {
-      "id": "gpu-045",
-      "name": "gpu-045",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "5"
-      }
-    },
-    {
-      "id": "gpu-046",
-      "name": "gpu-046",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "6"
-      }
-    },
-    {
-      "id": "gpu-047",
-      "name": "gpu-047",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "7"
-      }
-    },
-    {
-      "id": "gpu-048",
-      "name": "gpu-048",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-06",
-        "slot": "8"
-      }
-    },
-    {
-      "id": "gpu-049",
-      "name": "gpu-049",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "1"
-      }
-    },
-    {
-      "id": "gpu-050",
-      "name": "gpu-050",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "2"
-      }
-    },
-    {
-      "id": "gpu-051",
-      "name": "gpu-051",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "3"
-      }
-    },
-    {
-      "id": "gpu-052",
-      "name": "gpu-052",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "4"
-      }
-    },
-    {
-      "id": "gpu-053",
-      "name": "gpu-053",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "5"
-      }
-    },
-    {
-      "id": "gpu-054",
-      "name": "gpu-054",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "6"
-      }
-    },
-    {
-      "id": "gpu-055",
-      "name": "gpu-055",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "7"
-      }
-    },
-    {
-      "id": "gpu-056",
-      "name": "gpu-056",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-07",
-        "slot": "8"
-      }
-    },
-    {
-      "id": "gpu-057",
-      "name": "gpu-057",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "1"
-      }
-    },
-    {
-      "id": "gpu-058",
-      "name": "gpu-058",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "2"
-      }
-    },
-    {
-      "id": "gpu-059",
-      "name": "gpu-059",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "3"
-      }
-    },
-    {
-      "id": "gpu-060",
-      "name": "gpu-060",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
         "leaf": "leaf-08",
         "slot": "4"
-      }
-    },
-    {
-      "id": "gpu-061",
-      "name": "gpu-061",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "5"
-      }
-    },
-    {
-      "id": "gpu-062",
-      "name": "gpu-062",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "6"
-      }
-    },
-    {
-      "id": "gpu-063",
-      "name": "gpu-063",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "7"
-      }
-    },
-    {
-      "id": "gpu-064",
-      "name": "gpu-064",
-      "subtype": "gpu",
-      "labels": {
-        "tier": "gpu",
-        "leaf": "leaf-08",
-        "slot": "8"
       }
     }
   ],
@@ -1543,422 +1223,198 @@
       "directed": true
     },
     {
-      "id": "attach:gpu-005:leaf-01",
+      "id": "attach:gpu-005:leaf-02",
       "type": "attachment",
       "src_id": "gpu-005",
-      "dst_id": "leaf-01",
+      "dst_id": "leaf-02",
       "directed": true
     },
     {
-      "id": "attach:gpu-006:leaf-01",
+      "id": "attach:gpu-006:leaf-02",
       "type": "attachment",
       "src_id": "gpu-006",
-      "dst_id": "leaf-01",
+      "dst_id": "leaf-02",
       "directed": true
     },
     {
-      "id": "attach:gpu-007:leaf-01",
+      "id": "attach:gpu-007:leaf-02",
       "type": "attachment",
       "src_id": "gpu-007",
-      "dst_id": "leaf-01",
+      "dst_id": "leaf-02",
       "directed": true
     },
     {
-      "id": "attach:gpu-008:leaf-01",
+      "id": "attach:gpu-008:leaf-02",
       "type": "attachment",
       "src_id": "gpu-008",
-      "dst_id": "leaf-01",
+      "dst_id": "leaf-02",
       "directed": true
     },
     {
-      "id": "attach:gpu-009:leaf-02",
+      "id": "attach:gpu-009:leaf-03",
       "type": "attachment",
       "src_id": "gpu-009",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-03",
       "directed": true
     },
     {
-      "id": "attach:gpu-010:leaf-02",
+      "id": "attach:gpu-010:leaf-03",
       "type": "attachment",
       "src_id": "gpu-010",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-03",
       "directed": true
     },
     {
-      "id": "attach:gpu-011:leaf-02",
+      "id": "attach:gpu-011:leaf-03",
       "type": "attachment",
       "src_id": "gpu-011",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-03",
       "directed": true
     },
     {
-      "id": "attach:gpu-012:leaf-02",
+      "id": "attach:gpu-012:leaf-03",
       "type": "attachment",
       "src_id": "gpu-012",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-03",
       "directed": true
     },
     {
-      "id": "attach:gpu-013:leaf-02",
+      "id": "attach:gpu-013:leaf-04",
       "type": "attachment",
       "src_id": "gpu-013",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-04",
       "directed": true
     },
     {
-      "id": "attach:gpu-014:leaf-02",
+      "id": "attach:gpu-014:leaf-04",
       "type": "attachment",
       "src_id": "gpu-014",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-04",
       "directed": true
     },
     {
-      "id": "attach:gpu-015:leaf-02",
+      "id": "attach:gpu-015:leaf-04",
       "type": "attachment",
       "src_id": "gpu-015",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-04",
       "directed": true
     },
     {
-      "id": "attach:gpu-016:leaf-02",
+      "id": "attach:gpu-016:leaf-04",
       "type": "attachment",
       "src_id": "gpu-016",
-      "dst_id": "leaf-02",
+      "dst_id": "leaf-04",
       "directed": true
     },
     {
-      "id": "attach:gpu-017:leaf-03",
+      "id": "attach:gpu-017:leaf-05",
       "type": "attachment",
       "src_id": "gpu-017",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-05",
       "directed": true
     },
     {
-      "id": "attach:gpu-018:leaf-03",
+      "id": "attach:gpu-018:leaf-05",
       "type": "attachment",
       "src_id": "gpu-018",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-05",
       "directed": true
     },
     {
-      "id": "attach:gpu-019:leaf-03",
+      "id": "attach:gpu-019:leaf-05",
       "type": "attachment",
       "src_id": "gpu-019",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-05",
       "directed": true
     },
     {
-      "id": "attach:gpu-020:leaf-03",
+      "id": "attach:gpu-020:leaf-05",
       "type": "attachment",
       "src_id": "gpu-020",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-05",
       "directed": true
     },
     {
-      "id": "attach:gpu-021:leaf-03",
+      "id": "attach:gpu-021:leaf-06",
       "type": "attachment",
       "src_id": "gpu-021",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-06",
       "directed": true
     },
     {
-      "id": "attach:gpu-022:leaf-03",
+      "id": "attach:gpu-022:leaf-06",
       "type": "attachment",
       "src_id": "gpu-022",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-06",
       "directed": true
     },
     {
-      "id": "attach:gpu-023:leaf-03",
+      "id": "attach:gpu-023:leaf-06",
       "type": "attachment",
       "src_id": "gpu-023",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-06",
       "directed": true
     },
     {
-      "id": "attach:gpu-024:leaf-03",
+      "id": "attach:gpu-024:leaf-06",
       "type": "attachment",
       "src_id": "gpu-024",
-      "dst_id": "leaf-03",
+      "dst_id": "leaf-06",
       "directed": true
     },
     {
-      "id": "attach:gpu-025:leaf-04",
+      "id": "attach:gpu-025:leaf-07",
       "type": "attachment",
       "src_id": "gpu-025",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-07",
       "directed": true
     },
     {
-      "id": "attach:gpu-026:leaf-04",
+      "id": "attach:gpu-026:leaf-07",
       "type": "attachment",
       "src_id": "gpu-026",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-07",
       "directed": true
     },
     {
-      "id": "attach:gpu-027:leaf-04",
+      "id": "attach:gpu-027:leaf-07",
       "type": "attachment",
       "src_id": "gpu-027",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-07",
       "directed": true
     },
     {
-      "id": "attach:gpu-028:leaf-04",
+      "id": "attach:gpu-028:leaf-07",
       "type": "attachment",
       "src_id": "gpu-028",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-07",
       "directed": true
     },
     {
-      "id": "attach:gpu-029:leaf-04",
+      "id": "attach:gpu-029:leaf-08",
       "type": "attachment",
       "src_id": "gpu-029",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-08",
       "directed": true
     },
     {
-      "id": "attach:gpu-030:leaf-04",
+      "id": "attach:gpu-030:leaf-08",
       "type": "attachment",
       "src_id": "gpu-030",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-08",
       "directed": true
     },
     {
-      "id": "attach:gpu-031:leaf-04",
+      "id": "attach:gpu-031:leaf-08",
       "type": "attachment",
       "src_id": "gpu-031",
-      "dst_id": "leaf-04",
+      "dst_id": "leaf-08",
       "directed": true
     },
     {
-      "id": "attach:gpu-032:leaf-04",
+      "id": "attach:gpu-032:leaf-08",
       "type": "attachment",
       "src_id": "gpu-032",
-      "dst_id": "leaf-04",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-033:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-033",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-034:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-034",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-035:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-035",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-036:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-036",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-037:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-037",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-038:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-038",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-039:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-039",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-040:leaf-05",
-      "type": "attachment",
-      "src_id": "gpu-040",
-      "dst_id": "leaf-05",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-041:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-041",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-042:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-042",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-043:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-043",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-044:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-044",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-045:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-045",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-046:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-046",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-047:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-047",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-048:leaf-06",
-      "type": "attachment",
-      "src_id": "gpu-048",
-      "dst_id": "leaf-06",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-049:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-049",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-050:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-050",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-051:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-051",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-052:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-052",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-053:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-053",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-054:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-054",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-055:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-055",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-056:leaf-07",
-      "type": "attachment",
-      "src_id": "gpu-056",
-      "dst_id": "leaf-07",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-057:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-057",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-058:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-058",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-059:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-059",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-060:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-060",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-061:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-061",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-062:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-062",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-063:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-063",
-      "dst_id": "leaf-08",
-      "directed": true
-    },
-    {
-      "id": "attach:gpu-064:leaf-08",
-      "type": "attachment",
-      "src_id": "gpu-064",
       "dst_id": "leaf-08",
       "directed": true
     }

@@ -737,26 +737,30 @@ curl -s -X POST http://$NODE:30080/topology \
     "interfaces": [
       {
         "id": "r1-eth0", "owner_node_id": "0000.0000.0001",
-        "srv6_ua_sids": [
-          {"sid": "fc00:0:1:e001::", "func_len": 16, "algo_id": 0,
-           "neighbor_node_id": "0000.0000.0002"}
-        ]
+        "srv6_ua_sids": [{
+          "sid": "fc00:0:1:e001::",
+          "behavior": "End.X",
+          "algo_id": 0,
+          "structure": {"locator_block_len":32,"locator_node_len":16,"function_len":16,"argument_len":0}
+        }]
       },
       {
         "id": "r2-eth0", "owner_node_id": "0000.0000.0002",
-        "srv6_ua_sids": [
-          {"sid": "fc00:0:2:e001::", "func_len": 16, "algo_id": 0,
-           "neighbor_node_id": "0000.0000.0001"}
-        ]
+        "srv6_ua_sids": [{
+          "sid": "fc00:0:2:e001::",
+          "behavior": "End.X",
+          "algo_id": 0,
+          "structure": {"locator_block_len":32,"locator_node_len":16,"function_len":16,"argument_len":0}
+        }]
       }
     ],
     "edges": [
       {"id":"r1r2","type":"igp_adjacency","src_id":"0000.0000.0001",
        "dst_id":"0000.0000.0002","igp_metric":1,
-       "src_iface_id":"r1-eth0","dst_iface_id":"r2-eth0"},
+       "local_iface_id":"r1-eth0","remote_iface_id":"r2-eth0"},
       {"id":"r2r1","type":"igp_adjacency","src_id":"0000.0000.0002",
        "dst_id":"0000.0000.0001","igp_metric":1,
-       "src_iface_id":"r2-eth0","dst_iface_id":"r1-eth0"}
+       "local_iface_id":"r2-eth0","remote_iface_id":"r1-eth0"}
     ]
   }' | python3 -m json.tool
 
