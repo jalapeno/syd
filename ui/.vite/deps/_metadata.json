@@ -1,0 +1,44 @@
+{
+  "hash": "ed896def",
+  "configHash": "444acddf",
+  "lockfileHash": "6bd9b927",
+  "browserHash": "160665d7",
+  "optimized": {
+    "d3": {
+      "src": "../../node_modules/d3/src/index.js",
+      "file": "d3.js",
+      "fileHash": "3f40a413",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "4922430a",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "dd3d8d20",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "6520b0dc",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "13881707",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "react-DccYd3Hg": {
+      "file": "react-DccYd3Hg.js",
+      "isDynamicEntry": false
+    }
+  }
+}

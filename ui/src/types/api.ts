@@ -126,6 +126,7 @@ export interface PoliciesResponse {
 export interface GraphNode {
   id: string;
   name?: string;
+  type?: string; // "node" | "endpoint" | "prefix" | "vrf"
   x?: number;
   y?: number;
   fx?: number | null;
@@ -140,6 +141,7 @@ export interface GraphLink {
   id: string;
   source: string | GraphNode;
   target: string | GraphNode;
+  type?: string; // "physical" | "igp_adjacency" | "bgp_session" | "ownership" | "attachment"
   metric?: number;
   bandwidth?: number;
   delay?: number;

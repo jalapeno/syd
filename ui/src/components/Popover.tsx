@@ -1,3 +1,4 @@
+import { useRef, useLayoutEffect, useState } from 'react';
 import type { PopoverData } from '../App';
 import type { GraphNode, GraphLink } from '../types/api';
 
@@ -7,11 +8,39 @@ interface PopoverProps {
 
 export default function Popover({ data }: PopoverProps) {
   const { x, y, type, data: item } = data;
+  const ref = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState({ left: x + 12, top: y - 10 });
+
+  useLayoutEffect(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let left = x + 12;
+    let top = y - 10;
+
+    // Flip to left side if overflowing right
+    if (left + rect.width > vw - 8) {
+      left = x - rect.width - 12;
+    }
+    // Shift up if overflowing bottom
+    if (top + rect.height > vh - 8) {
+      top = vh - rect.height - 8;
+    }
+    // Prevent going off top
+    if (top < 8) {
+      top = 8;
+    }
+
+    setOffset({ left, top });
+  }, [x, y]);
 
   return (
     <div
+      ref={ref}
       className="absolute z-50 pointer-events-none"
-      style={{ left: x + 12, top: y - 10 }}
+      style={{ left: offset.left, top: offset.top }}
     >
       <div className="bg-kraken-navy/95 backdrop-blur-sm border border-kraken-border rounded-lg shadow-xl px-3 py-2 min-w-[160px]">
         <div className="flex items-center gap-2 mb-1">
