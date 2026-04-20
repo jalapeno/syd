@@ -8,8 +8,9 @@ import (
 	"github.com/jalapeno/syd/internal/srv6"
 )
 
-// newHandlerEnv returns an Updater, a graph.Store, and the four default
-// handlers wired to topology "underlay".
+// newHandlerEnv returns an Updater, a graph.Store, and the default handlers
+// for topology base "underlay". DefaultHandlers appends "-v6" so the primary
+// graph is "underlay-v6" and the companion is "underlay-v4".
 func newHandlerEnv() (*Updater, *graph.Store, []MessageHandler) {
 	updater := NewUpdater()
 	store := graph.NewStore()
@@ -81,7 +82,7 @@ func TestLSNodeHandler_Add(t *testing.T) {
 		t.Fatalf("Handle returned error: %v", err)
 	}
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-v6")
 	if g == nil {
 		t.Fatal("underlay graph not created")
 	}
@@ -119,7 +120,7 @@ func TestLSNodeHandler_Del(t *testing.T) {
 		t.Fatalf("del returned error: %v", err)
 	}
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-v6")
 	if g.GetVertex("0000.0000.0001") != nil {
 		t.Error("expected node to be removed after del")
 	}
@@ -177,7 +178,7 @@ func TestLSSRv6SIDHandler_Add(t *testing.T) {
 		t.Fatalf("Handle returned error: %v", err)
 	}
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-v6")
 	v := g.GetVertex("0000.0000.0001")
 	if v == nil {
 		t.Fatal("stub node not created by LSSRv6SID handler")
@@ -230,7 +231,7 @@ func TestLSSRv6SIDHandler_Del(t *testing.T) {
 		t.Fatalf("del returned error: %v", err)
 	}
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-v6")
 	node := g.GetVertex("0000.0000.0001").(*graph.Node)
 	if len(node.SRv6Locators) != 0 {
 		t.Errorf("SRv6Locators len = %d after del, want 0", len(node.SRv6Locators))
@@ -255,7 +256,7 @@ func TestLSSRv6SIDHandler_MissingSID_Skipped(t *testing.T) {
 
 func TestLSLinkHandler_Add(t *testing.T) {
 	// No mt_id field → MTID is nil → IPv4 base topology → must land in
-	// the companion "underlay-v4" graph, NOT in "underlay".
+	// the companion "underlay-v4" graph, NOT in "underlay-v6".
 	_, store, handlers := newHandlerEnv()
 	h := handlerBySubject(handlers, SubjectLSLink)
 
@@ -282,7 +283,7 @@ func TestLSLinkHandler_Add(t *testing.T) {
 		t.Fatal("underlay-v4 companion graph not created for IPv4 link")
 	}
 	// Primary SRv6 graph should not have been created by this link alone.
-	if store.Get("underlay") != nil {
+	if store.Get("underlay-v6") != nil {
 		t.Error("underlay (primary) graph should not be created by an IPv4 link")
 	}
 
@@ -364,7 +365,7 @@ func TestLSLinkHandler_MissingNodeIDs_Skipped(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	// Graph should not have been created (no EnsureGraph call).
-	if g := store.Get("underlay"); g != nil {
+	if g := store.Get("underlay-v6"); g != nil {
 		if g.GetVertex("0000.0000.0001") != nil {
 			t.Error("node should not exist when link was skipped")
 		}
@@ -492,7 +493,7 @@ func TestOutOfOrder_SIDBeforeNode(t *testing.T) {
 	})
 	_ = nodeH.Handle(nodePayload, store)
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-v6")
 	v := g.GetVertex("0000.0000.0001")
 	if v == nil {
 		t.Fatal("node not found")
@@ -534,7 +535,7 @@ func TestMultipleLocators_TwoAlgos(t *testing.T) {
 		_ = h.Handle(payload, store)
 	}
 
-	node := store.Get("underlay").GetVertex("0000.0000.0001").(*graph.Node)
+	node := store.Get("underlay-v6").GetVertex("0000.0000.0001").(*graph.Node)
 	if len(node.SRv6Locators) != 2 {
 		t.Errorf("SRv6Locators len = %d, want 2 (different algos → separate locators)", len(node.SRv6Locators))
 	}
@@ -543,7 +544,7 @@ func TestMultipleLocators_TwoAlgos(t *testing.T) {
 // --- AF graph split (MTID routing) -------------------------------------------
 
 func TestLSLinkHandler_MTID2_GoesToPrimary(t *testing.T) {
-	// mt_id=2 (MT-IPv6/SRv6) must land in the primary "underlay" graph.
+	// mt_id=2 (MT-IPv6/SRv6) must land in the primary "underlay-v6" graph.
 	_, store, handlers := newHandlerEnv()
 	h := handlerBySubject(handlers, SubjectLSLink)
 
@@ -562,14 +563,14 @@ func TestLSLinkHandler_MTID2_GoesToPrimary(t *testing.T) {
 		t.Fatalf("Handle returned error: %v", err)
 	}
 
-	if store.Get("underlay") == nil {
+	if store.Get("underlay-v6") == nil {
 		t.Fatal("underlay (primary) graph not created for MTID=2 link")
 	}
 	if store.Get("underlay-v4") != nil {
 		t.Error("underlay-v4 companion graph should not be created by an MTID=2 link")
 	}
 
-	g := store.Get("underlay")
+	g := store.Get("underlay-v6")
 	edgeID := "link:0000.0000.0001:0000.0000.0002:fc00::1"
 	if g.GetEdge(edgeID) == nil {
 		t.Errorf("link edge %q not found in primary graph", edgeID)
@@ -598,7 +599,7 @@ func TestLSLinkHandler_MTID0_GoesToV4(t *testing.T) {
 	if store.Get("underlay-v4") == nil {
 		t.Fatal("underlay-v4 not created for explicit MTID=0 link")
 	}
-	if store.Get("underlay") != nil {
+	if store.Get("underlay-v6") != nil {
 		t.Error("primary underlay should not be created by an MTID=0 link")
 	}
 }
@@ -628,7 +629,7 @@ func TestLSLinkHandler_BothMTIDs_SeparateGraphs(t *testing.T) {
 	_ = h.Handle(v6Link, store)
 
 	gV4 := store.Get("underlay-v4")
-	gV6 := store.Get("underlay")
+	gV6 := store.Get("underlay-v6")
 	if gV4 == nil || gV6 == nil {
 		t.Fatal("expected both underlay and underlay-v4 graphs to exist")
 	}
@@ -675,7 +676,7 @@ func TestLSNodeHandler_MirroredToV4Graph(t *testing.T) {
 	}), store)
 
 	// Must be in both primary (created lazily by node handler) and v4 graph.
-	for _, topoID := range []string{"underlay", "underlay-v4"} {
+	for _, topoID := range []string{"underlay-v6", "underlay-v4"} {
 		g := store.Get(topoID)
 		if g == nil {
 			t.Fatalf("%s graph not found", topoID)
@@ -716,7 +717,7 @@ func TestLSNodeHandler_Del_RemovedFromBothGraphs(t *testing.T) {
 		"action": "del", "igp_router_id": "0000.0000.0001",
 	}), store)
 
-	for _, topoID := range []string{"underlay", "underlay-v4"} {
+	for _, topoID := range []string{"underlay-v6", "underlay-v4"} {
 		g := store.Get(topoID)
 		if g == nil {
 			continue // graph may not exist if del happened before any link

@@ -85,7 +85,7 @@ All endpoints are served on `:8080` (configurable via `--addr`).
 
 ```json
 {
-  "topology_id":   "underlay",
+  "topology_id":   "underlay-v6",
   "workload_id":   "my-job-123",
   "endpoints": [
     {"id": "0000.0000.0001"},
@@ -139,7 +139,7 @@ containerlab XRd routers
 Handled NATS subjects:
 - `gobmp.parsed.ls_node` → `graph.Node` (primary graph + mirrored to v4 companion)
 - `gobmp.parsed.ls_link` → `graph.Interface` + `graph.LinkEdge` + uA SIDs
-  - MTID=2 (MT-IPv6/SRv6) → primary graph (e.g. `"underlay"`)
+  - MTID=2 (MT-IPv6/SRv6) → primary graph (e.g. `"underlay-v6"`)
   - MTID=0/absent (base/IPv4) → companion graph (e.g. `"underlay-v4"`)
 - `gobmp.parsed.ls_srv6_sid` → locators / uN SIDs merged onto Node (primary only)
 - `gobmp.parsed.peer` → `graph.BGPSessionEdge` (primary graph)

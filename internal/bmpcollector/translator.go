@@ -571,25 +571,26 @@ func (h *unicastPrefixHandler) Handle(data []byte, store *graph.Store) error {
 // Register these with Collector before calling Start. Additional AFI/SAFI
 // handlers can be registered independently.
 //
-// Six graphs are populated (all derived from topoID, e.g. "underlay"):
+// topoID is the base name (e.g. "underlay"). Six graphs are populated:
 //
-//   - topoID:                  IS-IS MT-2 (IPv6/SRv6) links, path computation
+//   - topoID+"-v6":            IS-IS MT-2 (IPv6/SRv6) links — path computation
 //   - topoID+"-v4":            IS-IS base-topology (MTID=0) IPv4 links
 //   - topoID+"-peers":         BGP session topology (IP-addressed node stubs)
 //   - topoID+"-prefixes-v4":   BGP IPv4 unicast prefixes → nexthop nodes
 //   - topoID+"-prefixes-v6":   BGP IPv6 unicast prefixes → nexthop nodes
 //
-// Node vertices are written to the primary graph and mirrored to the v4
+// Node vertices are written to the primary v6 graph and mirrored to the v4
 // companion once the companion is created by the first IPv4 link.
 func DefaultHandlers(updater *Updater, topoID string) []MessageHandler {
+	v6TopoID := topoID + "-v6"
 	v4TopoID := topoID + "-v4"
 	peersTopoID := topoID + "-peers"
 	prefV4TopoID := topoID + "-prefixes-v4"
 	prefV6TopoID := topoID + "-prefixes-v6"
 	return []MessageHandler{
-		&lsNodeHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
-		&lsLinkHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
-		&lsSRv6SIDHandler{updater: updater, topoID: topoID},
+		&lsNodeHandler{updater: updater, topoID: v6TopoID, v4TopoID: v4TopoID},
+		&lsLinkHandler{updater: updater, topoID: v6TopoID, v4TopoID: v4TopoID},
+		&lsSRv6SIDHandler{updater: updater, topoID: v6TopoID},
 		&peerHandler{updater: updater, topoID: peersTopoID},
 		&unicastPrefixHandler{updater: updater, topoID: prefV4TopoID, subject: SubjectUnicastV4},
 		&unicastPrefixHandler{updater: updater, topoID: prefV6TopoID, subject: SubjectUnicastV6},
