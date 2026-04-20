@@ -258,61 +258,63 @@ export default function TopologyCanvas({
         )
         .alpha(0.3);
     } else if (layoutMode === 'clos') {
-      // Tiered horizontal rows with strong Y-axis constraints
+      // Fixed-position Clos layout: spines top row, leaves middle, endpoints bottom.
+      // Nodes are pinned (fx/fy) so the simulation can't move them.
+      // Scales to any fabric size (512 leaves, 256 spines, etc.)
+      const tierNodes: GraphNode[][] = [[], [], []];
+      for (const node of nodes) {
+        tierNodes[getTier(node.id)].push(node);
+      }
+
+      // Sort each tier for consistent ordering
+      for (const tier of tierNodes) {
+        tier.sort((a, b) => a.id.localeCompare(b.id));
+      }
+
+      // Compute vertical positions — distribute tiers evenly with padding
+      const padding = 60;
+      const usableHeight = height - padding * 2;
+      const tierYPositions = [
+        padding + usableHeight * 0.08,  // spines at top
+        padding + usableHeight * 0.38,  // leaves in middle
+        padding + usableHeight * 0.68,  // endpoints — above path panel
+      ];
+
+      // Place each tier in a horizontal line
+      for (let tier = 0; tier < 3; tier++) {
+        const nodesInTier = tierNodes[tier];
+        const count = nodesInTier.length;
+        if (count === 0) continue;
+        const spacing = (width - padding * 2) / (count + 1);
+        for (let i = 0; i < count; i++) {
+          const node = nodesInTier[i];
+          node.x = padding + spacing * (i + 1);
+          node.y = tierYPositions[tier];
+          node.fx = node.x;
+          node.fy = node.y;
+        }
+      }
+
+      // Minimal simulation — just needed for D3 link rendering, nodes won't move
       simulation
         .force(
           'link',
-          d3.forceLink<GraphNode, GraphLink>(links)
-            .id((d) => d.id)
-            .distance((d) => {
-              const srcTier = getTier(typeof d.source === 'string' ? d.source : d.source.id);
-              const tgtTier = getTier(typeof d.target === 'string' ? d.target : d.target.id);
-              if (srcTier !== tgtTier) return 150;
-              return 60;
-            })
-            .strength(0.5)
+          d3.forceLink<GraphNode, GraphLink>(links).id((d) => d.id)
         )
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force(
-          'y',
-          d3.forceY<GraphNode>((d) => {
-            const tier = getTier(d.id);
-            const tiers = 3;
-            const spacing = height / (tiers + 1);
-            return spacing * (tier + 1);
-          }).strength(1.5)
-        )
-        .force(
-          'x',
-          d3.forceX(width / 2).strength(0.05)
-        )
-        .force('collision', d3.forceCollide(35));
+        .alpha(0.01); // near-zero alpha so it settles immediately
     } else {
-      // Auto: force-directed with mild tier hints
+      // Auto: pure force-directed, no tier constraints — spacious layout
       simulation
         .force(
           'link',
           d3.forceLink<GraphNode, GraphLink>(links)
             .id((d) => d.id)
-            .distance((d) => {
-              const srcTier = getTier(typeof d.source === 'string' ? d.source : d.source.id);
-              const tgtTier = getTier(typeof d.target === 'string' ? d.target : d.target.id);
-              if (srcTier !== tgtTier) return 120;
-              return 80;
-            })
-            .strength(0.8)
+            .distance(140)
+            .strength(0.6)
         )
-        .force('charge', d3.forceManyBody().strength(-400))
+        .force('charge', d3.forceManyBody().strength(-600))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force(
-          'y',
-          d3.forceY<GraphNode>((d) => {
-            const tier = getTier(d.id);
-            return height * 0.2 + tier * (height * 0.3);
-          }).strength(0.3)
-        )
-        .force('collision', d3.forceCollide(30));
+        .force('collision', d3.forceCollide(40));
     }
 
     simulationRef.current = simulation;
@@ -330,9 +332,10 @@ export default function TopologyCanvas({
       .style('cursor', 'pointer')
       .on('mouseenter', function (event, d) {
         d3.select(this).attr('stroke', '#68e8e8').attr('stroke-width', 3.5);
+        const rect = svgRef.current!.getBoundingClientRect();
         onHover({
-          x: event.clientX,
-          y: event.clientY,
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
           type: 'link',
           data: d,
         });
@@ -367,8 +370,26 @@ export default function TopologyCanvas({
           })
           .on('end', (event, d) => {
             if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+            if (layoutMode === 'clos') {
+              // In Clos mode, snap back to original grid position
+              const tier = getTier(d.id);
+              const tieredNodes = nodes.filter((n) => getTier(n.id) === tier);
+              tieredNodes.sort((a, b) => a.id.localeCompare(b.id));
+              const idx = tieredNodes.findIndex((n) => n.id === d.id);
+              const count = tieredNodes.length;
+              const padding = 60;
+              const spacing = (width - padding * 2) / (count + 1);
+              const tierYPositions = [
+                padding + (height - padding * 2) * 0.08,
+                padding + (height - padding * 2) * 0.38,
+                padding + (height - padding * 2) * 0.68,
+              ];
+              d.fx = padding + spacing * (idx + 1);
+              d.fy = tierYPositions[tier];
+            } else {
+              d.fx = null;
+              d.fy = null;
+            }
           })
       );
 
@@ -406,9 +427,10 @@ export default function TopologyCanvas({
     nodeGroup
       .on('mouseenter', function (event, d) {
         d3.select(this).select('circle').attr('stroke-width', 3.5).attr('stroke', '#68e8e8');
+        const rect = svgRef.current!.getBoundingClientRect();
         onHover({
-          x: event.clientX,
-          y: event.clientY,
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
           type: 'node',
           data: d,
         });
@@ -512,16 +534,32 @@ export default function TopologyCanvas({
       }
     }
 
+    // Collect path endpoint IDs (src_id/dst_id from all paths)
+    const pathEndpoints = new Set<string>();
+    for (const p of pathResponse.paths) {
+      pathEndpoints.add(p.src_id);
+      pathEndpoints.add(p.dst_id);
+    }
+
     // Highlight links on the path in bright cyan, dim others
     svg.selectAll('.links line').each(function (d: any) {
       const edgeId = d.id;
-      const onPath = pathEdges.has(edgeId);
+      const sourceId = typeof d.source === 'object' ? d.source.id : d.source;
+      const targetId = typeof d.target === 'object' ? d.target.id : d.target;
+
+      // A link is on-path if:
+      // 1. Its edge ID is in the path's edge_ids (LinkEdge between routers), OR
+      // 2. It connects a path endpoint to a vertex in the path (AttachmentEdge)
+      const onPath = pathEdges.has(edgeId) ||
+        (pathEndpoints.has(sourceId) && pathVertices.has(targetId)) ||
+        (pathEndpoints.has(targetId) && pathVertices.has(sourceId));
+
       d3.select(this)
         .transition()
         .duration(300)
-        .attr('stroke', onPath ? '#68e8e8' : '#1a3f5e')
+        .attr('stroke', onPath ? '#68e8e8' : '#2a5f7e')
         .attr('stroke-width', onPath ? 3.5 : 1.2)
-        .attr('stroke-opacity', onPath ? 1.0 : 0.25);
+        .attr('stroke-opacity', onPath ? 1.0 : 0.45);
     });
 
     // Highlight path nodes: endpoints in red, transit nodes in cyan
