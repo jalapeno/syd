@@ -2,33 +2,48 @@ package pathengine
 
 import (
 	"fmt"
+	"net/netip"
 
 	"github.com/jalapeno/syd/internal/graph"
 	"github.com/jalapeno/syd/internal/srv6"
 )
 
+// SegmentListMode controls how uSID containers are built from a computed path.
+type SegmentListMode string
+
+const (
+	// ModeUA is the default mode. Each hop contributes one 32-bit slot
+	// (node(16)+function(16)) using the egress interface's uA SID, with a
+	// fallback to the source node's uN SID. The destination uN SID is appended
+	// as the final anchor. Container capacity is 3 SIDs (96 bits / 32 bits).
+	ModeUA SegmentListMode = "ua"
+
+	// ModeUAOnly uses only the 16-bit function portion of each uA SID, placed
+	// in the node-slot position so TryPackUSID treats it as a 16-bit slot.
+	// When no uA SID is available for a hop, the 16-bit node SID is used as a
+	// fallback (same slot width). Container capacity is 6 SIDs (96/16).
+	// Requires adjacency function IDs to be globally unique within the fabric.
+	ModeUAOnly SegmentListMode = "ua_only"
+
+	// ModeUNOnly uses only node uN SIDs (16-bit slots). The source node is
+	// omitted; all transit nodes and the destination are included. ECMP applies
+	// within each node. Container capacity is 6 SIDs (96/16).
+	ModeUNOnly SegmentListMode = "un_only"
+)
+
 // BuildSegmentList constructs an SRv6 segment list for the given SPFResult.
 //
-// For each hop the uA SID is taken from the egress Interface vertex on the
-// source node of that LinkEdge. The final segment is the uN SID of the
-// destination node, anchoring the packet at the far end.
+// mode selects the encoding strategy:
+//   - ModeUA (default): uA SID per hop + uN anchor (32-bit slots, 3/container)
+//   - ModeUAOnly: 16-bit function slot per hop + uN anchor (6/container)
+//   - ModeUNOnly: 16-bit node slot, transit+dst only, no source (6/container)
 //
-// When tenantID is non-empty it must be the vertex ID of a VRF in g. If that
-// VRF carries a uDT SID, it is appended as the last segment, producing the
-// multi-tenant carrier used by Options 1, 2b, and 3:
+// When tenantID is non-empty, the VRF's uDT SID is appended as the final
+// segment (multi-tenant carrier for Options 1, 2b, 3).
 //
-//	[uA chain] | dest-locator | uDT(Tenant-ID)
-//	e.g. fc00:0:e001:e002:3042:d001::
-//
-// After collecting all raw SIDs the list is passed through TryPackUSID. When
-// every SID carries a compatible SIDStructure (byte-aligned, common block
-// length) the output is a compressed uSID container list. When structure data
-// is absent or mixed the raw SIDs are returned unchanged (standard SRv6 SRH
-// behaviour).
-//
-// Encapsulation: H.Encaps.Red throughout — the SRH is suppressed when only
-// one segment remains, reducing header overhead.
-func BuildSegmentList(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID string) (srv6.SegmentList, error) {
+// SIDs are passed through TryPackUSID; falls back to raw values if compression
+// is not applicable.
+func BuildSegmentList(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID string, mode SegmentListMode) (srv6.SegmentList, error) {
 	if len(spf.Edges) == 0 {
 		return srv6.SegmentList{
 			Encap:  srv6.EncapSRv6,
@@ -36,36 +51,23 @@ func BuildSegmentList(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID str
 		}, nil
 	}
 
-	items := make([]srv6.SIDItem, 0, len(spf.Edges)+2)
+	var items []srv6.SIDItem
+	var err error
 
-	// One uA SID per hop.
-	for i, le := range spf.Edges {
-		item, err := uaSIDItemForEdge(g, le, algoID)
-		if err != nil {
-			return srv6.SegmentList{}, fmt.Errorf("hop %d (%s→%s): %w",
-				i, le.GetSrcID(), le.GetDstID(), err)
-		}
-		items = append(items, item)
+	switch mode {
+	case ModeUAOnly:
+		items, err = buildItemsUAOnly(g, spf, algoID, tenantID)
+	case ModeUNOnly:
+		items, err = buildItemsUNOnly(g, spf, algoID, tenantID)
+	default: // ModeUA or ""
+		items, err = buildItemsUA(g, spf, algoID, tenantID)
+	}
+	if err != nil {
+		return srv6.SegmentList{}, err
 	}
 
-	// Destination node uN SID as the final anchor / locator.
-	dstID := spf.NodeIDs[len(spf.NodeIDs)-1]
-	if item, ok := nodeUNSIDItem(g, dstID, algoID); ok {
-		items = append(items, item)
-	}
-
-	// Optional tenant uDT SID — appended after the locator for multi-tenant
-	// carriers (Options 1, 2b, 3 from the multi-tenancy design).
-	if tenantID != "" {
-		if item, ok := tenantUDTSIDItem(g, tenantID); ok {
-			items = append(items, item)
-		}
-	}
-
-	// Attempt uSID container compression; falls back to raw SIDs gracefully.
 	sids, err := srv6.TryPackUSID(items)
 	if err != nil {
-		// TryPackUSID only returns an error for truly malformed input; fall back.
 		sids = srv6.FallbackValues(items)
 	}
 
@@ -76,8 +78,94 @@ func BuildSegmentList(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID str
 	}, nil
 }
 
-// uaSIDItemForEdge returns the SIDItem for the egress interface of a LinkEdge.
-// Falls back to the source node's uN SID if no interface uA SID is found.
+// --- per-mode item builders -----------------------------------------------
+
+// buildItemsUA is the default mode: uA SID (or uN fallback) for each hop as
+// a 32-bit slot, plus destination uN as the final anchor.
+func buildItemsUA(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID string) ([]srv6.SIDItem, error) {
+	items := make([]srv6.SIDItem, 0, len(spf.Edges)+2)
+
+	for i, le := range spf.Edges {
+		item, err := uaSIDItemForEdge(g, le, algoID)
+		if err != nil {
+			return nil, fmt.Errorf("hop %d (%s→%s): %w", i, le.GetSrcID(), le.GetDstID(), err)
+		}
+		items = append(items, item)
+	}
+
+	dstID := spf.NodeIDs[len(spf.NodeIDs)-1]
+	if item, ok := nodeUNSIDItem(g, dstID, algoID); ok {
+		items = append(items, item)
+	}
+
+	if tenantID != "" {
+		if item, ok := tenantUDTSIDItem(g, tenantID); ok {
+			items = append(items, item)
+		}
+	}
+	return items, nil
+}
+
+// buildItemsUAOnly builds compact 16-bit slots using only the function portion
+// of each uA SID. When no uA SID is available for a hop, the source node's
+// uN SID (also a 16-bit slot) is used as a fallback. The destination uN anchor
+// is always appended as a 16-bit node slot.
+//
+// Both function-extracted items and uN fallback items use structure {32,16,0,0}
+// so TryPackUSID keeps slot widths consistent and packs 6 per container.
+func buildItemsUAOnly(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID string) ([]srv6.SIDItem, error) {
+	items := make([]srv6.SIDItem, 0, len(spf.Edges)+2)
+
+	for i, le := range spf.Edges {
+		item, err := functionOnlySIDItem(g, le, algoID)
+		if err != nil {
+			return nil, fmt.Errorf("hop %d (%s→%s): %w", i, le.GetSrcID(), le.GetDstID(), err)
+		}
+		items = append(items, item)
+	}
+
+	dstID := spf.NodeIDs[len(spf.NodeIDs)-1]
+	if item, ok := nodeUNSIDItem(g, dstID, algoID); ok {
+		items = append(items, item)
+	}
+
+	if tenantID != "" {
+		if item, ok := tenantUDTSIDItem(g, tenantID); ok {
+			items = append(items, item)
+		}
+	}
+	return items, nil
+}
+
+// buildItemsUNOnly builds 16-bit node-slot items for every node except the
+// source. NodeIDs = [src, transit..., dst]; src is skipped because the
+// originating node does not need to appear in its own segment list.
+func buildItemsUNOnly(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID string) ([]srv6.SIDItem, error) {
+	if len(spf.NodeIDs) < 2 {
+		return nil, nil
+	}
+	items := make([]srv6.SIDItem, 0, len(spf.NodeIDs))
+
+	for _, nodeID := range spf.NodeIDs[1:] { // skip source at index 0
+		item, ok := nodeUNSIDItem(g, nodeID, algoID)
+		if !ok {
+			return nil, fmt.Errorf("no uN SID for node %q", nodeID)
+		}
+		items = append(items, item)
+	}
+
+	if tenantID != "" {
+		if item, ok := tenantUDTSIDItem(g, tenantID); ok {
+			items = append(items, item)
+		}
+	}
+	return items, nil
+}
+
+// --- per-hop SID helpers --------------------------------------------------
+
+// uaSIDItemForEdge returns the SIDItem for the egress interface of a LinkEdge
+// (ModeUA). Falls back to the source node's uN SID if no uA SID is found.
 func uaSIDItemForEdge(g *graph.Graph, le *graph.LinkEdge, algoID uint8) (srv6.SIDItem, error) {
 	if le.LocalIfaceID != "" {
 		v := g.GetVertex(le.LocalIfaceID)
@@ -99,6 +187,81 @@ func uaSIDItemForEdge(g *graph.Graph, le *graph.LinkEdge, algoID uint8) (srv6.SI
 		"no uA SID on interface %q and no uN SID on node %q — topology missing SRv6 SID data",
 		le.LocalIfaceID, le.GetSrcID(),
 	)
+}
+
+// functionOnlySIDItem returns a 16-bit SIDItem for ModeUAOnly.
+//
+// If a uA SID is found on the egress interface, extractFunctionSlot strips
+// the node portion and places the function bits in the node-slot position,
+// yielding structure {32,16,0,0}. If no uA SID is available, the source
+// node's uN SID (also {32,16,0,0}) is used as a fallback. Both produce
+// consistent 16-bit slots so TryPackUSID packs 6 per container.
+func functionOnlySIDItem(g *graph.Graph, le *graph.LinkEdge, algoID uint8) (srv6.SIDItem, error) {
+	if le.LocalIfaceID != "" {
+		v := g.GetVertex(le.LocalIfaceID)
+		if v != nil {
+			if iface, ok := v.(*graph.Interface); ok {
+				if rawItem, found := pickUASIDItem(iface.SRv6uASIDs, algoID); found {
+					if funcItem, ok := extractFunctionSlot(rawItem); ok {
+						return funcItem, nil
+					}
+				}
+			}
+		}
+	}
+
+	// Fall back to source node uN SID (16-bit node slot).
+	if item, ok := nodeUNSIDItem(g, le.GetSrcID(), algoID); ok {
+		return item, nil
+	}
+
+	return srv6.SIDItem{}, fmt.Errorf(
+		"no uA SID on interface %q and no uN SID on node %q",
+		le.LocalIfaceID, le.GetSrcID(),
+	)
+}
+
+// extractFunctionSlot extracts the function bits from a uA SIDItem and returns
+// a new SIDItem with the function placed immediately after the block (in the
+// "node" position). This makes it a 16-bit slot compatible with uN SID items
+// so that TryPackUSID treats both uniformly.
+//
+//	Input:  fc00:0:NODE:FUNC:: with structure {blockLen, nodeLen, funcLen, 0}
+//	Output: fc00:0:FUNC::       with structure {blockLen, funcLen, 0, 0}
+//
+// Returns (item, false) if the SID has no function bits or is unparseable.
+func extractFunctionSlot(ua srv6.SIDItem) (srv6.SIDItem, bool) {
+	s := ua.Structure
+	if s == nil || s.FunctionLen == 0 || s.FunctionLen%8 != 0 {
+		return srv6.SIDItem{}, false
+	}
+
+	blockBytes := int(s.LocatorBlockLen / 8)
+	nodeBytes := int(s.LocatorNodeLen / 8)
+	funcBytes := int(s.FunctionLen / 8)
+
+	a, err := netip.ParseAddr(ua.Value)
+	if err != nil {
+		return srv6.SIDItem{}, false
+	}
+	raw := a.As16()
+
+	// Build a new SID: block bytes unchanged, then function bytes moved
+	// immediately after the block (displacing the node portion), zeros after.
+	var newRaw [16]byte
+	copy(newRaw[:blockBytes], raw[:blockBytes])
+	copy(newRaw[blockBytes:blockBytes+funcBytes], raw[blockBytes+nodeBytes:blockBytes+nodeBytes+funcBytes])
+
+	return srv6.SIDItem{
+		Value:    netip.AddrFrom16(newRaw).String(),
+		Behavior: ua.Behavior,
+		Structure: &srv6.SIDStructure{
+			LocatorBlockLen: s.LocatorBlockLen,
+			LocatorNodeLen:  s.FunctionLen, // function occupies the node slot for packing
+			FunctionLen:     0,
+			ArgumentLen:     0,
+		},
+	}, true
 }
 
 // pickUASIDItem selects the uA SIDItem matching algoID from a UASID slice,
