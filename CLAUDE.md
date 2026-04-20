@@ -206,26 +206,29 @@ kubectl -n syd rollout status deployment/syd
 
 NodePort: `http://<node-ip>:30080`
 
-## Current status (as of 2026-04-19)
+## Current status (as of 2026-04-20)
 
 Done:
 - Full BMP pipeline (17-node XRd testbed)
 - Dijkstra SPF with disjointness, BW, latency, admin-group, Flex-Algo constraints
-- uSID container packing (32-bit mixed, 16-bit all-uN)
+- uSID container packing: 32-bit full-uA (default), 16-bit `ua` mode, 16-bit `un` mode
 - Flex-Algo SID selection and SPF edge pruning (`algo_id` in constraints)
 - Incremental topology push (only drains workloads on removed elements)
 - All-pairs path computation, bidir-paired mode, lease/drain timers
 - Metadata-to-algo policy mapping (`POST /topology/{id}/policies`, name→algo_id)
-  - `PathRequest.policy` resolves a named policy to an algo_id before compute
-  - Operators register mappings once (e.g. "carbon-optimized" → 130); job
-    schedulers reference them by name without embedding numeric algo IDs
+- Address-family graph split: `underlay-v6` (SRv6/IPv6) + `underlay-v4` companion
+- BMP peer message integration (BGP session topology layer, `underlay-peers` graph)
+- BMP unicast prefix integration (IPv4/IPv6 prefix→node mapping, `underlay-prefixes-v4/v6`)
+- Executive demo UI (topology graph, workload list, path/SID display, path-request form)
+- All bmpcollector tests passing
+- `scripts/test-local.sh` — local integration test suite (no NATS/BMP required)
+- `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf)
 
 Roadmap:
-- **Executive demo UI** — see `pkg/apitypes` for the full API contract; all
-  endpoints are documented above. The UI should show: topology graph
-  visualization, active workload list, per-workload path/SID display,
-  path-request form.
-- BMP peer message integration (BGP session topology layer)
-- BMP unicast prefix integration (IPv4/IPv6 prefix→node mapping, "map the internet")
-- Fix bmpcollector test failures (BGP session edge/stub vertex tests)
-- L3VPN / EVPN handler support
+- **L3VPN / EVPN handler support** — VRF/VPN topology ingestion via BMP
+- **gNMI ToR southbound** — stub exists; needs `openconfig/gnmi` dependency wired up
+  and real `DialFunc` implementation for SONiC switch programming
+- **OpenAPI self-documentation** — `GET /openapi.json` so external agents can
+  discover endpoints and request/response schemas without reading source
+- **uDT multi-tenant paths** — `TenantID` field and `tenantUDTSIDItem` are wired;
+  needs end-to-end testing with real VRF vertices pushed via the topology API
