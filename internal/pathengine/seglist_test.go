@@ -18,7 +18,7 @@ func runDijkstra(t testing.TB, g *graph.Graph, src, dst string) *SPFResult {
 }
 
 func TestBuildSegmentList_UAChainWithUNAnchor(t *testing.T) {
-	// Forward path leaf-1→leaf-2 through spine-1.
+	// Forward path leaf-1→leaf-2 through spine-1, using the 32-bit full-uA mode.
 	// uA funcLen=16, uN funcLen=0 → maxFuncLen=16, slot=32bits=4bytes, capacity=3.
 	// Slot bytes [4:8] from each SID:
 	//   leaf-1-eth0 uA fc00:0:3:e001:: → 0x00,0x03,0xe0,0x01
@@ -28,7 +28,7 @@ func TestBuildSegmentList_UAChainWithUNAnchor(t *testing.T) {
 	g := makeLeafSpineGraph(t)
 	spf := runDijkstra(t, g, "leaf-1", "leaf-2")
 
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUA)
+	sl, err := BuildSegmentList(g, spf, 0, "", modeUAFull)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestBuildSegmentList_WithTenantUDT(t *testing.T) {
 	}))
 
 	spf := runDijkstra(t, g, "leaf-1", "leaf-2")
-	sl, err := BuildSegmentList(g, spf, 0, "vrf-green", ModeUA)
+	sl, err := BuildSegmentList(g, spf, 0, "vrf-green", modeUAFull)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -84,7 +84,7 @@ func TestBuildSegmentList_EmptyPath(t *testing.T) {
 	g := makeLeafSpineGraph(t)
 	spf := &SPFResult{NodeIDs: []string{"leaf-1"}}
 
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUA)
+	sl, err := BuildSegmentList(g, spf, 0, "", modeUAFull)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -119,7 +119,7 @@ func TestBuildSegmentList_FallbackToNodeSID(t *testing.T) {
 	}))
 
 	spf := runDijkstra(t, g, "A", "B")
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUA)
+	sl, err := BuildSegmentList(g, spf, 0, "", modeUAFull)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -131,8 +131,8 @@ func TestBuildSegmentList_FallbackToNodeSID(t *testing.T) {
 	}
 }
 
-func TestBuildSegmentList_UAOnly(t *testing.T) {
-	// leaf-1→spine-1→leaf-2 with ModeUAOnly.
+func TestBuildSegmentList_UA(t *testing.T) {
+	// leaf-1→spine-1→leaf-2 with ModeUA (16-bit function slots).
 	// Expected 16-bit slots (function-only, placed in node position):
 	//   leaf-1-eth0 uA fc00:0:3:e001:: → function e001 → item fc00:0:e001:: {32,16,0,0}
 	//   spine-1-eth1 uA fc00:0:2:e002:: → function e002 → item fc00:0:e002:: {32,16,0,0}
@@ -142,7 +142,7 @@ func TestBuildSegmentList_UAOnly(t *testing.T) {
 	g := makeLeafSpineGraph(t)
 	spf := runDijkstra(t, g, "leaf-1", "leaf-2")
 
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUAOnly)
+	sl, err := BuildSegmentList(g, spf, 0, "", ModeUA)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -155,7 +155,7 @@ func TestBuildSegmentList_UAOnly(t *testing.T) {
 	}
 }
 
-func TestBuildSegmentList_UAOnly_FallbackToUN(t *testing.T) {
+func TestBuildSegmentList_UA_FallbackToUN(t *testing.T) {
 	// Verify that a hop without a uA SID falls back to a 16-bit node slot,
 	// and that the mixed list still packs into a single container.
 	// Remove leaf-1-eth0's uA SID so the first hop falls back to leaf-1's uN.
@@ -169,7 +169,7 @@ func TestBuildSegmentList_UAOnly_FallbackToUN(t *testing.T) {
 	})
 
 	spf := runDijkstra(t, g, "leaf-1", "leaf-2")
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUAOnly)
+	sl, err := BuildSegmentList(g, spf, 0, "", ModeUA)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -186,15 +186,15 @@ func TestBuildSegmentList_UAOnly_FallbackToUN(t *testing.T) {
 	}
 }
 
-func TestBuildSegmentList_UNOnly(t *testing.T) {
-	// leaf-1→spine-1→leaf-2 with ModeUNOnly.
+func TestBuildSegmentList_UN(t *testing.T) {
+	// leaf-1→spine-1→leaf-2 with ModeUN.
 	// Source (leaf-1) is skipped. Remaining nodes: spine-1, leaf-2.
 	// 16-bit node slots: 0002 (spine-1) + 0004 (leaf-2).
 	// Container: fc00:0:2:4::
 	g := makeLeafSpineGraph(t)
 	spf := runDijkstra(t, g, "leaf-1", "leaf-2")
 
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUNOnly)
+	sl, err := BuildSegmentList(g, spf, 0, "", ModeUN)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -225,7 +225,7 @@ func TestBuildSegmentList_NoStructureFallback(t *testing.T) {
 	}))
 
 	spf := runDijkstra(t, g, "A", "B")
-	sl, err := BuildSegmentList(g, spf, 0, "", ModeUA)
+	sl, err := BuildSegmentList(g, spf, 0, "", modeUAFull)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

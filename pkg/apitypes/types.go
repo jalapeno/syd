@@ -120,18 +120,17 @@ type PathRequest struct {
 
 	// SegmentListMode controls how uSID containers are constructed.
 	//
-	// "ua" (default) — one 32-bit slot per hop: node(16)+function(16). Each uA
-	//   SID is packed as-is; uN fallback pads with zeros. Up to 3 SIDs per
-	//   container. Best for standard IOS-XR/SONiC uA SID deployments.
+	// "ua" (default) — one 16-bit slot per hop: function bits only (globally
+	//   unique within the fabric). Falls back to a 16-bit node slot when no uA
+	//   SID is available for that hop. Up to 6 SIDs per container. Requires
+	//   adjacency function IDs to be unique across the fabric.
 	//
-	// "ua_only" — one 16-bit slot per hop: function bits only (globally unique
-	//   within the fabric). Falls back to a 16-bit node slot when no uA SID is
-	//   available for that hop. Up to 6 SIDs per container. Requires adjacency
-	//   function IDs to be unique across the fabric.
+	// "un" — one 16-bit node slot per transit node + destination; source node
+	//   is omitted. ECMP within each node; no adjacency pinning. Up to 6 SIDs
+	//   per container.
 	//
-	// "un_only" — one 16-bit node slot per transit node + destination; source
-	//   node is omitted. ECMP within each node; no adjacency pinning. Up to 6
-	//   SIDs per container.
+	// "" (omit field) — classic 32-bit mode: one node(16)+function(16) slot per
+	//   hop; uN fallback pads with zeros. Up to 3 SIDs per container.
 	SegmentListMode string `json:"segment_list_mode,omitempty"`
 }
 

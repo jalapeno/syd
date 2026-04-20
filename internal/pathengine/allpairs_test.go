@@ -77,7 +77,7 @@ func TestDeriveReversePath(t *testing.T) {
 	}
 
 	pair := PairRequest{SrcEndpointID: "leaf-1", DstEndpointID: "leaf-2", SrcNodeID: "leaf-1", DstNodeID: "leaf-2"}
-	rev, err := deriveReversePath(g, fwd, pair, 0, "", ModeUA, "rev-1")
+	rev, err := deriveReversePath(g, fwd, pair, 0, "", modeUAFull, "rev-1")
 	if err != nil {
 		t.Fatalf("reverse path derivation failed: %v", err)
 	}

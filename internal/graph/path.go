@@ -35,11 +35,11 @@ type PathConstraints struct {
 	TenantID        string            `json:"tenant_id,omitempty"` // VRF vertex ID; appends uDT SID to segment list
 
 	// SegmentListMode controls how the SRv6 segment list is encoded.
-	// "ua" (default): uA SID per hop (32-bit slots) + uN anchor at destination.
-	// "ua_only":      16-bit function slot per hop; falls back to 16-bit node
-	//                 slot when no uA SID is available. Up to 6 SIDs per container.
-	// "un_only":      16-bit node slot for each transit node + destination;
-	//                 source node is omitted. Up to 6 SIDs per container.
+	// "ua":  16-bit function slot per hop; falls back to 16-bit node slot when
+	//        no uA SID is available. Up to 6 SIDs per container.
+	// "un":  16-bit node slot for each transit node + destination;
+	//        source node is omitted. Up to 6 SIDs per container.
+	// "":    32-bit node+function slot per hop + uN anchor (3/container); classic full uA.
 	SegmentListMode string `json:"segment_list_mode,omitempty"`
 }
 

@@ -12,31 +12,34 @@ import (
 type SegmentListMode string
 
 const (
-	// ModeUA is the default mode. Each hop contributes one 32-bit slot
-	// (node(16)+function(16)) using the egress interface's uA SID, with a
-	// fallback to the source node's uN SID. The destination uN SID is appended
-	// as the final anchor. Container capacity is 3 SIDs (96 bits / 32 bits).
-	ModeUA SegmentListMode = "ua"
-
-	// ModeUAOnly uses only the 16-bit function portion of each uA SID, placed
-	// in the node-slot position so TryPackUSID treats it as a 16-bit slot.
+	// ModeUA uses only the 16-bit function portion of each uA SID, placed in
+	// the node-slot position so TryPackUSID treats it as a 16-bit slot.
 	// When no uA SID is available for a hop, the 16-bit node SID is used as a
 	// fallback (same slot width). Container capacity is 6 SIDs (96/16).
 	// Requires adjacency function IDs to be globally unique within the fabric.
-	ModeUAOnly SegmentListMode = "ua_only"
+	ModeUA SegmentListMode = "ua"
 
-	// ModeUNOnly uses only node uN SIDs (16-bit slots). The source node is
+	// ModeUN uses only node uN SIDs (16-bit slots). The source node is
 	// omitted; all transit nodes and the destination are included. ECMP applies
 	// within each node. Container capacity is 6 SIDs (96/16).
-	ModeUNOnly SegmentListMode = "un_only"
+	ModeUN SegmentListMode = "un"
+
+	// modeUAFull is the internal 32-bit default mode. Each hop contributes one
+	// 32-bit slot (node(16)+function(16)) using the egress interface's uA SID,
+	// with a fallback to the source node's uN SID. The destination uN SID is
+	// appended as the final anchor. Container capacity is 3 SIDs (96/32).
+	// Not exposed in the API; used when SegmentListMode is empty.
+	modeUAFull SegmentListMode = "ua_full"
 )
 
 // BuildSegmentList constructs an SRv6 segment list for the given SPFResult.
 //
 // mode selects the encoding strategy:
-//   - ModeUA (default): uA SID per hop + uN anchor (32-bit slots, 3/container)
-//   - ModeUAOnly: 16-bit function slot per hop + uN anchor (6/container)
-//   - ModeUNOnly: 16-bit node slot, transit+dst only, no source (6/container)
+//   - ModeUA (default): 16-bit function slot per hop + uN anchor (6/container);
+//     falls back to 16-bit node slot when no uA SID is available for a hop.
+//   - ModeUN: 16-bit node slot, transit+dst only, no source (6/container)
+//   - "" or any unknown value: 32-bit node+function slot per hop + uN anchor
+//     (3/container); classic full uA encoding.
 //
 // When tenantID is non-empty, the VRF's uDT SID is appended as the final
 // segment (multi-tenant carrier for Options 1, 2b, 3).
@@ -55,11 +58,11 @@ func BuildSegmentList(g *graph.Graph, spf *SPFResult, algoID uint8, tenantID str
 	var err error
 
 	switch mode {
-	case ModeUAOnly:
+	case ModeUA:
 		items, err = buildItemsUAOnly(g, spf, algoID, tenantID)
-	case ModeUNOnly:
+	case ModeUN:
 		items, err = buildItemsUNOnly(g, spf, algoID, tenantID)
-	default: // ModeUA or ""
+	default: // "" or modeUAFull — 32-bit full uA encoding
 		items, err = buildItemsUA(g, spf, algoID, tenantID)
 	}
 	if err != nil {
