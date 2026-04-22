@@ -339,3 +339,34 @@ Roadmap:
   discover endpoints and request/response schemas without reading source
 - **uDT multi-tenant paths** — `TenantID` field and `tenantUDTSIDItem` are wired;
   needs end-to-end testing with real VRF vertices pushed via the topology API
+
+## UI agent work needed — composite graph rendering
+
+The executive demo UI renders composite graphs (`ipv4-graph`, `ipv6-graph`) automatically
+in the topology list and stats panel. Basic node/edge visualization also works. The
+following improvements require UI agent changes:
+
+### Server-side change (already done — `internal/api/ui.go`)
+
+`GET /topology/{id}/graph` now returns `"subtype"` on node objects. External BGP peer
+nodes have `subtype: "external_bgp"`; fabric/IGP nodes have no subtype. The `type`
+field on edges was already present: `"igp_adjacency"`, `"bgp_session"`, `"bgp_reachability"`.
+
+### Client-side changes needed (`ui/src/components/TopologyCanvas.tsx`)
+
+1. **Node coloring by subtype** — the current color scheme is tier-based (degree analysis).
+   Add subtype awareness:
+   - `subtype === "external_bgp"` → distinct color (e.g. amber/orange), visually separate
+     from fabric spine/leaf nodes
+   - `type === "prefix"` already gets tier-2 handling in `getNodeTier()` — no change needed
+
+2. **Edge styling by type** — all edge types currently render identically. Differentiate:
+   - `type === "igp_adjacency"` → solid gray (current default, keep as-is)
+   - `type === "bgp_session"` → dashed blue (inter-domain peering)
+   - `type === "bgp_reachability"` → dotted green (prefix reachability)
+
+3. **Layout for composite graphs** — the Clos spine/leaf/endpoint tier layout is
+   inappropriate for composite graphs that include external peer and prefix nodes.
+   Auto-detect when `type === "prefix"` or `subtype === "external_bgp"` nodes are
+   present and default to force-directed (`"auto"`) layout for those topologies.
+   Alternatively, expose a layout toggle in the UI.
