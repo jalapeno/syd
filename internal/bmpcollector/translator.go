@@ -514,13 +514,17 @@ func (h *lsNodeHandler) Handle(data []byte, store *graph.Store) error {
 		return nil
 	}
 	h.updater.UpsertNode(g, translateLSNode(&msg))
-	// Mirror to the companion v4 graph when it already exists (created lazily
-	// by lsLinkHandler on the first IPv4 link). This ensures the v4 graph has
-	// full node data (name, router-id, etc.) and not just link-created stubs.
+	// Mirror to the companion v4 graph unconditionally. Previously this only
+	// mirrored when the v4 graph already existed (created lazily by
+	// lsLinkHandler on the first MTID=0 link), which meant nodes replayed
+	// before any IPv4 link arrived were never mirrored, leaving the v4 graph
+	// with stub nodes that have no RouterID. Without RouterID the compose
+	// stitching index is empty and BGP session edges are dropped — splintering
+	// ipv4-graph. Using EnsureGraph here guarantees full node data (name,
+	// router-id, etc.) regardless of NATS message ordering.
 	if h.v4TopoID != "" {
-		if g4 := store.Get(h.v4TopoID); g4 != nil {
-			h.updater.UpsertNode(g4, translateLSNode(&msg))
-		}
+		g4 := h.updater.EnsureGraph(store, h.v4TopoID)
+		h.updater.UpsertNode(g4, translateLSNode(&msg))
 	}
 	return nil
 }
