@@ -60,8 +60,22 @@ func resolveOne(g *graph.Graph, spec apitypes.EndpointSpec) (ResolvedEndpoint, e
 				return ResolvedEndpoint{}, err
 			}
 			return ResolvedEndpoint{Spec: spec, EndpointID: spec.ID, NodeID: nodeID}, nil
+		case graph.VTPrefix:
+			// Resolve the prefix to its advertising border node so that prefix
+			// vertices can be used as path endpoints directly (e.g. from the UI).
+			// The SPF runs to/from the border node; EndpointID retains the prefix
+			// vertex ID so path results label flows by prefix.
+			p, ok := v.(*graph.Prefix)
+			if !ok {
+				return ResolvedEndpoint{}, fmt.Errorf("vertex %q is not a *graph.Prefix", spec.ID)
+			}
+			res, err := ResolvePrefix(g, p.Prefix)
+			if err != nil {
+				return ResolvedEndpoint{}, fmt.Errorf("prefix %q: %w", spec.ID, err)
+			}
+			return ResolvedEndpoint{Spec: spec, EndpointID: spec.ID, NodeID: res.NodeID}, nil
 		default:
-			return ResolvedEndpoint{}, fmt.Errorf("vertex %q has type %q; expected node or endpoint", spec.ID, v.GetType())
+			return ResolvedEndpoint{}, fmt.Errorf("vertex %q has type %q; expected node, endpoint, or prefix", spec.ID, v.GetType())
 		}
 	}
 
