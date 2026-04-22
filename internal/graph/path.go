@@ -33,6 +33,14 @@ type PathConstraints struct {
 	ExcludeGroup    uint32            `json:"exclude_group,omitempty"` // affinity exclude bits
 	AlgoID          uint8             `json:"algo_id,omitempty"`  // Flex-Algo
 	TenantID        string            `json:"tenant_id,omitempty"` // VRF vertex ID; appends uDT SID to segment list
+
+	// SegmentListMode controls how the SRv6 segment list is encoded.
+	// "ua":  16-bit function slot per hop; falls back to 16-bit node slot when
+	//        no uA SID is available. Up to 6 SIDs per container.
+	// "un":  16-bit node slot for each transit node + destination;
+	//        source node is omitted. Up to 6 SIDs per container.
+	// "":    32-bit node+function slot per hop + uN anchor (3/container); classic full uA.
+	SegmentListMode string `json:"segment_list_mode,omitempty"`
 }
 
 // PathMetric summarises the computed quality of a path.

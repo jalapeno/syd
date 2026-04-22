@@ -12,8 +12,13 @@ import (
 // --- ID helper tests ---------------------------------------------------------
 
 func TestNodeID(t *testing.T) {
-	if got := nodeID("1.2.3.4"); got != "1.2.3.4" {
-		t.Errorf("nodeID = %q, want %q", got, "1.2.3.4")
+	// DomainID=0: single-domain, key is plain IGPRouterID.
+	if got := nodeID("1.2.3.4", 0); got != "1.2.3.4" {
+		t.Errorf("nodeID(domainID=0) = %q, want %q", got, "1.2.3.4")
+	}
+	// DomainID!=0: multi-domain, key is "<domainID>:<igpRouterID>".
+	if got := nodeID("0000.0000.0006", 65536); got != "65536:0000.0000.0006" {
+		t.Errorf("nodeID(domainID=65536) = %q, want %q", got, "65536:0000.0000.0006")
 	}
 }
 
@@ -152,7 +157,7 @@ func TestTranslateLSNode(t *testing.T) {
 		RouterID:    "1.1.1.1",
 		ASN:         65001,
 		AreaID:      "49.0001",
-		DomainID:    1,
+		DomainID:    0, // single domain — key is plain IGPRouterID
 		Protocol:    "IS-IS Level-2",
 		Name:        "spine-1",
 		RouterHash:  "abc123",
@@ -181,6 +186,18 @@ func TestTranslateLSNode(t *testing.T) {
 	}
 	if len(node.SRv6Locators) != 0 {
 		t.Errorf("SRv6Locators = %v, want empty (locators arrive via LSSRv6SID)", node.SRv6Locators)
+	}
+}
+
+func TestTranslateLSNode_MultiDomain(t *testing.T) {
+	msg := &gobmpmsg.LSNode{
+		IGPRouterID: "0000.0000.0006",
+		DomainID:    65536,
+	}
+	node := translateLSNode(msg)
+	want := "65536:0000.0000.0006"
+	if node.ID != want {
+		t.Errorf("multi-domain ID = %q, want %q", node.ID, want)
 	}
 }
 

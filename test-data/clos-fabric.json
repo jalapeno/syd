@@ -1,0 +1,1422 @@
+{
+  "topology_id": "clos-fabric",
+  "description": "Synthetic 4-spine 8-leaf Clos fabric with 32 GPU endpoints (4 per leaf)",
+  "nodes": [
+    {
+      "id": "spine-1",
+      "name": "spine-1",
+      "subtype": "switch",
+      "labels": {
+        "tier": "spine",
+        "pod": "fabric"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:1000::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "spine-2",
+      "name": "spine-2",
+      "subtype": "switch",
+      "labels": {
+        "tier": "spine",
+        "pod": "fabric"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:1001::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "spine-3",
+      "name": "spine-3",
+      "subtype": "switch",
+      "labels": {
+        "tier": "spine",
+        "pod": "fabric"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:1002::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "spine-4",
+      "name": "spine-4",
+      "subtype": "switch",
+      "labels": {
+        "tier": "spine",
+        "pod": "fabric"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:1003::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-01",
+      "name": "leaf-01",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "1"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2000::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-02",
+      "name": "leaf-02",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "1"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2001::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-03",
+      "name": "leaf-03",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "2"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2002::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-04",
+      "name": "leaf-04",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "2"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2003::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-05",
+      "name": "leaf-05",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "3"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2004::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-06",
+      "name": "leaf-06",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "3"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2005::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-07",
+      "name": "leaf-07",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "4"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2006::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "leaf-08",
+      "name": "leaf-08",
+      "subtype": "switch",
+      "labels": {
+        "tier": "leaf",
+        "pod": "4"
+      },
+      "srv6_node_sid": {
+        "sid": "fc00:0:2007::",
+        "behavior": "End",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 0,
+          "argument_len": 0
+        }
+      }
+    }
+  ],
+  "endpoints": [
+    {
+      "id": "gpu-001",
+      "name": "gpu-001",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-01",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-002",
+      "name": "gpu-002",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-01",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-003",
+      "name": "gpu-003",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-01",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-004",
+      "name": "gpu-004",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-01",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-005",
+      "name": "gpu-005",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-02",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-006",
+      "name": "gpu-006",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-02",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-007",
+      "name": "gpu-007",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-02",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-008",
+      "name": "gpu-008",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-02",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-009",
+      "name": "gpu-009",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-03",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-010",
+      "name": "gpu-010",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-03",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-011",
+      "name": "gpu-011",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-03",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-012",
+      "name": "gpu-012",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-03",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-013",
+      "name": "gpu-013",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-04",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-014",
+      "name": "gpu-014",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-04",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-015",
+      "name": "gpu-015",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-04",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-016",
+      "name": "gpu-016",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-04",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-017",
+      "name": "gpu-017",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-05",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-018",
+      "name": "gpu-018",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-05",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-019",
+      "name": "gpu-019",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-05",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-020",
+      "name": "gpu-020",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-05",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-021",
+      "name": "gpu-021",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-06",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-022",
+      "name": "gpu-022",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-06",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-023",
+      "name": "gpu-023",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-06",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-024",
+      "name": "gpu-024",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-06",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-025",
+      "name": "gpu-025",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-07",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-026",
+      "name": "gpu-026",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-07",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-027",
+      "name": "gpu-027",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-07",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-028",
+      "name": "gpu-028",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-07",
+        "slot": "4"
+      }
+    },
+    {
+      "id": "gpu-029",
+      "name": "gpu-029",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-08",
+        "slot": "1"
+      }
+    },
+    {
+      "id": "gpu-030",
+      "name": "gpu-030",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-08",
+        "slot": "2"
+      }
+    },
+    {
+      "id": "gpu-031",
+      "name": "gpu-031",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-08",
+        "slot": "3"
+      }
+    },
+    {
+      "id": "gpu-032",
+      "name": "gpu-032",
+      "subtype": "gpu",
+      "labels": {
+        "tier": "gpu",
+        "leaf": "leaf-08",
+        "slot": "4"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "link:spine-1:leaf-01",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-01",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-01:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-01",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-02",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-02",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-02:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-02",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-03",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-03",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-03:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-03",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-04",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-04",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-04:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-04",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-05",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-05",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-05:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-05",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-06",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-06",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-06:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-06",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-07",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-07",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-07:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-07",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-1:leaf-08",
+      "type": "igp_adjacency",
+      "src_id": "spine-1",
+      "dst_id": "leaf-08",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-08:spine-1",
+      "type": "igp_adjacency",
+      "src_id": "leaf-08",
+      "dst_id": "spine-1",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-01",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-01",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-01:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-01",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-02",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-02",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-02:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-02",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-03",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-03",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-03:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-03",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-04",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-04",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-04:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-04",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-05",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-05",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-05:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-05",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-06",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-06",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-06:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-06",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-07",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-07",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-07:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-07",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-2:leaf-08",
+      "type": "igp_adjacency",
+      "src_id": "spine-2",
+      "dst_id": "leaf-08",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-08:spine-2",
+      "type": "igp_adjacency",
+      "src_id": "leaf-08",
+      "dst_id": "spine-2",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-01",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-01",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-01:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-01",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-02",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-02",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-02:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-02",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-03",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-03",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-03:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-03",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-04",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-04",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-04:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-04",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-05",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-05",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-05:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-05",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-06",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-06",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-06:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-06",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-07",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-07",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-07:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-07",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-3:leaf-08",
+      "type": "igp_adjacency",
+      "src_id": "spine-3",
+      "dst_id": "leaf-08",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-08:spine-3",
+      "type": "igp_adjacency",
+      "src_id": "leaf-08",
+      "dst_id": "spine-3",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-01",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-01",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-01:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-01",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-02",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-02",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-02:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-02",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-03",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-03",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-03:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-03",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-04",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-04",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-04:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-04",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-05",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-05",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-05:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-05",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-06",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-06",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-06:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-06",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-07",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-07",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-07:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-07",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:spine-4:leaf-08",
+      "type": "igp_adjacency",
+      "src_id": "spine-4",
+      "dst_id": "leaf-08",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "link:leaf-08:spine-4",
+      "type": "igp_adjacency",
+      "src_id": "leaf-08",
+      "dst_id": "spine-4",
+      "directed": true,
+      "igp_metric": 1,
+      "max_bw_bps": 400000000000,
+      "unidir_delay_us": 1
+    },
+    {
+      "id": "attach:gpu-001:leaf-01",
+      "type": "attachment",
+      "src_id": "gpu-001",
+      "dst_id": "leaf-01",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-002:leaf-01",
+      "type": "attachment",
+      "src_id": "gpu-002",
+      "dst_id": "leaf-01",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-003:leaf-01",
+      "type": "attachment",
+      "src_id": "gpu-003",
+      "dst_id": "leaf-01",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-004:leaf-01",
+      "type": "attachment",
+      "src_id": "gpu-004",
+      "dst_id": "leaf-01",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-005:leaf-02",
+      "type": "attachment",
+      "src_id": "gpu-005",
+      "dst_id": "leaf-02",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-006:leaf-02",
+      "type": "attachment",
+      "src_id": "gpu-006",
+      "dst_id": "leaf-02",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-007:leaf-02",
+      "type": "attachment",
+      "src_id": "gpu-007",
+      "dst_id": "leaf-02",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-008:leaf-02",
+      "type": "attachment",
+      "src_id": "gpu-008",
+      "dst_id": "leaf-02",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-009:leaf-03",
+      "type": "attachment",
+      "src_id": "gpu-009",
+      "dst_id": "leaf-03",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-010:leaf-03",
+      "type": "attachment",
+      "src_id": "gpu-010",
+      "dst_id": "leaf-03",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-011:leaf-03",
+      "type": "attachment",
+      "src_id": "gpu-011",
+      "dst_id": "leaf-03",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-012:leaf-03",
+      "type": "attachment",
+      "src_id": "gpu-012",
+      "dst_id": "leaf-03",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-013:leaf-04",
+      "type": "attachment",
+      "src_id": "gpu-013",
+      "dst_id": "leaf-04",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-014:leaf-04",
+      "type": "attachment",
+      "src_id": "gpu-014",
+      "dst_id": "leaf-04",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-015:leaf-04",
+      "type": "attachment",
+      "src_id": "gpu-015",
+      "dst_id": "leaf-04",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-016:leaf-04",
+      "type": "attachment",
+      "src_id": "gpu-016",
+      "dst_id": "leaf-04",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-017:leaf-05",
+      "type": "attachment",
+      "src_id": "gpu-017",
+      "dst_id": "leaf-05",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-018:leaf-05",
+      "type": "attachment",
+      "src_id": "gpu-018",
+      "dst_id": "leaf-05",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-019:leaf-05",
+      "type": "attachment",
+      "src_id": "gpu-019",
+      "dst_id": "leaf-05",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-020:leaf-05",
+      "type": "attachment",
+      "src_id": "gpu-020",
+      "dst_id": "leaf-05",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-021:leaf-06",
+      "type": "attachment",
+      "src_id": "gpu-021",
+      "dst_id": "leaf-06",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-022:leaf-06",
+      "type": "attachment",
+      "src_id": "gpu-022",
+      "dst_id": "leaf-06",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-023:leaf-06",
+      "type": "attachment",
+      "src_id": "gpu-023",
+      "dst_id": "leaf-06",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-024:leaf-06",
+      "type": "attachment",
+      "src_id": "gpu-024",
+      "dst_id": "leaf-06",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-025:leaf-07",
+      "type": "attachment",
+      "src_id": "gpu-025",
+      "dst_id": "leaf-07",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-026:leaf-07",
+      "type": "attachment",
+      "src_id": "gpu-026",
+      "dst_id": "leaf-07",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-027:leaf-07",
+      "type": "attachment",
+      "src_id": "gpu-027",
+      "dst_id": "leaf-07",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-028:leaf-07",
+      "type": "attachment",
+      "src_id": "gpu-028",
+      "dst_id": "leaf-07",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-029:leaf-08",
+      "type": "attachment",
+      "src_id": "gpu-029",
+      "dst_id": "leaf-08",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-030:leaf-08",
+      "type": "attachment",
+      "src_id": "gpu-030",
+      "dst_id": "leaf-08",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-031:leaf-08",
+      "type": "attachment",
+      "src_id": "gpu-031",
+      "dst_id": "leaf-08",
+      "directed": true
+    },
+    {
+      "id": "attach:gpu-032:leaf-08",
+      "type": "attachment",
+      "src_id": "gpu-032",
+      "dst_id": "leaf-08",
+      "directed": true
+    }
+  ]
+}

@@ -10,9 +10,10 @@ import (
 // --- Topology graph API for UI visualization ---
 
 type uiGraphNode struct {
-	ID   string `json:"id"`
-	Name string `json:"name,omitempty"`
-	Type string `json:"type,omitempty"`
+	ID      string `json:"id"`
+	Name    string `json:"name,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Subtype string `json:"subtype,omitempty"`
 }
 
 type uiGraphLink struct {
@@ -38,11 +39,12 @@ func (s *Server) handleTopologyGraph(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Collect all vertices except Interfaces (which are internal to links
-	// and clutter the visualization).
+	// Collect all vertices except Interfaces (which are internal to link
+	// modeling and clutter the visualization).
 	allVerts := g.AllVertices()
 	nodeIDs := make(map[string]struct{}, len(allVerts))
-	var nodes []uiGraphNode
+	nodes := make([]uiGraphNode, 0, len(allVerts))
+
 	for _, v := range allVerts {
 		vt := v.GetType()
 		if vt == graph.VTInterface {
@@ -52,16 +54,24 @@ func (s *Server) handleTopologyGraph(w http.ResponseWriter, r *http.Request) {
 			ID:   v.GetID(),
 			Type: string(vt),
 		}
-		if nd, ok := v.(*graph.Node); ok {
-			n.Name = nd.Name
+		// Resolve display name and subtype per vertex type.
+		switch tv := v.(type) {
+		case *graph.Node:
+			n.Name = tv.Name
+			n.Subtype = string(tv.Subtype)
+		case *graph.Endpoint:
+			n.Name = tv.Name
+		case *graph.Prefix:
+			n.Name = tv.Prefix // CIDR string as display name
 		}
 		nodes = append(nodes, n)
 		nodeIDs[v.GetID()] = struct{}{}
 	}
 
 	// Collect all edges where both endpoints are in our visible node set.
+	// Initialize as non-nil so the JSON field is always an array, never null.
 	seen := make(map[string]struct{})
-	var links []uiGraphLink
+	links := make([]uiGraphLink, 0)
 	for _, e := range g.AllEdges() {
 		src, dst := e.GetSrcID(), e.GetDstID()
 		if _, ok := nodeIDs[src]; !ok {

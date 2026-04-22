@@ -74,12 +74,12 @@ Once the containerlab BMP streams are flowing, the topology will start populatin
 
 ### BMP
 
-Test - get underlay nodes
+Test - get underlay-v6 nodes
 ```
-curl -s http://localhost:30080/topology/underlay/nodes | python3 -m json.tool | grep name
+curl -s http://localhost:30080/topology/underlay-v6/nodes | python3 -m json.tool | grep name
 ```
 ```
-cisco@jalapeno-host:~/syd$ curl -s http://localhost:30080/topology/underlay/nodes | python3 -m json.tool | grep name
+cisco@jalapeno-host:~/syd$ curl -s http://localhost:30080/topology/underlay-v6/nodes | python3 -m json.tool | grep name
             "name": "xrd01"
             "name": "xrd15"
             "name": "xrd25"
@@ -103,7 +103,7 @@ cisco@jalapeno-host:~/syd$
 Test - path request
 ```
 curl -s -X POST http://localhost:30080/paths/request   -H 'Content-Type: application/json'   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-xrd01-xrd28",
     "endpoints": [
       {"id": "0000.0000.0001"},
@@ -115,7 +115,7 @@ curl -s -X POST http://localhost:30080/paths/request   -H 'Content-Type: applica
 ```
 {
     "workload_id": "test-xrd01-xrd28",
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "paths": [
         {
             "src_id": "",
@@ -172,7 +172,7 @@ curl -s http://localhost:30080/paths/test-xrd01-xrd28/flows | python3 -m json.to
 cisco@jalapeno-host:~/syd$ curl -s http://localhost:30080/paths/test-xrd01-xrd28/flows | python3 -m json.tool
 {
     "workload_id": "test-xrd01-xrd28",
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "flows": [
         {
             "src_node_id": "",
@@ -211,7 +211,7 @@ Test - get paths
 curl -s -X POST http://localhost:30080/paths/request \
   -H 'Content-Type: application/json' \
   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-alltoall-4",
     "endpoints": [
       {"id": "0000.0000.0001"},
@@ -236,7 +236,7 @@ for p in d['paths']:
 ### Debugging gobmp-nats
 
 ```
-curl -s http://localhost:30080/topology/underlay/nodes | python3 -m json.tool | grep name
+curl -s http://localhost:30080/topology/underlay-v6/nodes | python3 -m json.tool | grep name
 ```
 
 nats cli:
@@ -381,13 +381,32 @@ nats -s nats://localhost:4222 consumer rm goBMP syd-gobmp-parsed-peer
 
 ---
 
+## Deploy checklist
+
+```bash
+# Pull latest on the k8s node
+cd ~/src/syd
+git pull
+
+# Rebuild and reload image
+docker build -t syd:latest .
+docker save syd:latest | sudo k3s ctr images import -
+
+# Rolling restart to pick up new image
+kubectl -n syd rollout restart deployment/syd
+kubectl -n syd rollout status deployment/syd
+
+# Watch startup — you should now see TWO topology IDs populate
+kubectl -n syd logs -f deployment/syd | grep -E "topology|starting|bmp"
+```
+
 ### Path request with uSID packing — expected output
 
 ```bash
 curl -s -X POST http://localhost:30080/paths/request \
   -H 'Content-Type: application/json' \
   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-xrd01-xrd28",
     "endpoints": [
       {"id": "0000.0000.0001"},
@@ -433,30 +452,11 @@ Actual output confirmed:
 
 ## Session: AF graph split, policy mapping, rename to syd (2026-04-19)
 
-### Deploy checklist
-
-```bash
-# Pull latest on the k8s node
-cd ~/src/syd
-git pull
-
-# Rebuild and reload image
-docker build -t syd:latest .
-docker save syd:latest | sudo k3s ctr images import -
-
-# Rolling restart to pick up new image
-kubectl -n syd rollout restart deployment/syd
-kubectl -n syd rollout status deployment/syd
-
-# Watch startup — you should now see TWO topology IDs populate
-kubectl -n syd logs -f deployment/syd | grep -E "topology|starting|bmp"
-```
-
 ---
 
 ### 1. Verify AF graph split
 
-After BMP converges, two topology graphs should exist: `underlay` (IPv6/SRv6,
+After BMP converges, two topology graphs should exist: `underlay-v6` (IPv6/SRv6,
 MTID=2 links only) and `underlay-v4` (IPv4/base-topology, MTID=0 links).
 
 ```bash
@@ -464,10 +464,10 @@ NODE=<your-node-ip>
 
 # Both graphs should appear in the list
 curl -s http://$NODE:30080/topology | python3 -m json.tool
-# Expected: {"topology_ids": ["underlay", "underlay-v4"]}
+# Expected: {"topology_ids": ["underlay-v6", "underlay-v4"]}
 
-# underlay should have nodes but ONLY IPv6/SRv6 links
-curl -s http://$NODE:30080/topology/underlay | python3 -m json.tool
+# underlay-v6 should have nodes but ONLY IPv6/SRv6 links
+curl -s http://$NODE:30080/topology/underlay-v6 | python3 -m json.tool
 
 # underlay-v4 should have the same nodes but only IPv4 links
 curl -s http://$NODE:30080/topology/underlay-v4 | python3 -m json.tool
@@ -516,7 +516,7 @@ Both forward and reverse should now show packed uA+uN containers.
 curl -s -X POST http://$NODE:30080/paths/request \
   -H 'Content-Type: application/json' \
   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-af-split",
     "endpoints": [
       {"id": "0000.0000.0001"},
@@ -565,7 +565,7 @@ curl -s -X POST http://$NODE:30080/paths/test-af-split/complete \
 curl -s -X POST http://$NODE:30080/paths/request \
   -H 'Content-Type: application/json' \
   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-algo128",
     "endpoints": [
       {"id": "0000.0000.0001"},
@@ -590,8 +590,8 @@ curl -s -X POST http://$NODE:30080/paths/test-algo128/complete \
 Register a human-readable name for algo 128 and use it in a path request.
 
 ```bash
-# Register policies on the underlay topology
-curl -s -X POST http://$NODE:30080/topology/underlay/policies \
+# Register policies on the underlay-v6 topology
+curl -s -X POST http://$NODE:30080/topology/underlay-v6/policies \
   -H 'Content-Type: application/json' \
   -d '{
     "policies": [
@@ -601,13 +601,13 @@ curl -s -X POST http://$NODE:30080/topology/underlay/policies \
   }' | python3 -m json.tool
 
 # Verify
-curl -s http://$NODE:30080/topology/underlay/policies | python3 -m json.tool
+curl -s http://$NODE:30080/topology/underlay-v6/policies | python3 -m json.tool
 
 # Request a path using the policy name instead of raw algo_id
 curl -s -X POST http://$NODE:30080/paths/request \
   -H 'Content-Type: application/json' \
   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-policy",
     "endpoints": [
       {"id": "0000.0000.0001"},
@@ -627,7 +627,7 @@ curl -s -o /dev/null -w '%{http_code}\n' \
   -X POST http://$NODE:30080/paths/request \
   -H 'Content-Type: application/json' \
   -d '{
-    "topology_id": "underlay",
+    "topology_id": "underlay-v6",
     "workload_id": "test-bad-policy",
     "endpoints": [{"id":"0000.0000.0001"},{"id":"0000.0000.0016"}],
     "policy": "nonexistent"
@@ -638,7 +638,7 @@ curl -s -X POST http://$NODE:30080/paths/test-policy/complete \
   -H 'Content-Type: application/json' -d '{"immediate":true}'
 
 # Remove a policy (algo_id=0 means delete)
-curl -s -X POST http://$NODE:30080/topology/underlay/policies \
+curl -s -X POST http://$NODE:30080/topology/underlay-v6/policies \
   -H 'Content-Type: application/json' \
   -d '{"policies": [{"name": "carbon-optimized", "algo_id": 0}]}' \
   | python3 -m json.tool
@@ -737,26 +737,30 @@ curl -s -X POST http://$NODE:30080/topology \
     "interfaces": [
       {
         "id": "r1-eth0", "owner_node_id": "0000.0000.0001",
-        "srv6_ua_sids": [
-          {"sid": "fc00:0:1:e001::", "func_len": 16, "algo_id": 0,
-           "neighbor_node_id": "0000.0000.0002"}
-        ]
+        "srv6_ua_sids": [{
+          "sid": "fc00:0:1:e001::",
+          "behavior": "End.X",
+          "algo_id": 0,
+          "structure": {"locator_block_len":32,"locator_node_len":16,"function_len":16,"argument_len":0}
+        }]
       },
       {
         "id": "r2-eth0", "owner_node_id": "0000.0000.0002",
-        "srv6_ua_sids": [
-          {"sid": "fc00:0:2:e001::", "func_len": 16, "algo_id": 0,
-           "neighbor_node_id": "0000.0000.0001"}
-        ]
+        "srv6_ua_sids": [{
+          "sid": "fc00:0:2:e001::",
+          "behavior": "End.X",
+          "algo_id": 0,
+          "structure": {"locator_block_len":32,"locator_node_len":16,"function_len":16,"argument_len":0}
+        }]
       }
     ],
     "edges": [
       {"id":"r1r2","type":"igp_adjacency","src_id":"0000.0000.0001",
        "dst_id":"0000.0000.0002","igp_metric":1,
-       "src_iface_id":"r1-eth0","dst_iface_id":"r2-eth0"},
+       "local_iface_id":"r1-eth0","remote_iface_id":"r2-eth0"},
       {"id":"r2r1","type":"igp_adjacency","src_id":"0000.0000.0002",
        "dst_id":"0000.0000.0001","igp_metric":1,
-       "src_iface_id":"r2-eth0","dst_iface_id":"r1-eth0"}
+       "local_iface_id":"r2-eth0","remote_iface_id":"r1-eth0"}
     ]
   }' | python3 -m json.tool
 
@@ -784,4 +788,281 @@ for p in d['paths']:
 curl -s -X POST http://$NODE:30080/paths/wl-srv6-push/complete \
   -H 'Content-Type: application/json' -d '{"immediate":true}'
 curl -s -X DELETE http://$NODE:30080/topology/test-srv6
+```
+
+---
+
+## Session: BMP peer and unicast prefix graphs (2026-04-19)
+
+### Deploy checklist
+
+```bash
+cd ~/src/syd && git pull
+docker build -t syd:latest .
+docker save syd:latest | sudo k3s ctr images import -
+kubectl -n syd rollout restart deployment/syd
+kubectl -n syd rollout status deployment/syd
+```
+
+After BMP converges, five topology graphs should exist.
+
+---
+
+### 1. Verify all five topology graphs
+
+```bash
+NODE=<your-node-ip>
+
+curl -s http://$NODE:30080/topology | python3 -m json.tool
+```
+
+Expected (order may vary):
+```json
+{"topology_ids": ["underlay-v6", "underlay-v4", "underlay-peers", "underlay-prefixes-v4", "underlay-prefixes-v6"]}
+```
+
+Check each graph's stats — vertex/edge counts confirm data is flowing:
+
+```bash
+for topo in underlay-v6 underlay-v4 underlay-peers underlay-prefixes-v4 underlay-prefixes-v6; do
+  echo "=== $topo ==="
+  curl -s http://$NODE:30080/topology/$topo | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+s = d['stats']
+print(f'  nodes={s[\"nodes\"]}  edges={s[\"total_edges\"]}  prefixes={s.get(\"prefixes\",0)}')
+"
+done
+```
+
+Rough expected counts (17-node XRd testbed):
+- `underlay-v6`: ~17 nodes, ~100+ edges (IPv6/SRv6 links + interfaces + ownership)
+- `underlay-v4`: ~17 nodes, ~100+ edges (IPv4 links)
+- `underlay-peers`: nodes = unique BGP endpoint IPs, edges = BGP sessions
+- `underlay-prefixes-v4`: prefix vertices + nexthop nodes
+- `underlay-prefixes-v6`: prefix vertices + nexthop nodes
+
+---
+
+### 2. Inspect peer topology
+
+```bash
+# List node IDs (BGP endpoint IPs) in the peers graph
+curl -s http://$NODE:30080/topology/underlay-peers/nodes | python3 -m json.tool | head -30
+
+# Spot-check: show BGP session edges (raw graph endpoint)
+curl -s "http://$NODE:30080/topology/underlay-peers/graph" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(f'Peer nodes: {len(d[\"nodes\"])}')
+for lnk in d.get('links', []):
+    print(f'  BGP session: {lnk[\"source\"]} -> {lnk[\"target\"]}')
+" | head -30
+```
+
+You should see BGP peer IP pairs (e.g. 10.0.0.x ↔ 10.x.x.x loopbacks).
+
+---
+
+### 3. Inspect prefix topologies
+
+```bash
+# IPv4 prefix stats
+curl -s http://$NODE:30080/topology/underlay-prefixes-v4 | python3 -m json.tool
+
+# IPv6 prefix stats
+curl -s http://$NODE:30080/topology/underlay-prefixes-v6 | python3 -m json.tool
+
+# Sample IPv4 prefix vertices and their nexthop nodes
+curl -s "http://$NODE:30080/topology/underlay-prefixes-v4/graph" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(f'Prefix nodes: {len(d[\"nodes\"])}  Links (prefix→nexthop): {len(d.get(\"links\",[]))}')
+# Show first 10 prefix vertices
+pfx_nodes = [n for n in d['nodes'] if n['id'].startswith('pfx:')]
+for n in pfx_nodes[:10]:
+    print(f'  {n[\"id\"]}')
+" 
+
+# Same for IPv6
+curl -s "http://$NODE:30080/topology/underlay-prefixes-v6/graph" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+pfx_nodes = [n for n in d['nodes'] if n['id'].startswith('pfx:')]
+print(f'IPv6 prefixes: {len(pfx_nodes)}')
+for n in pfx_nodes[:5]:
+    print(f'  {n[\"id\"]}')
+"
+```
+
+---
+
+### 4. Check vertex_ids and edge_ids in path responses
+
+Path responses now include the ordered list of node vertex IDs and link edge
+IDs traversed — used by the UI for path highlighting.
+
+```bash
+curl -s -X POST http://$NODE:30080/paths/request \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "topology_id": "underlay-v6",
+    "workload_id": "test-vertexids",
+    "endpoints": [
+      {"id": "0000.0000.0001"},
+      {"id": "0000.0000.0016"}
+    ]
+  }' | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for p in d['paths']:
+    print(f'{p[\"src_id\"]} -> {p[\"dst_id\"]}')
+    print(f'  sids:       {p[\"segment_list\"][\"sids\"]}')
+    print(f'  vertex_ids: {p.get(\"vertex_ids\",[])}')
+    print(f'  edge_ids:   {p.get(\"edge_ids\",[])}')
+"
+
+curl -s -X POST http://$NODE:30080/paths/test-vertexids/complete \
+  -H 'Content-Type: application/json' -d '{"immediate":true}'
+```
+
+Expected: `vertex_ids` = IS-IS system IDs in hop order; `edge_ids` = `link:*` IDs.
+
+
+---
+
+## Session: Clos fabric push topology (UI development)
+
+The file `test-data/clos-fabric.json` contains a synthetic 4-spine 8-leaf
+Clos fabric with 64 GPU endpoints. Push it as a separate topology alongside
+the BMP underlay-v6 — they are completely isolated by `topology_id`.
+
+Topology structure:
+- 4 spine nodes (`spine-1..4`), labels: `tier=spine`
+- 8 leaf nodes (`leaf-01..08`), labels: `tier=leaf pod=1..4` (2 leaves/pod)
+- 64 GPU endpoints (`gpu-001..064`), labels: `tier=gpu leaf=leaf-XX slot=1..8`
+- 64 directed spine-leaf `igp_adjacency` edge pairs (400 Gbps, 1 µs, metric 1)
+- 64 directed `attachment` edges (GPU → leaf)
+
+### Push the fabric topology
+
+```bash
+NODE=<your-node-ip>
+
+# From the repo root (where test-data/ lives):
+curl -s -X POST http://$NODE:30080/topology \
+  -H 'Content-Type: application/json' \
+  -d @test-data/clos-fabric.json | python3 -m json.tool
+# Expected: {"topology_id": "clos-fabric", "nodes": 12, "endpoints": 64, ...}
+
+# Verify it appears alongside underlay-v6 in the list
+curl -s http://$NODE:30080/topology | python3 -m json.tool
+
+# Check graph stats
+curl -s http://$NODE:30080/topology/clos-fabric | python3 -m json.tool
+
+# Fetch graph JSON for UI visualization
+curl -s http://$NODE:30080/topology/clos-fabric/graph | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(f'nodes={len(d[\"nodes\"])}  links={len(d[\"links\"])}')
+# Show a sample of node IDs grouped by tier
+from collections import Counter
+tiers = Counter(n['name'].split('-')[0] for n in d['nodes'])
+print('tiers:', dict(tiers))
+"
+```
+
+### Request a path across the fabric
+
+The fabric nodes have SRv6 node SIDs (spines fc00:0:1000::-fc00:0:1003::,
+leafs fc00:0:2000::-fc00:0:2007::) so segment_list will contain packed uN SIDs.
+
+```bash
+# gpu-001 (on leaf-01) → gpu-017 (on leaf-05) — crosses spine layer
+curl -s -X POST http://$NODE:30080/paths/request \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "topology_id": "clos-fabric",
+    "workload_id": "clos-test",
+    "endpoints": [
+      {"id": "gpu-001"},
+      {"id": "gpu-017"}
+    ],
+    "pairing_mode": "all_directed"
+  }' | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for p in d['paths'][:4]:
+    print(f'{p[\"src_id\"]} -> {p[\"dst_id\"]}')
+    print(f'  hops: {p[\"metric\"][\"hop_count\"]}')
+    print(f'  path: {\" -> \".join(p.get(\"vertex_ids\",[]))}')
+    print(f'  sids: {p[\"segment_list\"][\"sids\"]}')
+"
+
+curl -s -X POST http://$NODE:30080/paths/clos-test/complete \
+  -H 'Content-Type: application/json' -d '{"immediate":true}'
+```
+
+Expected: 2-hop paths (leaf-01 → spine-N → leaf-05), with ECMP across all 4 spines.
+After trimming to 4 GPUs/leaf: gpu-001..004 on leaf-01, gpu-005..008 on leaf-02,
+gpu-009..012 on leaf-03, gpu-013..016 on leaf-04, gpu-017..020 on leaf-05, etc.
+
+### 8-GPU all-reduce workload (one GPU per leaf)
+
+Representative AI all-reduce workload: one GPU per leaf, `bidir_paired` mode so
+forward and reverse flows for each pair share the same physical links.
+
+**Note on disjointness:** do NOT use `disjointness: link` here. A 4-spine 8-leaf
+Clos has only 32 spine-leaf links; each 2-hop path consumes 2, so the hard ceiling
+on strictly link-disjoint paths is 16. The greedy SPF will produce only ~22 paths
+before the topology runs dry. For all-to-all AI workloads you want all 56 paths —
+let ECMP across the spines provide the redundancy, not the disjointness exclusion.
+
+```bash
+curl -s -X POST http://$NODE:30080/paths/request \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "topology_id": "clos-fabric",
+    "workload_id": "clos-allreduce-8",
+    "endpoints": [
+      {"id": "gpu-001"},
+      {"id": "gpu-005"},
+      {"id": "gpu-009"},
+      {"id": "gpu-013"},
+      {"id": "gpu-017"},
+      {"id": "gpu-021"},
+      {"id": "gpu-025"},
+      {"id": "gpu-029"}
+    ],
+    "pairing_mode": "bidir_paired"
+  }' | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(f'workload:  {d[\"workload_id\"]}')
+print(f'paths:     {len(d[\"paths\"])}  (expect 56 = 8*(8-1)/2 pairs x2 directions)')
+print(f'free used: {d[\"allocation_state\"][\"paths_from_free\"]}')
+for p in d['paths'][:4]:
+    print(f'  {p[\"src_id\"]} -> {p[\"dst_id\"]}  hops={p[\"metric\"][\"hop_count\"]}  sids={p[\"segment_list\"][\"sids\"]}')
+print('  ...')
+"
+
+# Check flows (56 entries, one per directed flow)
+curl -s http://$NODE:30080/paths/clos-allreduce-8/flows | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(f'flows: {len(d[\"flows\"])}')
+for f in d['flows'][:2]:
+    srh = '+ SRH' if f.get('srh_raw') else ''
+    print(f'  {f[\"src_node_id\"]} -> {f[\"dst_node_id\"]}  outer_da={f[\"outer_da\"]} {srh}')
+"
+
+curl -s -X POST http://$NODE:30080/paths/clos-allreduce-8/complete \
+  -H 'Content-Type: application/json' -d '{"immediate":true}'
+```
+
+### Cleanup
+
+```bash
+curl -s -X DELETE http://$NODE:30080/topology/clos-fabric
 ```

@@ -147,5 +147,6 @@ func buildConstraints(req apitypes.PathRequest, disjointness string) graph.PathC
 		c.ExcludeGroup = req.Constraints.ExcludeGroup
 	}
 	c.TenantID = req.TenantID
+	c.SegmentListMode = req.SegmentListMode
 	return c
 }

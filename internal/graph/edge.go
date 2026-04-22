@@ -25,6 +25,11 @@ const (
 	// ETOwnership expresses a "belongs to" relationship:
 	//   Interface → Node, Prefix → Node, VRF → Node, Prefix → VRF
 	ETOwnership EdgeType = "ownership"
+
+	// ETBGPReachability connects an external BGP peer Node vertex to the Prefix
+	// vertices it announces. Directed: BGPPeerNode → Prefix.
+	// Carries path attributes (AS-path, local-pref, MED, origin) on the edge.
+	ETBGPReachability EdgeType = "bgp_reachability"
 )
 
 // Edge is implemented by all edge types in the graph.

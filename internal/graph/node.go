@@ -12,6 +12,11 @@ const (
 	NSLoadBalancer NodeSubtype = "load_balancer"
 	NSCNI          NodeSubtype = "cni"
 	NSProxy        NodeSubtype = "proxy"
+	// NSExternalBGP is an eBGP peer that lies outside the IGP domain — it has
+	// no SRv6 SIDs and cannot be a transit node for path computation. It exists
+	// as a topology anchor so that BGPReachabilityEdges can connect it to the
+	// prefix vertices it announces.
+	NSExternalBGP  NodeSubtype = "external_bgp"
 )
 
 // FlexAlgo describes a Flexible Algorithm definition advertised by a node

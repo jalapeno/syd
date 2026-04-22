@@ -123,7 +123,7 @@ func computeBiDirPairs(
 		}
 
 		// 2. Derive reverse path B→A by reversing the same physical links.
-		rev, err := deriveReversePath(g, fwd, pair, constraints.AlgoID, constraints.TenantID, revID)
+		rev, err := deriveReversePath(g, fwd, pair, constraints.AlgoID, constraints.TenantID, SegmentListMode(constraints.SegmentListMode), revID)
 		if err != nil {
 			// Forward succeeded but reverse derivation failed (e.g. missing
 			// reverse-direction edges in a unidirectional topology). Append
@@ -158,6 +158,7 @@ func deriveReversePath(
 	pair PairRequest,
 	algoID uint8,
 	tenantID string,
+	mode SegmentListMode,
 	id string,
 ) (*graph.Path, error) {
 	n := len(fwd.EdgeIDs)
@@ -200,7 +201,7 @@ func deriveReversePath(
 		Edges:   revEdges,
 	}
 
-	segList, err := BuildSegmentList(g, revSPF, algoID, tenantID)
+	segList, err := BuildSegmentList(g, revSPF, algoID, tenantID, mode)
 	if err != nil {
 		return nil, fmt.Errorf("reverse segment list: %w", err)
 	}
@@ -319,7 +320,7 @@ func computeOnePairWithID(
 		return nil, fmt.Errorf("pair %s→%s: %w", pair.SrcEndpointID, pair.DstEndpointID, err)
 	}
 
-	segList, err := BuildSegmentList(g, spf, constraints.AlgoID, constraints.TenantID)
+	segList, err := BuildSegmentList(g, spf, constraints.AlgoID, constraints.TenantID, SegmentListMode(constraints.SegmentListMode))
 	if err != nil {
 		return nil, fmt.Errorf("pair %s→%s segment list: %w", pair.SrcEndpointID, pair.DstEndpointID, err)
 	}

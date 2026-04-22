@@ -117,6 +117,21 @@ type PathRequest struct {
 	// Constraints.AlgoID if both are provided.
 	// Example values: "carbon-optimized", "latency-sensitive", "backbone-algo128"
 	Policy string `json:"policy,omitempty"`
+
+	// SegmentListMode controls how uSID containers are constructed.
+	//
+	// "ua" (default) — one 16-bit slot per hop: function bits only (globally
+	//   unique within the fabric). Falls back to a 16-bit node slot when no uA
+	//   SID is available for that hop. Up to 6 SIDs per container. Requires
+	//   adjacency function IDs to be unique across the fabric.
+	//
+	// "un" — one 16-bit node slot per transit node + destination; source node
+	//   is omitted. ECMP within each node; no adjacency pinning. Up to 6 SIDs
+	//   per container.
+	//
+	// "" (omit field) — classic 32-bit mode: one node(16)+function(16) slot per
+	//   hop; uN fallback pads with zeros. Up to 3 SIDs per container.
+	SegmentListMode string `json:"segment_list_mode,omitempty"`
 }
 
 // PathRequestConstraints carries optional fine-grained TE constraints.
@@ -273,6 +288,36 @@ type PoliciesRequest struct {
 type PoliciesResponse struct {
 	TopologyID string        `json:"topology_id"`
 	Policies   []PolicyEntry `json:"policies"`
+}
+
+// --- Composite graph API --------------------------------------------------
+
+// ComposeRequest is the body for POST /topology/compose.
+// It merges the listed source topologies into a single named graph that
+// spans IGP, BGP session, and prefix-reachability layers. BGP session edges
+// are stitched onto their correct IGP node vertices using the RouterID field
+// stored on every IGP-derived node vertex.
+//
+// Recommended source order: IGP graph first (e.g. "underlay-v6"), then peer
+// graph ("underlay-peers"), then prefix graphs ("underlay-prefixes-v4/v6").
+// The compose algorithm uses a two-pass approach so strict ordering is not
+// required, but providing the IGP graph first ensures the RouterID index is
+// as complete as possible.
+type ComposeRequest struct {
+	// TopologyID is the name of the output graph. If a graph with this ID
+	// already exists it is replaced with the freshly composed snapshot.
+	TopologyID string `json:"topology_id"`
+
+	// Sources lists the topology IDs to merge, in order. All listed topologies
+	// must already exist in the store.
+	Sources []string `json:"sources"`
+}
+
+// ComposeResponse is returned by POST /topology/compose.
+type ComposeResponse struct {
+	TopologyID string      `json:"topology_id"`
+	Sources    []string    `json:"sources"`
+	Stats      interface{} `json:"stats"` // graph.GraphStats
 }
 
 // --- Error response -------------------------------------------------------

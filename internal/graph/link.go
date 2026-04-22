@@ -74,6 +74,23 @@ type AttachmentEdge struct {
 	// VlanID and other L2 attributes can be added here as the model evolves.
 }
 
+// BGPReachabilityEdge connects an external BGP peer Node to a Prefix vertex.
+// It represents a BGP route advertisement: SrcID (the eBGP peer) announces
+// DstID (the prefix) with the given path attributes.
+//
+// These edges live in the underlay-prefixes-v4 or underlay-prefixes-v6 graph
+// alongside the Prefix and peer Node vertices they connect.
+type BGPReachabilityEdge struct {
+	BaseEdge
+	// Path attributes from the BGP UPDATE.
+	ASPath    []uint32 `json:"as_path,omitempty"`    // full AS_PATH, first element is the direct peer's AS
+	OriginAS  uint32   `json:"origin_as,omitempty"`  // rightmost ASN in AS_PATH (origin)
+	LocalPref uint32   `json:"local_pref,omitempty"` // BGP LOCAL_PREF; 0 = not set / eBGP default
+	MED       uint32   `json:"med,omitempty"`        // BGP MULTI_EXIT_DISC; 0 = not set
+	Origin    string   `json:"origin,omitempty"`     // "igp" | "egp" | "incomplete"
+	NextHop   string   `json:"nexthop,omitempty"`    // BGP NEXT_HOP attribute
+}
+
 // OwnershipEdge expresses a "belongs to" or "is hosted on" relationship.
 // Examples:
 //   Interface → Node  (this interface is on this node)

@@ -16,10 +16,18 @@ import (
 type Updater struct {
 	mu       sync.Mutex
 	onRemove func(topoID, elementID string) // nil = no-op
+
+	// peerSpecs maps a BGP peer's RemoteIP → the Node vertex that represents
+	// it. Populated by peerHandler for eBGP sessions (local_asn != remote_asn);
+	// read by unicastPrefixHandler to anchor external prefixes to the correct
+	// peer vertex rather than an anonymous stub nexthop.
+	peerSpecs map[string]*graph.Node
 }
 
 // NewUpdater creates a ready-to-use Updater.
-func NewUpdater() *Updater { return &Updater{} }
+func NewUpdater() *Updater {
+	return &Updater{peerSpecs: make(map[string]*graph.Node)}
+}
 
 // SetRemovalCallback registers fn to be called after any vertex or edge is
 // removed from the graph. fn receives the topology ID (g.ID()) and the
@@ -202,6 +210,38 @@ func (u *Updater) UpsertPrefix(g *graph.Graph, pfx *graph.Prefix, nh *graph.Node
 	if own != nil {
 		_ = g.AddEdge(own)
 	}
+}
+
+// RegisterPeerSpec records an external BGP peer node spec keyed by the peer's
+// RemoteIP. Called by peerHandler when it observes an eBGP session. The spec
+// is later retrieved by unicastPrefixHandler via LookupPeerSpec to anchor
+// external prefixes to the correct peer vertex.
+func (u *Updater) RegisterPeerSpec(peerIP string, node *graph.Node) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.peerSpecs[peerIP] = node
+}
+
+// LookupPeerSpec returns the external BGP peer Node for the given peer IP, or
+// nil if no eBGP peer with that IP has been observed yet.
+func (u *Updater) LookupPeerSpec(peerIP string) *graph.Node {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	return u.peerSpecs[peerIP]
+}
+
+// UpsertBGPReachability adds or replaces a BGPReachabilityEdge in g, ensuring
+// the Prefix vertex and the external BGP peer vertex both exist first.
+// The peer vertex is created as a stub if it is not already present — it will
+// be enriched later if/when peerHandler processes the corresponding session.
+func (u *Updater) UpsertBGPReachability(g *graph.Graph, pfx *graph.Prefix, peer *graph.Node, reach *graph.BGPReachabilityEdge) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	_ = g.AddVertex(pfx)
+	if g.GetVertex(peer.ID) == nil {
+		_ = g.AddVertex(peer)
+	}
+	_ = g.AddEdge(reach)
 }
 
 // RemoveVertex removes the vertex and all incident edges from the graph, then

@@ -3,6 +3,7 @@
 // Endpoints:
 //
 //	POST   /topology               — upload/replace a topology (push-via-JSON)
+//	POST   /topology/compose       — merge source topologies into a composite graph
 //	GET    /topology               — list topology IDs
 //	GET    /topology/{id}          — describe a topology (stats)
 //	GET    /topology/{id}/nodes    — list node IDs in a topology
@@ -92,6 +93,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /topology", s.handleTopologyPush)
+	mux.HandleFunc("POST /topology/compose", s.handleTopologyCompose)
 	mux.HandleFunc("GET /topology", s.handleTopologyList)
 	mux.HandleFunc("GET /topology/{id}", s.handleTopologyGet)
 	mux.HandleFunc("GET /topology/{id}/nodes", s.handleTopologyNodes)

@@ -93,7 +93,9 @@ func main() {
 		// Pre-create the allocation table for the BMP-learned topology so
 		// path requests work as soon as the graph is populated. POST /topology
 		// normally does this, but BMP-driven graphs bypass that handler.
-		tables.Put(*bmpTopo, allocation.NewTable(*bmpTopo))
+		// DefaultHandlers appends "-v6" to bmpTopo for the primary SRv6 graph.
+		primaryTopo := *bmpTopo + "-v6"
+		tables.Put(primaryTopo, allocation.NewTable(primaryTopo))
 
 		updater := bmpcollector.NewUpdater()
 

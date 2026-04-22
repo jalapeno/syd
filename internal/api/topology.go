@@ -129,3 +129,56 @@ func (s *Server) handleTopologyDelete(w http.ResponseWriter, r *http.Request) {
 	s.log.Info("topology deleted", "topology_id", id)
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// handleTopologyCompose merges one or more existing source topologies into a
+// new named graph and stores it in the topology store. The resulting graph
+// spans the IGP fabric (ETIGPAdjacency), BGP sessions (ETBGPSession), and
+// external prefix reachability (ETBGPReachability), enabling end-to-end
+// shortest-path queries from GPU endpoints to external BGP prefixes.
+//
+// BGP session edges are stitched: their SrcID (LocalBGPID, a BGP router-ID)
+// is rewritten to the corresponding IGP node ID using Node.RouterID as the
+// join key. Session edges whose local end cannot be resolved are dropped.
+//
+// Composed graphs are point-in-time snapshots. Re-POST to refresh after the
+// underlying source topologies have been updated.
+func (s *Server) handleTopologyCompose(w http.ResponseWriter, r *http.Request) {
+	var req apitypes.ComposeRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+		return
+	}
+	if req.TopologyID == "" {
+		writeError(w, http.StatusBadRequest, "topology_id is required")
+		return
+	}
+	if len(req.Sources) == 0 {
+		writeError(w, http.StatusBadRequest, "sources must not be empty")
+		return
+	}
+
+	// Resolve all source graph IDs — fail fast if any are missing.
+	sources := make([]*graph.Graph, 0, len(req.Sources))
+	for _, src := range req.Sources {
+		g := s.store.Get(src)
+		if g == nil {
+			writeError(w, http.StatusNotFound, fmt.Sprintf("source topology %q not found", src))
+			return
+		}
+		sources = append(sources, g)
+	}
+
+	composed := graph.Compose(req.TopologyID, sources...)
+	s.store.Put(composed)
+
+	s.log.Info("topology composed",
+		"topology_id", req.TopologyID,
+		"sources", req.Sources,
+		"stats", composed.Stats(),
+	)
+	writeJSON(w, http.StatusOK, apitypes.ComposeResponse{
+		TopologyID: composed.ID(),
+		Sources:    req.Sources,
+		Stats:      composed.Stats(),
+	})
+}

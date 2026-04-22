@@ -61,6 +61,7 @@ All endpoints are served on `:8080` (configurable via `--addr`).
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/topology` | Push a JSON topology document; creates or incrementally updates |
+| `POST` | `/topology/compose` | Merge source topologies into a composite graph (snapshot) |
 | `GET` | `/topology` | List topology IDs |
 | `GET` | `/topology/{id}` | Get topology stats |
 | `GET` | `/topology/{id}/nodes` | List nodes |
@@ -85,7 +86,7 @@ All endpoints are served on `:8080` (configurable via `--addr`).
 
 ```json
 {
-  "topology_id":   "underlay",
+  "topology_id":   "underlay-v6",
   "workload_id":   "my-job-123",
   "endpoints": [
     {"id": "0000.0000.0001"},
@@ -139,7 +140,7 @@ containerlab XRd routers
 Handled NATS subjects:
 - `gobmp.parsed.ls_node` → `graph.Node` (primary graph + mirrored to v4 companion)
 - `gobmp.parsed.ls_link` → `graph.Interface` + `graph.LinkEdge` + uA SIDs
-  - MTID=2 (MT-IPv6/SRv6) → primary graph (e.g. `"underlay"`)
+  - MTID=2 (MT-IPv6/SRv6) → primary graph (e.g. `"underlay-v6"`)
   - MTID=0/absent (base/IPv4) → companion graph (e.g. `"underlay-v4"`)
 - `gobmp.parsed.ls_srv6_sid` → locators / uN SIDs merged onto Node (primary only)
 - `gobmp.parsed.peer` → `graph.BGPSessionEdge` (primary graph)
@@ -174,6 +175,58 @@ On startup the collector **deletes** its durable consumers to force a
 - `graph.Path.VertexIDs` / `.EdgeIDs` — used by `allocation.InvalidateElement`
   to determine which workloads to drain when topology elements are withdrawn.
 
+## Vertex / edge keying scheme
+
+Keys are scoped per `graph.Graph` instance (identified by `topoID`). Within a
+graph, the rules are:
+
+| Vertex type | Key format | Notes |
+|-------------|-----------|-------|
+| Node (IGP) | `<IGPRouterID>` | plain when `DomainID==0` (single domain) |
+| Node (IGP, multi-domain) | `<DomainID>:<IGPRouterID>` | e.g. `65536:0000.0000.0006` |
+| Node (external BGP peer) | `peer:<RemoteBGPID>_<RemoteIP>` | Jalapeno convention |
+| Node (nexthop stub) | `nh:<ip>` | internal to prefix graphs |
+| Interface | `iface:<nodeID>/<linkIP>` or `iface:<nodeID>/<linkNum>` | |
+| Prefix (default VRF) | `pfx:<ip>/<len>` | e.g. `pfx:10.0.0.0/8` |
+| Prefix (VRF-scoped) | `pfx:<vrfID>:<ip>/<len>` | reserved for L3VPN |
+| LinkEdge | `link:<srcNodeID>:<dstNodeID>:<localLinkIP>` | |
+| BGPSessionEdge | `bgpsess:<LocalBGPID>:<RemoteIP>` | |
+| BGPReachabilityEdge | `bgpreach:<peerVertexID>:<pfxVertexID>` | |
+| OwnershipEdge | `own:<ifaceID>-><nodeID>` or `pfxown:<pfxID>:<nhID>` | |
+
+**Cross-graph stitching (composite graph):** BGP peer sessions use `LocalBGPID`
+(a BGP router ID, e.g. `10.0.0.6`) as `SrcID`, while IGP nodes are keyed by
+IS-IS system ID (e.g. `0000.0000.0006`). The stitching key is `graph.Node.RouterID`
+which stores the BGP router ID on every IGP node vertex. When composing graphs,
+scan `underlay-v6` nodes to build a `RouterID → nodeID` map and rewrite BGP
+session edge `SrcID` values before insertion.
+
+**XRd testbed:** all nodes have `DomainID=0` — node IDs are plain IS-IS system
+IDs and match existing curl examples and API references unchanged.
+
+## Composite graph (roadmap — next)
+
+The goal is a `POST /topology/compose` endpoint that merges source graphs into a
+unified named graph (e.g. `"ipv6-graph"`), enabling end-to-end shortest-path
+queries from GPU endpoints through the IGP fabric to external BGP prefixes.
+
+**Compose steps:**
+1. Copy all vertices and `ETIGPAdjacency`/`ETPhysical` edges from `underlay-v6`
+2. Build `RouterID → nodeID` map from the copied nodes
+3. From `underlay-peers`: copy eBGP peer vertices; rewrite session `SrcID` via
+   the map (drop if local end unresolvable)
+4. From `underlay-prefixes-v4/v6`: copy prefix vertices and `ETBGPReachability`
+   edges
+
+**Path computation on composite graph:**
+- Extend `POST /paths/request` with a `dst_prefix` field; internally resolves
+  the target prefix to an egress BGP node, computes an SRv6 path to that node,
+  and returns both the segment list (for underlay steering) and the BGP nexthop
+  (for the final hop to the external destination).
+- The path engine SPF needs a `"reachability"` mode that traverses
+  `ETIGPAdjacency` for transit hops and `ETBGPSession`/`ETBGPReachability`
+  for the final BGP-to-prefix hop.
+
 ## Allocation state machine
 
 ```
@@ -206,26 +259,114 @@ kubectl -n syd rollout status deployment/syd
 
 NodePort: `http://<node-ip>:30080`
 
-## Current status (as of 2026-04-19)
+## Scale analysis — 32-spine 64-leaf 8192-GPU cluster
+
+### What runs where
+
+Dijkstra runs on the **fabric topology only** (spine + leaf nodes = 96 vertices for
+32-spine 64-leaf), not on the full graph including GPU endpoint vertices. GPU endpoint
+vertices exist in the graph but have no transit uA SIDs — the path engine resolves them
+to their attached leaf and computes leaf→leaf paths. So graph traversal cost stays low
+even at 8192 GPUs.
+
+### Today's bottleneck: N² pair enumeration
+
+`ComputeAllPairs` iterates every directed endpoint pair and runs Dijkstra for each.
+For a job with K GPUs:
+- `all_directed`: K×(K-1) Dijkstra runs
+- `bidir_paired`: K×(K-1)/2 Dijkstra runs
+
+At K=256 GPUs/job: 65,280 Dijkstra runs × ~1 ms each ≈ 65 s (too slow at scale).
+
+With K=64 GPUs/job (realistic AI job size today): ~4,000 runs, feasible.
+
+### Path to 8192-GPU scale: leaf-pair pre-computation + ECMP-group output
+
+**Observation**: in a fixed Clos topology the set of distinct leaf→leaf paths is small
+and stable. A 64-leaf fabric has 64×63 = 4,032 directed leaf pairs (2,016 unordered).
+Pre-compute and cache all leaf-pair segment lists at topology load time.
+
+**ECMP-group output** (roadmap): instead of returning one segment list per GPU-pair,
+return one group per leaf-pair. A job with 8192 GPUs spread across 64 leaves emits a
+64×63 = 4,032-entry response (vs. 8192×8191 ≈ 67M entries today). The host-side agent
+picks the right segment list based on its own leaf attachment.
+
+**Result**: per-request work drops from O(K² × Dijkstra) to O(K² × hash lookup), and
+response payload shrinks from O(GPU²) to O(leaf²) regardless of GPU count per leaf.
+
+### Short-term ceiling
+
+Without leaf-pair caching, the practical limit is ~256 GPUs/job at <5 s response time.
+For the current demo/testbed use case (32 GPUs, 8 GPUs/job) there is no issue.
+
+---
+
+## Current status (as of 2026-04-20)
 
 Done:
 - Full BMP pipeline (17-node XRd testbed)
 - Dijkstra SPF with disjointness, BW, latency, admin-group, Flex-Algo constraints
-- uSID container packing (32-bit mixed, 16-bit all-uN)
+- uSID container packing: 32-bit full-uA (default), 16-bit `ua` mode, 16-bit `un` mode
 - Flex-Algo SID selection and SPF edge pruning (`algo_id` in constraints)
 - Incremental topology push (only drains workloads on removed elements)
 - All-pairs path computation, bidir-paired mode, lease/drain timers
 - Metadata-to-algo policy mapping (`POST /topology/{id}/policies`, name→algo_id)
-  - `PathRequest.policy` resolves a named policy to an algo_id before compute
-  - Operators register mappings once (e.g. "carbon-optimized" → 130); job
-    schedulers reference them by name without embedding numeric algo IDs
+- Address-family graph split: `underlay-v6` (SRv6/IPv6) + `underlay-v4` companion
+- BMP peer message integration (BGP session topology layer, `underlay-peers` graph)
+- BMP unicast prefix integration (IPv4/IPv6 prefix→node mapping, `underlay-prefixes-v4/v6`)
+- External BGP peer vertices (`NSExternalBGP`) with `BGPReachabilityEdge` to prefix vertices;
+  iBGP sessions skipped; eBGP peers keyed as `peer:<RemoteBGPID>_<RemoteIP>` (Jalapeno convention)
+- Multi-domain node keying: `nodeID` incorporates `DomainID` when non-zero;
+  VRF-scoped prefix keys reserved for L3VPN ingestion
+- `graph.Compose()` + `POST /topology/compose` — merges IGP + peer + prefix source graphs
+  into a unified snapshot with BGP session stitching (RouterID join); both `ipv4-graph`
+  and `ipv6-graph` variants supported by choosing the appropriate prefix source
+- Executive demo UI (topology graph, workload list, path/SID display, path-request form)
+- All bmpcollector tests passing
+- `scripts/test-local.sh` — local integration test suite (no NATS/BMP required)
+- `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf)
 
 Roadmap:
-- **Executive demo UI** — see `pkg/apitypes` for the full API contract; all
-  endpoints are documented above. The UI should show: topology graph
-  visualization, active workload list, per-workload path/SID display,
-  path-request form.
-- BMP peer message integration (BGP session topology layer)
-- BMP unicast prefix integration (IPv4/IPv6 prefix→node mapping, "map the internet")
-- Fix bmpcollector test failures (BGP session edge/stub vertex tests)
-- L3VPN / EVPN handler support
+- **End-to-end path with `dst_prefix`** — extend `POST /paths/request` with a
+  `dst_prefix` field; resolves target prefix → egress BGP node → SRv6 path to that
+  node; returns segment list + BGP nexthop. Requires the composite graph to exist.
+  See "Composite graph" section above for full design.
+- **L3VPN / EVPN handler support** — VRF/VPN topology ingestion via BMP;
+  VRF-scoped prefix keys already in place (`prefixVertexID` with vrfID)
+- **gNMI ToR southbound** — stub exists; needs `openconfig/gnmi` dependency wired up
+  and real `DialFunc` implementation for SONiC switch programming
+- **OpenAPI self-documentation** — `GET /openapi.json` so external agents can
+  discover endpoints and request/response schemas without reading source
+- **uDT multi-tenant paths** — `TenantID` field and `tenantUDTSIDItem` are wired;
+  needs end-to-end testing with real VRF vertices pushed via the topology API
+
+## UI agent work needed — composite graph rendering
+
+The executive demo UI renders composite graphs (`ipv4-graph`, `ipv6-graph`) automatically
+in the topology list and stats panel. Basic node/edge visualization also works. The
+following improvements require UI agent changes:
+
+### Server-side change (already done — `internal/api/ui.go`)
+
+`GET /topology/{id}/graph` now returns `"subtype"` on node objects. External BGP peer
+nodes have `subtype: "external_bgp"`; fabric/IGP nodes have no subtype. The `type`
+field on edges was already present: `"igp_adjacency"`, `"bgp_session"`, `"bgp_reachability"`.
+
+### Client-side changes needed (`ui/src/components/TopologyCanvas.tsx`)
+
+1. **Node coloring by subtype** — the current color scheme is tier-based (degree analysis).
+   Add subtype awareness:
+   - `subtype === "external_bgp"` → distinct color (e.g. amber/orange), visually separate
+     from fabric spine/leaf nodes
+   - `type === "prefix"` already gets tier-2 handling in `getNodeTier()` — no change needed
+
+2. **Edge styling by type** — all edge types currently render identically. Differentiate:
+   - `type === "igp_adjacency"` → solid gray (current default, keep as-is)
+   - `type === "bgp_session"` → dashed blue (inter-domain peering)
+   - `type === "bgp_reachability"` → dotted green (prefix reachability)
+
+3. **Layout for composite graphs** — the Clos spine/leaf/endpoint tier layout is
+   inappropriate for composite graphs that include external peer and prefix nodes.
+   Auto-detect when `type === "prefix"` or `subtype === "external_bgp"` nodes are
+   present and default to force-directed (`"auto"`) layout for those topologies.
+   Alternatively, expose a layout toggle in the UI.

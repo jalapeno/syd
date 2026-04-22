@@ -25,10 +25,25 @@ const afSplitMTID uint16 = 2
 
 // --- Vertex / edge ID helpers ------------------------------------------------
 
-// nodeID returns the graph vertex ID for a BGP-LS node. We use IGPRouterID
-// as the stable key (IS-IS system ID or OSPF router ID).
-func nodeID(igpRouterID string) string {
-	return igpRouterID
+// nodeID returns the graph vertex ID for a BGP-LS node.
+//
+// Within a single IS-IS/OSPF domain, IGPRouterID (e.g. "0000.0000.0006") is
+// unique by protocol guarantee, so it is used directly as the key.
+//
+// When DomainID is non-zero — indicating a multi-domain deployment where
+// different routing instances may reuse the same system IDs — the domain is
+// prepended to guarantee global uniqueness:
+//
+//	DomainID=0   →  "0000.0000.0006"         (single domain, unchanged)
+//	DomainID=N   →  "65536:0000.0000.0006"   (multi-domain, prefixed)
+//
+// The XRd testbed and most single-domain fabrics have DomainID=0, so
+// existing vertex IDs and API references are unaffected.
+func nodeID(igpRouterID string, domainID int64) string {
+	if domainID == 0 {
+		return igpRouterID
+	}
+	return fmt.Sprintf("%d:%s", domainID, igpRouterID)
 }
 
 // ifaceID returns the Interface vertex ID for the local end of a link.
@@ -60,8 +75,21 @@ func peerEdgeID(localBGPID, remoteIP string) string {
 }
 
 // prefixVertexID returns the Prefix vertex ID for an IP prefix/len.
-func prefixVertexID(prefix string, prefixLen int32) string {
-	return fmt.Sprintf("pfx:%s/%d", prefix, prefixLen)
+//
+// In the default VRF (vrfID == "") the key is simply "pfx:<ip>/<len>".
+// When a VRF vertex ID is supplied the prefix is scoped to that VRF so that
+// the same IP prefix can exist independently in multiple tenants:
+//
+//	vrfID=""           →  "pfx:10.0.0.0/8"
+//	vrfID="vrf:tenant" →  "pfx:vrf:tenant:10.0.0.0/8"
+//
+// VRF scoping is not used by the BMP unicast-prefix path today (vrfID="");
+// it is reserved for L3VPN prefix ingestion.
+func prefixVertexID(prefix string, prefixLen int32, vrfID string) string {
+	if vrfID == "" {
+		return fmt.Sprintf("pfx:%s/%d", prefix, prefixLen)
+	}
+	return fmt.Sprintf("pfx:%s:%s/%d", vrfID, prefix, prefixLen)
 }
 
 // nexthopNodeID returns the stub Node vertex ID for a nexthop IP address.
@@ -80,6 +108,18 @@ func nexthopNodeID(nexthop string) string {
 // node) pair.
 func prefixOwnerEdgeID(pfxID, nhID string) string {
 	return "pfxown:" + pfxID + ":" + nhID
+}
+
+// externalPeerNodeID returns the vertex ID for an external BGP peer.
+// Format mirrors Jalapeno's peer key: "<RemoteBGPID>_<RemoteIP>", prefixed
+// with "peer:" to avoid collisions with IGP-derived node IDs.
+func externalPeerNodeID(remoteBGPID, remoteIP string) string {
+	return "peer:" + remoteBGPID + "_" + remoteIP
+}
+
+// bgpReachEdgeID returns the deterministic edge ID for a BGPReachabilityEdge.
+func bgpReachEdgeID(peerID, pfxID string) string {
+	return "bgpreach:" + peerID + ":" + pfxID
 }
 
 // --- Behavior code mapping ---------------------------------------------------
@@ -156,7 +196,7 @@ func locatorPrefix(prefix string, prefixLen int32) string {
 func translateLSNode(msg *gobmpmsg.LSNode) *graph.Node {
 	return &graph.Node{
 		BaseVertex: graph.BaseVertex{
-			ID:   nodeID(msg.IGPRouterID),
+			ID:   nodeID(msg.IGPRouterID, msg.DomainID),
 			Type: graph.VTNode,
 		},
 		Name:          msg.Name,
@@ -200,7 +240,7 @@ func translateLSSRv6SID(msg *gobmpmsg.LSSRv6SID) (nID string, locator srv6.Locat
 		AlgoID:  algoID,
 		NodeSID: nodeSID,
 	}
-	return nodeID(msg.IGPRouterID), locator, true
+	return nodeID(msg.IGPRouterID, msg.DomainID), locator, true
 }
 
 // --- LSLink translation -------------------------------------------------------
@@ -214,8 +254,9 @@ func translateLSSRv6SID(msg *gobmpmsg.LSSRv6SID) (nID string, locator srv6.Locat
 // If the local or remote node IGP router IDs are missing the call returns
 // nils; the caller must skip the message.
 func translateLSLink(msg *gobmpmsg.LSLink) (iface *graph.Interface, edge *graph.LinkEdge, own *graph.OwnershipEdge) {
-	localNID := nodeID(msg.IGPRouterID)
-	remoteNID := nodeID(msg.RemoteIGPRouterID)
+	// Both ends of an IS-IS link share the same DomainID.
+	localNID := nodeID(msg.IGPRouterID, msg.DomainID)
+	remoteNID := nodeID(msg.RemoteIGPRouterID, msg.DomainID)
 	if localNID == "" || remoteNID == "" {
 		return nil, nil, nil
 	}
@@ -365,7 +406,7 @@ func translatePeer(msg *gobmpmsg.PeerStateChange) *graph.BGPSessionEdge {
 // The same prefix announced via different nexthops produces the same pfx vertex
 // but distinct nh nodes and own edges, representing multiple equal-cost paths.
 func translateUnicastPrefix(msg *gobmpmsg.UnicastPrefix) (pfx *graph.Prefix, nh *graph.Node, own *graph.OwnershipEdge) {
-	pfxID := prefixVertexID(msg.Prefix, msg.PrefixLen)
+	pfxID := prefixVertexID(msg.Prefix, msg.PrefixLen, "")
 	pfx = &graph.Prefix{
 		BaseVertex: graph.BaseVertex{
 			ID:   pfxID,
@@ -398,6 +439,50 @@ func translateUnicastPrefix(msg *gobmpmsg.UnicastPrefix) (pfx *graph.Prefix, nh 
 	return pfx, nh, own
 }
 
+// --- External BGP peer translation --------------------------------------------
+
+// translateExternalPeerNode builds a graph.Node vertex for an eBGP peer that
+// lies outside the local IGP domain. The vertex is keyed by
+// externalPeerNodeID(RemoteBGPID, RemoteIP) so it is stable across session
+// flaps.
+func translateExternalPeerNode(msg *gobmpmsg.PeerStateChange) *graph.Node {
+	return &graph.Node{
+		BaseVertex: graph.BaseVertex{
+			ID:   externalPeerNodeID(msg.RemoteBGPID, msg.RemoteIP),
+			Type: graph.VTNode,
+		},
+		Subtype:       graph.NSExternalBGP,
+		RouterID:      msg.RemoteBGPID,
+		ASN:           msg.RemoteASN,
+		Protocol:      "BGP",
+		BMPRouterHash: msg.RouterHash,
+	}
+}
+
+// translateBGPReachability builds a BGPReachabilityEdge from an external BGP
+// peer vertex (peerID) to a Prefix vertex (pfxID), carrying the path
+// attributes from the UnicastPrefix message.
+func translateBGPReachability(peerID, pfxID string, msg *gobmpmsg.UnicastPrefix) *graph.BGPReachabilityEdge {
+	reach := &graph.BGPReachabilityEdge{
+		BaseEdge: graph.BaseEdge{
+			ID:       bgpReachEdgeID(peerID, pfxID),
+			Type:     graph.ETBGPReachability,
+			SrcID:    peerID,
+			DstID:    pfxID,
+			Directed: true,
+		},
+		OriginAS: uint32(msg.OriginAS),
+		NextHop:  msg.Nexthop,
+	}
+	if msg.BaseAttributes != nil {
+		reach.ASPath = msg.BaseAttributes.ASPath
+		reach.LocalPref = msg.BaseAttributes.LocalPref
+		reach.MED = msg.BaseAttributes.MED
+		reach.Origin = msg.BaseAttributes.Origin
+	}
+	return reach
+}
+
 // --- MessageHandler implementations ------------------------------------------
 
 // lsNodeHandler processes gobmp.parsed.ls_node messages.
@@ -419,11 +504,11 @@ func (h *lsNodeHandler) Handle(data []byte, store *graph.Store) error {
 	}
 	g := h.updater.EnsureGraph(store, h.topoID)
 	if msg.Action == "del" {
-		h.updater.RemoveVertex(g, nodeID(msg.IGPRouterID))
+		h.updater.RemoveVertex(g, nodeID(msg.IGPRouterID, msg.DomainID))
 		// Also remove from the companion v4 graph if it has been created.
 		if h.v4TopoID != "" {
 			if g4 := store.Get(h.v4TopoID); g4 != nil {
-				h.updater.RemoveVertex(g4, nodeID(msg.IGPRouterID))
+				h.updater.RemoveVertex(g4, nodeID(msg.IGPRouterID, msg.DomainID))
 			}
 		}
 		return nil
@@ -525,11 +610,42 @@ func (h *peerHandler) Handle(data []byte, store *graph.Store) error {
 	if msg.LocalBGPID == "" || msg.RemoteIP == "" {
 		return nil
 	}
+
+	// Skip iBGP sessions — they are TCP connections over the underlay and add
+	// no new topology information. Only eBGP sessions (differing ASNs) produce
+	// meaningful peer vertices for the external BGP topology.
+	if msg.LocalASN == msg.RemoteASN {
+		return nil
+	}
+
 	g := h.updater.EnsureGraph(store, h.topoID)
-	// Upsert the session edge for both up and down so callers can observe
-	// peer state. We do not remove topology data on peer down — the BGP-LS
-	// routes remain valid until explicitly withdrawn.
-	h.updater.UpsertBGPSession(g, translatePeer(&msg))
+
+	// Build the external peer vertex and register it in the Updater's index
+	// so that unicastPrefixHandler can anchor external prefixes to it.
+	peerNode := translateExternalPeerNode(&msg)
+	h.updater.RegisterPeerSpec(msg.RemoteIP, peerNode)
+
+	// Build and upsert the BGP session edge using the peer vertex ID as DstID
+	// so the edge connects to the proper named vertex (not an anonymous IP stub).
+	sess := &graph.BGPSessionEdge{
+		BaseEdge: graph.BaseEdge{
+			ID:       peerEdgeID(msg.LocalBGPID, msg.RemoteIP),
+			Type:     graph.ETBGPSession,
+			SrcID:    msg.LocalBGPID,
+			DstID:    peerNode.ID,
+			Directed: true,
+		},
+		LocalASN:  msg.LocalASN,
+		RemoteASN: msg.RemoteASN,
+		LocalIP:   msg.LocalIP,
+		RemoteIP:  msg.RemoteIP,
+		IsUp:      strings.EqualFold(msg.Action, "add"),
+	}
+	h.updater.UpsertBGPSession(g, sess)
+
+	// Upsert the full peer vertex (UpsertBGPSession only creates stubs;
+	// replace the DstID stub with the properly typed peer node).
+	h.updater.UpsertNode(g, peerNode)
 	return nil
 }
 
@@ -552,12 +668,28 @@ func (h *unicastPrefixHandler) Handle(data []byte, store *graph.Store) error {
 	if msg.Prefix == "" {
 		return nil // EoR marker or incomplete message — skip
 	}
-	pfx, nh, own := translateUnicastPrefix(&msg)
+
 	g := h.updater.EnsureGraph(store, h.topoID)
+	pfxID := prefixVertexID(msg.Prefix, msg.PrefixLen, "")
+
+	// Check whether this prefix arrived from a known external BGP peer.
+	// If so, model it as a BGPReachabilityEdge from the peer vertex to the
+	// prefix vertex instead of the generic OwnershipEdge to a stub nexthop.
+	if peerSpec := h.updater.LookupPeerSpec(msg.PeerIP); peerSpec != nil {
+		pfx, _, _ := translateUnicastPrefix(&msg)
+		reach := translateBGPReachability(peerSpec.ID, pfxID, &msg)
+		if msg.Action == "del" {
+			h.updater.RemoveEdge(g, reach.GetID())
+			return nil
+		}
+		h.updater.UpsertBGPReachability(g, pfx, peerSpec, reach)
+		return nil
+	}
+
+	// No known external peer — fall back to the stub-nexthop ownership model
+	// used for internal/iBGP-learned prefixes.
+	pfx, nh, own := translateUnicastPrefix(&msg)
 	if msg.Action == "del" {
-		// On withdrawal, remove the ownership edge for this (prefix, nexthop)
-		// pair. The Prefix vertex is left in place: other nexthops may still
-		// advertise the same prefix, and the vertex is harmless when orphaned.
 		if own != nil {
 			h.updater.RemoveEdge(g, own.GetID())
 		}
@@ -571,25 +703,26 @@ func (h *unicastPrefixHandler) Handle(data []byte, store *graph.Store) error {
 // Register these with Collector before calling Start. Additional AFI/SAFI
 // handlers can be registered independently.
 //
-// Six graphs are populated (all derived from topoID, e.g. "underlay"):
+// topoID is the base name (e.g. "underlay"). Six graphs are populated:
 //
-//   - topoID:                  IS-IS MT-2 (IPv6/SRv6) links, path computation
+//   - topoID+"-v6":            IS-IS MT-2 (IPv6/SRv6) links — path computation
 //   - topoID+"-v4":            IS-IS base-topology (MTID=0) IPv4 links
 //   - topoID+"-peers":         BGP session topology (IP-addressed node stubs)
 //   - topoID+"-prefixes-v4":   BGP IPv4 unicast prefixes → nexthop nodes
 //   - topoID+"-prefixes-v6":   BGP IPv6 unicast prefixes → nexthop nodes
 //
-// Node vertices are written to the primary graph and mirrored to the v4
+// Node vertices are written to the primary v6 graph and mirrored to the v4
 // companion once the companion is created by the first IPv4 link.
 func DefaultHandlers(updater *Updater, topoID string) []MessageHandler {
+	v6TopoID := topoID + "-v6"
 	v4TopoID := topoID + "-v4"
 	peersTopoID := topoID + "-peers"
 	prefV4TopoID := topoID + "-prefixes-v4"
 	prefV6TopoID := topoID + "-prefixes-v6"
 	return []MessageHandler{
-		&lsNodeHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
-		&lsLinkHandler{updater: updater, topoID: topoID, v4TopoID: v4TopoID},
-		&lsSRv6SIDHandler{updater: updater, topoID: topoID},
+		&lsNodeHandler{updater: updater, topoID: v6TopoID, v4TopoID: v4TopoID},
+		&lsLinkHandler{updater: updater, topoID: v6TopoID, v4TopoID: v4TopoID},
+		&lsSRv6SIDHandler{updater: updater, topoID: v6TopoID},
 		&peerHandler{updater: updater, topoID: peersTopoID},
 		&unicastPrefixHandler{updater: updater, topoID: prefV4TopoID, subject: SubjectUnicastV4},
 		&unicastPrefixHandler{updater: updater, topoID: prefV6TopoID, subject: SubjectUnicastV6},
