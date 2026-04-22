@@ -375,7 +375,7 @@ function PathsContent({ response, onClear }: { response: PathResponse; onClear: 
             </div>
 
             {/* Segment List */}
-            {p.segment_list && (
+            {p.segment_list && p.segment_list.sids && p.segment_list.sids.length > 0 ? (
               <div className="mt-2 pt-2 border-t border-kraken-border/30">
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[10px] uppercase tracking-wider text-kraken-muted font-medium">
@@ -399,7 +399,11 @@ function PathsContent({ response, onClear }: { response: PathResponse; onClear: 
                   ))}
                 </div>
               </div>
-            )}
+            ) : p.segment_list ? (
+              <div className="mt-2 pt-2 border-t border-kraken-border/30">
+                <span className="text-[10px] text-kraken-muted italic">No SIDs (same-leaf path)</span>
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

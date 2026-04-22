@@ -127,6 +127,7 @@ export interface GraphNode {
   id: string;
   name?: string;
   type?: string; // "node" | "endpoint" | "prefix" | "vrf"
+  subtype?: string; // "external_bgp" for eBGP peer nodes
   x?: number;
   y?: number;
   fx?: number | null;

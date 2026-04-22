@@ -69,6 +69,7 @@ function generateDemoTopology(): TopologyGraph {
 // Resolve visual tier from a D3 datum. Works outside the main render effect
 // by checking the node's attached type or falling back to name heuristics.
 function resolveTier(d: any): number {
+  if (d.subtype === 'external_bgp') return 2;
   if (d.type === 'prefix' || d.type === 'endpoint') return 2;
   if (d.type === 'vrf') return 1;
   const id: string = d.id || '';
@@ -76,6 +77,23 @@ function resolveTier(d: any): number {
   if (id.includes('leaf')) return 1;
   if (d.type === 'node') return 0;
   return 0;
+}
+
+// Node visual styles based on type/subtype — returns { fill, stroke, radius }
+function nodeStyle(d: any, tier: number): { fill: string; stroke: string; radius: number } {
+  // External BGP peers: amber/orange
+  if (d.subtype === 'external_bgp') {
+    return { fill: '#3d2800', stroke: '#f0a030', radius: 10 };
+  }
+  // Prefix nodes: muted green
+  if (d.type === 'prefix') {
+    return { fill: '#0a2e1a', stroke: '#40b870', radius: 7 };
+  }
+  // Fabric nodes: tier-based Kraken palette
+  const fills = ['#0f4477', '#0a3358', '#061e38'];
+  const strokes = ['#68e8e8', '#3fbfbf', '#2a8a8a'];
+  const radii = [16, 12, 8];
+  return { fill: fills[tier], stroke: strokes[tier], radius: radii[tier] };
 }
 
 export type LayoutMode = 'auto' | 'clos' | 'ring';
@@ -108,6 +126,9 @@ export default function TopologyCanvas({
       .then((data) => {
         setTopology(data);
         setUsingDemo(false);
+        // Auto-detect composite graphs (contain prefix or external BGP nodes)
+        // and default to force-directed layout since Clos tiers don't apply
+        setLayoutMode('auto');
       })
       .catch(() => {
         // /graph endpoint not available — fall back to /nodes
@@ -319,6 +340,18 @@ export default function TopologyCanvas({
 
     simulationRef.current = simulation;
 
+    // Edge style helper — returns stroke color and dash pattern per edge type
+    const edgeStyle = (d: GraphLink) => {
+      switch (d.type) {
+        case 'bgp_session':
+          return { stroke: '#4a80d0', dash: '6,3' };       // dashed blue
+        case 'bgp_reachability':
+          return { stroke: '#40b870', dash: '2,3' };       // dotted green
+        default:
+          return { stroke: '#3a7faa', dash: 'none' };      // solid gray (igp_adjacency, etc.)
+      }
+    };
+
     // Render links
     const linkGroup = g
       .append('g')
@@ -326,9 +359,10 @@ export default function TopologyCanvas({
       .selectAll('line')
       .data(links)
       .join('line')
-      .attr('stroke', '#3a7faa')
+      .attr('stroke', (d) => edgeStyle(d).stroke)
       .attr('stroke-width', 1.8)
       .attr('stroke-opacity', 0.7)
+      .attr('stroke-dasharray', (d) => edgeStyle(d).dash)
       .style('cursor', 'pointer')
       .on('mouseenter', function (event, d) {
         d3.select(this).attr('stroke', '#68e8e8').attr('stroke-width', 3.5);
@@ -340,8 +374,9 @@ export default function TopologyCanvas({
           data: d,
         });
       })
-      .on('mouseleave', function () {
-        d3.select(this).attr('stroke', '#3a7faa').attr('stroke-width', 1.8);
+      .on('mouseleave', function (_event, d) {
+        const style = edgeStyle(d);
+        d3.select(this).attr('stroke', style.stroke).attr('stroke-width', 1.8);
         onHover(null);
       })
       .on('click', (event, d) => {
@@ -393,21 +428,12 @@ export default function TopologyCanvas({
           })
       );
 
-    // Node circles with tier-based sizing
+    // Node circles with type/subtype-aware styling
     nodeGroup
       .append('circle')
-      .attr('r', (d) => {
-        const tier = getTier(d.id);
-        return tier === 0 ? 16 : tier === 1 ? 12 : 8;
-      })
-      .attr('fill', (d) => {
-        const tier = getTier(d.id);
-        return tier === 0 ? '#0f4477' : tier === 1 ? '#0a3358' : '#061e38';
-      })
-      .attr('stroke', (d) => {
-        const tier = getTier(d.id);
-        return tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a';
-      })
+      .attr('r', (d) => nodeStyle(d, getTier(d.id)).radius)
+      .attr('fill', (d) => nodeStyle(d, getTier(d.id)).fill)
+      .attr('stroke', (d) => nodeStyle(d, getTier(d.id)).stroke)
       .attr('stroke-width', 2.5);
 
     // Node labels
@@ -489,13 +515,14 @@ export default function TopologyCanvas({
     svg.selectAll('.nodes g').each(function (d: any) {
       const isSelected = selectedNodes.some((n) => n.id === d.id);
       const tier = resolveTier(d);
+      const style = nodeStyle(d, tier);
       d3.select(this)
         .select('circle')
         .transition()
         .duration(200)
-        .attr('stroke', isSelected ? '#ff2d55' : tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a')
+        .attr('stroke', isSelected ? '#ff2d55' : style.stroke)
         .attr('stroke-width', isSelected ? 3.5 : 2.5)
-        .attr('fill', isSelected ? '#3d0a15' : tier === 0 ? '#0f4477' : tier === 1 ? '#0a3358' : '#061e38');
+        .attr('fill', isSelected ? '#3d0a15' : style.fill);
     });
   }, [selectedNodes, topology]);
 
@@ -505,17 +532,26 @@ export default function TopologyCanvas({
     const svg = d3.select(svgRef.current);
 
     if (!pathResponse) {
-      svg.selectAll('.links line')
-        .attr('stroke', '#3a7faa')
-        .attr('stroke-width', 1.8)
-        .attr('stroke-opacity', 0.7);
+      svg.selectAll('.links line').each(function (d: any) {
+        const style = d.type === 'bgp_session'
+          ? { stroke: '#4a80d0', dash: '6,3' }
+          : d.type === 'bgp_reachability'
+          ? { stroke: '#40b870', dash: '2,3' }
+          : { stroke: '#3a7faa', dash: 'none' };
+        d3.select(this)
+          .attr('stroke', style.stroke)
+          .attr('stroke-width', 1.8)
+          .attr('stroke-opacity', 0.7)
+          .attr('stroke-dasharray', style.dash);
+      });
       svg.selectAll('.nodes g').each(function (d: any) {
         const tier = resolveTier(d);
+        const style = nodeStyle(d, tier);
         d3.select(this)
           .select('circle')
-          .attr('stroke', tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a')
+          .attr('stroke', style.stroke)
           .attr('stroke-width', 2.5)
-          .attr('fill', tier === 0 ? '#0f4477' : tier === 1 ? '#0a3358' : '#061e38');
+          .attr('fill', style.fill);
       });
       return;
     }
@@ -559,7 +595,11 @@ export default function TopologyCanvas({
         .duration(300)
         .attr('stroke', onPath ? '#68e8e8' : '#2a5f7e')
         .attr('stroke-width', onPath ? 3.5 : 1.2)
-        .attr('stroke-opacity', onPath ? 1.0 : 0.45);
+        .attr('stroke-opacity', onPath ? 1.0 : 0.45)
+        .attr('stroke-dasharray', onPath ? 'none' : (
+          d.type === 'bgp_session' ? '6,3' :
+          d.type === 'bgp_reachability' ? '2,3' : 'none'
+        ));
     });
 
     // Highlight path nodes: endpoints in red, transit nodes in cyan
@@ -586,14 +626,15 @@ export default function TopologyCanvas({
           .attr('fill', '#0a4060');
       } else {
         const tier = resolveTier(d);
+        const style = nodeStyle(d, tier);
         d3.select(this)
           .select('circle')
           .transition()
           .duration(300)
-          .attr('stroke', tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a')
+          .attr('stroke', style.stroke)
           .attr('stroke-width', 2.5)
           .attr('stroke-opacity', 0.3)
-          .attr('fill', tier === 0 ? '#0f4477' : tier === 1 ? '#0a3358' : '#061e38');
+          .attr('fill', style.fill);
       }
     });
   }, [pathResponse, topology]);
