@@ -122,7 +122,12 @@ func (s *Server) autoComposeLoop(ctx context.Context, recipe ComposeRecipe) {
 				break
 			}
 			sources = append(sources, g)
-			versionSum += s.store.Version(id)
+			// Use the graph's own write sequence rather than the store-level
+			// version. store.Put is only called once per BMP-driven graph (at
+			// creation); subsequent BMP mutations modify the graph in place
+			// without calling store.Put, so store.Version never advances past 1
+			// and the poller would skip every recompose after the first tick.
+			versionSum += g.WriteSeq()
 		}
 		if missing {
 			continue

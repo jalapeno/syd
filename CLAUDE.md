@@ -204,28 +204,22 @@ session edge `SrcID` values before insertion.
 **XRd testbed:** all nodes have `DomainID=0` — node IDs are plain IS-IS system
 IDs and match existing curl examples and API references unchanged.
 
-## Composite graph (roadmap — next)
+## Composite graph auto-compose
 
-The goal is a `POST /topology/compose` endpoint that merges source graphs into a
-unified named graph (e.g. `"ipv6-graph"`), enabling end-to-end shortest-path
-queries from GPU endpoints through the IGP fabric to external BGP prefixes.
+`ipv4-graph` and `ipv6-graph` are built automatically at startup via the
+`--compose` flag and refreshed every 5 s whenever any source graph version
+changes. The `deployment.yaml` wires these two recipes:
 
-**Compose steps:**
-1. Copy all vertices and `ETIGPAdjacency`/`ETPhysical` edges from `underlay-v6`
-2. Build `RouterID → nodeID` map from the copied nodes
-3. From `underlay-peers`: copy eBGP peer vertices; rewrite session `SrcID` via
-   the map (drop if local end unresolvable)
-4. From `underlay-prefixes-v4/v6`: copy prefix vertices and `ETBGPReachability`
-   edges
+```
+--compose=ipv4-graph=$(BMP_TOPO)-v4,$(BMP_TOPO)-peers,$(BMP_TOPO)-prefixes-v4
+--compose=ipv6-graph=$(BMP_TOPO)-v6,$(BMP_TOPO)-peers,$(BMP_TOPO)-prefixes-v6
+```
 
-**Path computation on composite graph:**
-- Extend `POST /paths/request` with a `dst_prefix` field; internally resolves
-  the target prefix to an egress BGP node, computes an SRv6 path to that node,
-  and returns both the segment list (for underlay steering) and the BGP nexthop
-  (for the final hop to the external destination).
-- The path engine SPF needs a `"reachability"` mode that traverses
-  `ETIGPAdjacency` for transit hops and `ETBGPSession`/`ETBGPReachability`
-  for the final BGP-to-prefix hop.
+**Important:** `lsNodeHandler` always mirrors node vertices to the v4 companion
+graph using `EnsureGraph` (not a conditional `store.Get` check). This guarantees
+`RouterID` is set on v4 nodes regardless of NATS message ordering — if ls_node
+messages replay before any MTID=0 ls_link, the v4 graph still gets full node
+data, keeping the compose stitching index populated.
 
 ## Allocation state machine
 
@@ -301,7 +295,7 @@ For the current demo/testbed use case (32 GPUs, 8 GPUs/job) there is no issue.
 
 ---
 
-## Current status (as of 2026-04-20)
+## Current status (as of 2026-04-22)
 
 Done:
 - Full BMP pipeline (17-node XRd testbed)
@@ -331,12 +325,23 @@ Done:
   duplicate vertex dedup handles both `NSExternalBGP` peer nodes and plain-IP nexthop
   stubs that shadow existing IGP nodes (both detected via `routerIDToNodeID` index);
   `BGPReachabilityEdge` SrcIDs rewritten to IGP node ID when source vertex is deduped
+- Auto-compose (`--compose` flag, repeatable): background goroutine polls every 5 s,
+  composes when all sources exist, re-composes on version change; `graph.Store` tracks
+  a monotonic write version per graph; `deployment.yaml` wires ipv4-graph and ipv6-graph
+  recipes using `$(BMP_TOPO)` substitution
+- `lsNodeHandler` always mirrors nodes to v4 companion graph via `EnsureGraph` (not
+  conditional on v4 graph pre-existing), so v4 nodes have `RouterID` regardless of
+  NATS message replay order — fixes ipv4-graph BGP session stitching
 - Executive demo UI (topology graph, workload list, path/SID display, path-request form)
-- All bmpcollector tests passing
 - `scripts/test-local.sh` — local integration test suite (no NATS/BMP required)
 - `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf)
 
 Roadmap:
+- **Leaf-pair caching + ECMP-group output** — pre-compute all leaf→leaf segment lists
+  at topology load; return one group per leaf-pair instead of one per GPU-pair; required
+  for >256 GPUs/job (current ceiling ~256 GPUs/job at <5 s response time)
+- **bmpcollector test fixes** — peer handler and BGP session stub vertex tests have
+  pre-existing failures; needs investigation before claiming clean `go test ./...`
 - **L3VPN / EVPN handler support** — VRF/VPN topology ingestion via BMP;
   VRF-scoped prefix keys already in place (`prefixVertexID` with vrfID)
 - **gNMI ToR southbound** — stub exists; needs `openconfig/gnmi` dependency wired up

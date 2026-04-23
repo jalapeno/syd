@@ -22,6 +22,13 @@ type Graph struct {
 	outEdges map[string][]string
 	// inEdges[vertexID] → slice of edge IDs arriving at that vertex
 	inEdges map[string][]string
+
+	// writeSeq is incremented on every structural write (AddVertex, AddEdge,
+	// RemoveVertex, RemoveEdge). It is read by the auto-compose poller to
+	// detect in-place mutations made by the BMP collector — which never calls
+	// store.Put after the initial graph creation, so the store-level version
+	// counter alone is insufficient for staleness detection.
+	writeSeq int64
 }
 
 // New creates an empty graph with the given topology ID.
@@ -38,6 +45,15 @@ func New(id string) *Graph {
 // ID returns the topology identifier.
 func (g *Graph) ID() string { return g.id }
 
+// WriteSeq returns the number of structural write operations (AddVertex,
+// AddEdge, RemoveVertex, RemoveEdge) performed on this graph since creation.
+// Callers can detect in-place mutations by comparing snapshots of this value.
+func (g *Graph) WriteSeq() int64 {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.writeSeq
+}
+
 // --- Vertex operations ---------------------------------------------------
 
 // AddVertex inserts or replaces a vertex. The vertex's ID must be non-empty.
@@ -48,6 +64,7 @@ func (g *Graph) AddVertex(v Vertex) error {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.vertices[v.GetID()] = v
+	g.writeSeq++
 	return nil
 }
 
@@ -83,6 +100,7 @@ func (g *Graph) RemoveVertex(id string) {
 	delete(g.outEdges, id)
 	delete(g.inEdges, id)
 	delete(g.vertices, id)
+	g.writeSeq++
 }
 
 // VerticesByType returns all vertices of the given type.
@@ -140,6 +158,7 @@ func (g *Graph) AddEdge(e Edge) error {
 		g.outEdges[e.GetDstID()] = append(g.outEdges[e.GetDstID()], e.GetID())
 		g.inEdges[e.GetSrcID()] = append(g.inEdges[e.GetSrcID()], e.GetID())
 	}
+	g.writeSeq++
 	return nil
 }
 
@@ -157,6 +176,7 @@ func (g *Graph) RemoveEdge(id string) {
 	if e, ok := g.edges[id]; ok {
 		g.removeEdgeFromIndex(e)
 		delete(g.edges, id)
+		g.writeSeq++
 	}
 }
 
