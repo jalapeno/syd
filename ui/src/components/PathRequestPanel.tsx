@@ -28,6 +28,7 @@ export default function PathRequestPanel({
 }: PathRequestPanelProps) {
   const [disjointness, setDisjointness] = useState('link');
   const [pairingMode, setPairingMode] = useState('bidir_paired');
+  const [segListMode, setSegListMode] = useState('ua');
   const [algoId, setAlgoId] = useState(0);
   const [policy, setPolicy] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,7 @@ export default function PathRequestPanel({
         endpoints: selectedNodes.map((n) => ({ id: n.id })),
         disjointness,
         pairing_mode: pairingMode,
+        segment_list_mode: segListMode || undefined, // omit for classic
         constraints: algoId ? { algo_id: algoId } : undefined,
         policy: policy || undefined,
       });
@@ -95,6 +97,28 @@ export default function PathRequestPanel({
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
+          </div>
+          <div className="shrink-0">
+            <label className="text-[10px] text-kraken-muted block mb-0.5">SID Mode</label>
+            <div className="flex rounded overflow-hidden border border-kraken-border">
+              {[
+                { value: 'ua', label: 'uA' },
+                { value: 'un', label: 'uN' },
+                { value: '', label: 'Classic' },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSegListMode(opt.value)}
+                  className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+                    segListMode === opt.value
+                      ? 'bg-kraken-ice text-kraken-deep'
+                      : 'bg-kraken-dark text-kraken-muted hover:text-kraken-frost'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
