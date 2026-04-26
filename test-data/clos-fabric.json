@@ -231,6 +231,392 @@
       }
     }
   ],
+  "interfaces": [
+    {
+      "id": "iface:spine-1/leaf-01",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-01/spine-1",
+      "owner_node_id": "leaf-01",
+      "name": "leaf-01-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-02",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-02/spine-1",
+      "owner_node_id": "leaf-02",
+      "name": "leaf-02-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-03",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-03/spine-1",
+      "owner_node_id": "leaf-03",
+      "name": "leaf-03-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-04",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-04/spine-1",
+      "owner_node_id": "leaf-04",
+      "name": "leaf-04-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-05",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth4",
+      "srv6_ua_sids": [{"sid": "fc00:0:f004::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-05/spine-1",
+      "owner_node_id": "leaf-05",
+      "name": "leaf-05-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-06",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth5",
+      "srv6_ua_sids": [{"sid": "fc00:0:f005::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-06/spine-1",
+      "owner_node_id": "leaf-06",
+      "name": "leaf-06-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-07",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth6",
+      "srv6_ua_sids": [{"sid": "fc00:0:f006::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-07/spine-1",
+      "owner_node_id": "leaf-07",
+      "name": "leaf-07-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-1/leaf-08",
+      "owner_node_id": "spine-1",
+      "name": "spine-1-eth7",
+      "srv6_ua_sids": [{"sid": "fc00:0:f007::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-08/spine-1",
+      "owner_node_id": "leaf-08",
+      "name": "leaf-08-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-01",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-01/spine-2",
+      "owner_node_id": "leaf-01",
+      "name": "leaf-01-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-02",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-02/spine-2",
+      "owner_node_id": "leaf-02",
+      "name": "leaf-02-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-03",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-03/spine-2",
+      "owner_node_id": "leaf-03",
+      "name": "leaf-03-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-04",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-04/spine-2",
+      "owner_node_id": "leaf-04",
+      "name": "leaf-04-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-05",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth4",
+      "srv6_ua_sids": [{"sid": "fc00:0:f004::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-05/spine-2",
+      "owner_node_id": "leaf-05",
+      "name": "leaf-05-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-06",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth5",
+      "srv6_ua_sids": [{"sid": "fc00:0:f005::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-06/spine-2",
+      "owner_node_id": "leaf-06",
+      "name": "leaf-06-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-07",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth6",
+      "srv6_ua_sids": [{"sid": "fc00:0:f006::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-07/spine-2",
+      "owner_node_id": "leaf-07",
+      "name": "leaf-07-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-2/leaf-08",
+      "owner_node_id": "spine-2",
+      "name": "spine-2-eth7",
+      "srv6_ua_sids": [{"sid": "fc00:0:f007::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-08/spine-2",
+      "owner_node_id": "leaf-08",
+      "name": "leaf-08-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-01",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-01/spine-3",
+      "owner_node_id": "leaf-01",
+      "name": "leaf-01-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-02",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-02/spine-3",
+      "owner_node_id": "leaf-02",
+      "name": "leaf-02-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-03",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-03/spine-3",
+      "owner_node_id": "leaf-03",
+      "name": "leaf-03-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-04",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-04/spine-3",
+      "owner_node_id": "leaf-04",
+      "name": "leaf-04-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-05",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth4",
+      "srv6_ua_sids": [{"sid": "fc00:0:f004::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-05/spine-3",
+      "owner_node_id": "leaf-05",
+      "name": "leaf-05-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-06",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth5",
+      "srv6_ua_sids": [{"sid": "fc00:0:f005::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-06/spine-3",
+      "owner_node_id": "leaf-06",
+      "name": "leaf-06-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-07",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth6",
+      "srv6_ua_sids": [{"sid": "fc00:0:f006::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-07/spine-3",
+      "owner_node_id": "leaf-07",
+      "name": "leaf-07-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-3/leaf-08",
+      "owner_node_id": "spine-3",
+      "name": "spine-3-eth7",
+      "srv6_ua_sids": [{"sid": "fc00:0:f007::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-08/spine-3",
+      "owner_node_id": "leaf-08",
+      "name": "leaf-08-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-01",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth0",
+      "srv6_ua_sids": [{"sid": "fc00:0:f000::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-01/spine-4",
+      "owner_node_id": "leaf-01",
+      "name": "leaf-01-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-02",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth1",
+      "srv6_ua_sids": [{"sid": "fc00:0:f001::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-02/spine-4",
+      "owner_node_id": "leaf-02",
+      "name": "leaf-02-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-03",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth2",
+      "srv6_ua_sids": [{"sid": "fc00:0:f002::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-03/spine-4",
+      "owner_node_id": "leaf-03",
+      "name": "leaf-03-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-04",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-04/spine-4",
+      "owner_node_id": "leaf-04",
+      "name": "leaf-04-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-05",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth4",
+      "srv6_ua_sids": [{"sid": "fc00:0:f004::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-05/spine-4",
+      "owner_node_id": "leaf-05",
+      "name": "leaf-05-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-06",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth5",
+      "srv6_ua_sids": [{"sid": "fc00:0:f005::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-06/spine-4",
+      "owner_node_id": "leaf-06",
+      "name": "leaf-06-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-07",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth6",
+      "srv6_ua_sids": [{"sid": "fc00:0:f006::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-07/spine-4",
+      "owner_node_id": "leaf-07",
+      "name": "leaf-07-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:spine-4/leaf-08",
+      "owner_node_id": "spine-4",
+      "name": "spine-4-eth7",
+      "srv6_ua_sids": [{"sid": "fc00:0:f007::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    },
+    {
+      "id": "iface:leaf-08/spine-4",
+      "owner_node_id": "leaf-08",
+      "name": "leaf-08-eth3",
+      "srv6_ua_sids": [{"sid": "fc00:0:f003::", "behavior": "End.X", "structure": {"locator_block_len": 32, "locator_node_len": 16, "function_len": 16, "argument_len": 0}}]
+    }
+  ],
   "endpoints": [
     {
       "id": "gpu-001",
@@ -560,6 +946,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-01",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-01",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -570,6 +957,7 @@
       "src_id": "leaf-01",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-01/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -580,6 +968,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-02",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-02",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -590,6 +979,7 @@
       "src_id": "leaf-02",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-02/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -600,6 +990,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-03",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-03",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -610,6 +1001,7 @@
       "src_id": "leaf-03",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-03/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -620,6 +1012,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-04",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-04",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -630,6 +1023,7 @@
       "src_id": "leaf-04",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-04/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -640,6 +1034,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-05",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-05",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -650,6 +1045,7 @@
       "src_id": "leaf-05",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-05/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -660,6 +1056,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-06",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-06",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -670,6 +1067,7 @@
       "src_id": "leaf-06",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-06/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -680,6 +1078,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-07",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-07",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -690,6 +1089,7 @@
       "src_id": "leaf-07",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-07/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -700,6 +1100,7 @@
       "src_id": "spine-1",
       "dst_id": "leaf-08",
       "directed": true,
+      "local_iface_id": "iface:spine-1/leaf-08",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -710,6 +1111,7 @@
       "src_id": "leaf-08",
       "dst_id": "spine-1",
       "directed": true,
+      "local_iface_id": "iface:leaf-08/spine-1",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -720,6 +1122,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-01",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-01",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -730,6 +1133,7 @@
       "src_id": "leaf-01",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-01/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -740,6 +1144,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-02",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-02",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -750,6 +1155,7 @@
       "src_id": "leaf-02",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-02/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -760,6 +1166,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-03",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-03",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -770,6 +1177,7 @@
       "src_id": "leaf-03",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-03/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -780,6 +1188,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-04",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-04",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -790,6 +1199,7 @@
       "src_id": "leaf-04",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-04/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -800,6 +1210,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-05",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-05",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -810,6 +1221,7 @@
       "src_id": "leaf-05",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-05/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -820,6 +1232,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-06",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-06",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -830,6 +1243,7 @@
       "src_id": "leaf-06",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-06/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -840,6 +1254,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-07",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-07",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -850,6 +1265,7 @@
       "src_id": "leaf-07",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-07/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -860,6 +1276,7 @@
       "src_id": "spine-2",
       "dst_id": "leaf-08",
       "directed": true,
+      "local_iface_id": "iface:spine-2/leaf-08",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -870,6 +1287,7 @@
       "src_id": "leaf-08",
       "dst_id": "spine-2",
       "directed": true,
+      "local_iface_id": "iface:leaf-08/spine-2",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -880,6 +1298,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-01",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-01",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -890,6 +1309,7 @@
       "src_id": "leaf-01",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-01/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -900,6 +1320,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-02",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-02",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -910,6 +1331,7 @@
       "src_id": "leaf-02",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-02/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -920,6 +1342,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-03",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-03",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -930,6 +1353,7 @@
       "src_id": "leaf-03",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-03/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -940,6 +1364,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-04",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-04",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -950,6 +1375,7 @@
       "src_id": "leaf-04",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-04/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -960,6 +1386,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-05",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-05",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -970,6 +1397,7 @@
       "src_id": "leaf-05",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-05/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -980,6 +1408,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-06",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-06",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -990,6 +1419,7 @@
       "src_id": "leaf-06",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-06/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1000,6 +1430,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-07",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-07",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1010,6 +1441,7 @@
       "src_id": "leaf-07",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-07/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1020,6 +1452,7 @@
       "src_id": "spine-3",
       "dst_id": "leaf-08",
       "directed": true,
+      "local_iface_id": "iface:spine-3/leaf-08",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1030,6 +1463,7 @@
       "src_id": "leaf-08",
       "dst_id": "spine-3",
       "directed": true,
+      "local_iface_id": "iface:leaf-08/spine-3",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1040,6 +1474,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-01",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-01",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1050,6 +1485,7 @@
       "src_id": "leaf-01",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-01/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1060,6 +1496,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-02",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-02",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1070,6 +1507,7 @@
       "src_id": "leaf-02",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-02/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1080,6 +1518,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-03",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-03",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1090,6 +1529,7 @@
       "src_id": "leaf-03",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-03/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1100,6 +1540,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-04",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-04",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1110,6 +1551,7 @@
       "src_id": "leaf-04",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-04/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1120,6 +1562,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-05",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-05",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1130,6 +1573,7 @@
       "src_id": "leaf-05",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-05/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1140,6 +1584,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-06",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-06",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1150,6 +1595,7 @@
       "src_id": "leaf-06",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-06/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1160,6 +1606,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-07",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-07",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1170,6 +1617,7 @@
       "src_id": "leaf-07",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-07/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1180,6 +1628,7 @@
       "src_id": "spine-4",
       "dst_id": "leaf-08",
       "directed": true,
+      "local_iface_id": "iface:spine-4/leaf-08",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1
@@ -1190,6 +1639,7 @@
       "src_id": "leaf-08",
       "dst_id": "spine-4",
       "directed": true,
+      "local_iface_id": "iface:leaf-08/spine-4",
       "igp_metric": 1,
       "max_bw_bps": 400000000000,
       "unidir_delay_us": 1

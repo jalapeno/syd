@@ -295,7 +295,7 @@ For the current demo/testbed use case (32 GPUs, 8 GPUs/job) there is no issue.
 
 ---
 
-## Current status (as of 2026-04-22)
+## Current status (as of 2026-04-25)
 
 Done:
 - Full BMP pipeline (17-node XRd testbed)
@@ -326,15 +326,22 @@ Done:
   stubs that shadow existing IGP nodes (both detected via `routerIDToNodeID` index);
   `BGPReachabilityEdge` SrcIDs rewritten to IGP node ID when source vertex is deduped
 - Auto-compose (`--compose` flag, repeatable): background goroutine polls every 5 s,
-  composes when all sources exist, re-composes on version change; `graph.Store` tracks
-  a monotonic write version per graph; `deployment.yaml` wires ipv4-graph and ipv6-graph
-  recipes using `$(BMP_TOPO)` substitution
+  composes when all sources exist, re-composes on version change; `graph.Graph.WriteSeq()`
+  monotonic counter tracks in-place BMP mutations (bypasses `store.Put`), used instead of
+  `store.Version` so recompose fires on every BGP update; `deployment.yaml` wires
+  ipv4-graph and ipv6-graph recipes using `$(BMP_TOPO)` substitution
 - `lsNodeHandler` always mirrors nodes to v4 companion graph via `EnsureGraph` (not
   conditional on v4 graph pre-existing), so v4 nodes have `RouterID` regardless of
   NATS message replay order — fixes ipv4-graph BGP session stitching
+- Peer vertex consolidation deferred: `peer:<RemoteBGPID>_<RemoteIP>` keying retained
+  (Jalapeno convention); `peer:<RemoteBGPID>_<ASN>` keying is the correct long-term
+  approach but was reverted to avoid UI regression; re-apply with coordinated UI testing
 - Executive demo UI (topology graph, workload list, path/SID display, path-request form)
 - `scripts/test-local.sh` — local integration test suite (no NATS/BMP required)
-- `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf)
+- `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf);
+  64 interface vertices with per-node `srv6_ua_sids` (`fc00:0:f000::`–`fc00:0:f007::` on
+  spines, `fc00:0:f000::`–`fc00:0:f003::` on leaves); all IGP adjacency edges reference
+  interfaces via `local_iface_id`; supports `segment_list_mode: "ua"` path requests
 
 Roadmap:
 - **Leaf-pair caching + ECMP-group output** — pre-compute all leaf→leaf segment lists
