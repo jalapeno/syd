@@ -1117,3 +1117,10 @@ curl -s -X POST http://localhost:30080/paths/request \
 ```
 
 Each PathResult carries bgp_nexthop (the BGP next-hop the border router uses after SRv6 decap) and prefix_id (the resolved prefix vertex). The segment list terminates at the SRv6 domain edge — the border router.
+
+### Polarfly
+
+Post polarfly topology data
+```
+curl -s -X POST http://localhost:30080/topology   -H 'Content-Type: application/json'   -d @q7/q7-fabric.json | python3 -m json.tool
+```
