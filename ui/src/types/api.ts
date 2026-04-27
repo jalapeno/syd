@@ -44,6 +44,7 @@ export interface PathRequest {
   service_level?: string;
   constraints?: PathRequestConstraints;
   pairing_mode?: string;
+  segment_list_mode?: string; // "ua" | "un" | "" (classic 32-bit)
   lease_duration_seconds?: number;
   tenant_id?: string;
   policy?: string;
