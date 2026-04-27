@@ -339,6 +339,15 @@ Done:
   the new arrival is discarded (first writer wins on tie). On BMP del, the edge is only
   removed if the withdrawing peer currently holds the best-path edge. LocalPref/MED
   excluded from selection — AS path length only (structural proximity, not router policy).
+- Stale stub ownership edge cleanup: when a `unicast_prefix` message arrives before the
+  corresponding `peer_state_change` has populated peerSpecs, the prefix falls back to an
+  `OwnershipEdge(pfxID → nh:<ip>)` stub. Once a peer IS known, any such stale stub edges
+  on the prefix are evicted before upserting the BGPReachabilityEdge — fixes "incorrect
+  connections" visible in the composed graph after BGP convergence storms.
+- Auto-compose stability window (`--compose-hold-down`, default 15s): composed graphs
+  (ipv4-graph, ipv6-graph) are only rebuilt after the source graphs have been quiescent
+  for this duration. Prevents mid-convergence snapshots during a BGP clear-bgp storm.
+  Set to 0 to restore the old fire-on-every-change behavior.
 - Peer vertex consolidation deferred: `peer:<RemoteBGPID>_<RemoteIP>` keying retained
   (Jalapeno convention); `peer:<RemoteBGPID>_<ASN>` keying is the correct long-term
   approach but was reverted to avoid UI regression; re-apply with coordinated UI testing

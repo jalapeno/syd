@@ -22,6 +22,11 @@
 //	                    resolution in BMP-sourced topologies where nodes lack a
 //	                    management_ip annotation. Example:
 //	                    "spine-1=192.168.0.1:57400,leaf-1=192.168.0.2:57400"
+//
+//	--compose           Auto-compose recipe: name=src1,src2,... (repeatable)
+//	--compose-hold-down Minimum quiescent period after last topology write before
+//	                    auto-compose fires (default: 15s). Prevents composing a
+//	                    mid-convergence snapshot during a BGP clear-bgp storm.
 package main
 
 import (
@@ -34,6 +39,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/jalapeno/syd/internal/allocation"
 	"github.com/jalapeno/syd/internal/api"
@@ -85,6 +91,8 @@ func main() {
 	bmpTopo     := flag.String("bmp-topo",     "underlay",               "Topology ID for BMP-learned underlay graph")
 	encapMode   := flag.String("encap-mode",   "host",                   "Southbound encap mode: host or tor")
 	targetMap   := flag.String("gnmi-target-map", "",                    "nodeID=host:port,... for gNMI target resolution")
+	composeHoldDown := flag.Duration("compose-hold-down", 15*time.Second,
+		"Minimum quiet period after last topology change before auto-compose fires")
 	var composeRecipes composeFlag
 	flag.Var(&composeRecipes, "compose", "Auto-compose: name=src1,src2,... (repeatable)")
 	flag.Parse()
@@ -163,7 +171,7 @@ func main() {
 
 	// Start auto-compose loops for any --compose recipes.
 	if len(composeRecipes) > 0 {
-		srv.StartAutoCompose(ctx, []api.ComposeRecipe(composeRecipes))
+		srv.StartAutoCompose(ctx, []api.ComposeRecipe(composeRecipes), *composeHoldDown)
 		for _, r := range composeRecipes {
 			log.Info("auto-compose registered",
 				"target", r.TargetID,

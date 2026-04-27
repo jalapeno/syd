@@ -722,6 +722,19 @@ func (h *unicastPrefixHandler) Handle(data []byte, store *graph.Store) error {
 			return nil
 		}
 
+		// Evict any stale stub ownership edges left over from the startup race:
+		// if unicast_prefix messages arrived before the corresponding peer
+		// messages populated peerSpecs, those prefixes were modelled as
+		// pfxown:<pfxID>->nh:<ip> stub edges. Now that we have a real peer,
+		// remove those stubs. This runs on every add from a known peer so it
+		// fires opportunistically during BMP replay even if this particular
+		// arrival doesn't win best-path selection.
+		for _, e := range g.OutEdges(pfxID) {
+			if e.GetType() == graph.ETOwnership && strings.HasPrefix(e.GetDstID(), "nh:") {
+				h.updater.RemoveEdge(g, e.GetID())
+			}
+		}
+
 		// Best-path selection: only replace the existing edge if the new
 		// arrival has a strictly shorter AS path. Equal or longer AS paths
 		// keep the current edge (first writer wins on tie).
