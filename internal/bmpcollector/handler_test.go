@@ -403,8 +403,8 @@ func TestPeerHandler_Up(t *testing.T) {
 	if g.GetVertex("192.0.2.1") == nil {
 		t.Error("local BGP-ID vertex 192.0.2.1 not found in peers graph")
 	}
-	// External peer vertex keyed by "peer:<RemoteBGPID>_<RemoteIP>".
-	wantPeerID := "peer:" + remoteBGPID + "_" + remoteIP
+	// External peer vertex keyed by "peer:<RemoteBGPID>".
+	wantPeerID := "peer:" + remoteBGPID
 	peerV := g.GetVertex(wantPeerID)
 	if peerV == nil {
 		t.Errorf("external peer vertex %q not found in peers graph", wantPeerID)
@@ -436,7 +436,7 @@ func TestPeerHandler_Down(t *testing.T) {
 
 	const remoteBGPID = "192.0.2.10"
 	const remoteIP = "192.0.2.2"
-	wantPeerID := "peer:" + remoteBGPID + "_" + remoteIP
+	wantPeerID := "peer:" + remoteBGPID
 
 	// Bring up (eBGP — differing ASNs required).
 	up := mustJSON(map[string]any{

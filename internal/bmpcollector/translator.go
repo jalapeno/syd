@@ -111,10 +111,12 @@ func prefixOwnerEdgeID(pfxID, nhID string) string {
 }
 
 // externalPeerNodeID returns the vertex ID for an external BGP peer.
-// Format mirrors Jalapeno's peer key: "<RemoteBGPID>_<RemoteIP>", prefixed
-// with "peer:" to avoid collisions with IGP-derived node IDs.
-func externalPeerNodeID(remoteBGPID, remoteIP string) string {
-	return "peer:" + remoteBGPID + "_" + remoteIP
+// Each physical BGP router is represented by a single vertex keyed by its
+// BGP ID alone, regardless of how many sessions it has. This ensures that
+// tier-2→tier-1→tier-0 DC peering sessions all connect to the same vertex
+// and the full BGP topology is rendered without duplicate nodes.
+func externalPeerNodeID(remoteBGPID string) string {
+	return "peer:" + remoteBGPID
 }
 
 // bgpReachEdgeID returns the deterministic edge ID for a BGPReachabilityEdge.
@@ -443,12 +445,12 @@ func translateUnicastPrefix(msg *gobmpmsg.UnicastPrefix) (pfx *graph.Prefix, nh 
 
 // translateExternalPeerNode builds a graph.Node vertex for an eBGP peer that
 // lies outside the local IGP domain. The vertex is keyed by
-// externalPeerNodeID(RemoteBGPID, RemoteIP) so it is stable across session
-// flaps.
+// externalPeerNodeID(RemoteBGPID) so it is stable across session flaps and
+// shared across all sessions to the same physical router.
 func translateExternalPeerNode(msg *gobmpmsg.PeerStateChange) *graph.Node {
 	return &graph.Node{
 		BaseVertex: graph.BaseVertex{
-			ID:   externalPeerNodeID(msg.RemoteBGPID, msg.RemoteIP),
+			ID:   externalPeerNodeID(msg.RemoteBGPID),
 			Type: graph.VTNode,
 		},
 		Subtype:       graph.NSExternalBGP,

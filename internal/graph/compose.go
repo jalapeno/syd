@@ -162,16 +162,43 @@ func Compose(id string, sources ...*Graph) *Graph {
 		for _, e := range src.edges {
 			switch typed := e.(type) {
 			case *BGPSessionEdge:
-				// Rewrite SrcID from LocalBGPID to the canonical IGP node ID.
-				igpID, ok := routerIDToNodeID[typed.SrcID]
-				if !ok {
-					// Local end is not a known IGP node — drop this edge.
+				// Rewrite SrcID to the canonical vertex ID for the local end.
+				//
+				// Two stitching strategies are tried in order:
+				//
+				//  1. IS-IS stitching: LocalBGPID is in the routerIDToNodeID
+				//     index — the local end is an IGP router. Rewrite SrcID to
+				//     the IS-IS system-ID-based node ID (e.g. 0000.0000.0001).
+				//
+				//  2. Peer-vertex stitching: LocalBGPID is NOT an IGP router
+				//     (e.g. a DC tier-2/1/0 node that runs BMP but has no IGP
+				//     adjacency). If a peer:<LocalBGPID> vertex exists in the
+				//     composed graph (copied from the peers source in pass 1),
+				//     rewrite SrcID to that vertex so the session edge remains
+				//     connected. This enables full topology rendering for BGP-
+				//     only parts of the network.
+				//
+				// Edges that match neither strategy are dropped (unresolvable
+				// local end — typically startup-race stubs).
+				srcID := typed.SrcID
+				if igpID, ok := routerIDToNodeID[srcID]; ok {
+					// Strategy 1: IS-IS node.
+					rewritten := *typed
+					rewritten.SrcID = igpID
+					rewritten.ID = "bgpsess:" + igpID + ":" + typed.RemoteIP
+					_ = out.AddEdge(&rewritten)
 					continue
 				}
-				rewritten := *typed
-				rewritten.SrcID = igpID
-				rewritten.ID = "bgpsess:" + igpID + ":" + typed.RemoteIP
-				_ = out.AddEdge(&rewritten)
+				peerID := "peer:" + srcID
+				if out.GetVertex(peerID) != nil {
+					// Strategy 2: non-IGP BGP router with a peer vertex.
+					rewritten := *typed
+					rewritten.SrcID = peerID
+					rewritten.ID = "bgpsess:" + peerID + ":" + typed.RemoteIP
+					_ = out.AddEdge(&rewritten)
+					continue
+				}
+				// Unresolvable — drop.
 			case *BGPReachabilityEdge:
 				// If the source vertex was a duplicate, rewrite SrcID to the
 				// IGP node ID so reachability edges remain connected.
