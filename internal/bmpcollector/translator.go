@@ -675,6 +675,14 @@ func (h *unicastPrefixHandler) Handle(data []byte, store *graph.Store) error {
 		return nil // EoR marker or incomplete message — skip
 	}
 
+	// Filter host routes (/32 IPv4, /128 IPv6). These are loopback or
+	// interface addresses that appear as Node vertices in the IGP topology
+	// already; adding them as separate Prefix vertices with reachability edges
+	// clutters the graph without contributing path-computation information.
+	if (msg.IsIPv4 && msg.PrefixLen == 32) || (!msg.IsIPv4 && msg.PrefixLen == 128) {
+		return nil
+	}
+
 	g := h.updater.EnsureGraph(store, h.topoID)
 	pfxID := prefixVertexID(msg.Prefix, msg.PrefixLen, "")
 
