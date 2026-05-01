@@ -70,7 +70,7 @@ func TestDeriveReversePath(t *testing.T) {
 			SrcNodeID:     "leaf-1",
 			DstNodeID:     "leaf-2",
 		},
-		CostFuncFor(MetricIGP), constraints, NewExcludedSet(), "fwd-1",
+		CostFuncFor(MetricIGP), constraints, NewExcludedSet(), "fwd-1", nil,
 	)
 	if err != nil {
 		t.Fatalf("forward path computation failed: %v", err)

@@ -81,7 +81,7 @@ func Compute(
 	// --- 4. Enumerate pairs and compute paths ----------------------------
 	pairs := EnumeratePairs(resolved, mode)
 	prefix := fmt.Sprintf("%s-%d", req.WorkloadID, time.Now().UnixNano())
-	pairResults := ComputeAllPairs(g, pairs, constraints, req.WorkloadID, prefix, mode)
+	pairResults := ComputeAllPairs(g, pairs, constraints, req.WorkloadID, prefix, mode, nil)
 
 	// --- 5. Separate successes from failures -----------------------------
 	result := &ComputeResult{}
@@ -126,6 +126,81 @@ func Compute(
 		}
 	}
 
+	result.Paths = successPaths
+	return result, nil
+}
+
+// ComputeWithCache is identical to Compute but uses the provided SPFCache to
+// skip Dijkstra for node pairs that were pre-computed during warmup. Pass a
+// non-nil cache (populated via SPFCache.Warmup) to get O(1) SPF lookups for
+// unconstrained leaf-pair paths in large GPU workloads.
+func ComputeWithCache(
+	g *graph.Graph,
+	table *allocation.Table,
+	req apitypes.PathRequest,
+	disjointness string,
+	sharing string,
+	cache *SPFCache,
+) (*ComputeResult, error) {
+	constraints := buildConstraints(req, disjointness)
+
+	resolved, errs := ResolveEndpoints(g, req.Endpoints)
+	if len(errs) > 0 {
+		msgs := make([]string, len(errs))
+		for i, e := range errs {
+			msgs[i] = e.Error()
+		}
+		return nil, fmt.Errorf("endpoint resolution failed: %s", strings.Join(msgs, "; "))
+	}
+	if len(resolved) < 2 {
+		return nil, fmt.Errorf("at least 2 endpoints must resolve successfully")
+	}
+
+	mode := PairingMode(req.PairingMode)
+	if mode != PairingBiDirPaired {
+		mode = PairingAllDirected
+	}
+
+	pairs := EnumeratePairs(resolved, mode)
+	prefix := fmt.Sprintf("%s-%d", req.WorkloadID, time.Now().UnixNano())
+	pairResults := ComputeAllPairs(g, pairs, constraints, req.WorkloadID, prefix, mode, cache)
+
+	result := &ComputeResult{}
+	var successPaths []graph.Path
+	for _, pr := range pairResults {
+		if pr.Err != nil {
+			result.FailedPairs = append(result.FailedPairs, pr.Err.Error())
+			continue
+		}
+		successPaths = append(successPaths, pr.Pair)
+	}
+
+	sharingPolicy := graph.SharingExclusive
+	if sharing == string(graph.SharingAllowed) {
+		sharingPolicy = graph.SharingAllowed
+	}
+	wl := &allocation.WorkloadAllocation{
+		WorkloadID:   req.WorkloadID,
+		TopologyID:   req.TopologyID,
+		Sharing:      sharingPolicy,
+		Disjointness: constraints.Disjointness,
+	}
+	if req.LeaseDuration > 0 {
+		d := time.Duration(req.LeaseDuration) * time.Second
+		wl.LeaseDuration = d
+		wl.LeaseExpires = time.Now().Add(d)
+	}
+	pathIDs := make([]string, len(successPaths))
+	for i, p := range successPaths {
+		cp := p
+		table.RegisterPath(&cp)
+		pathIDs[i] = cp.ID
+	}
+	if len(pathIDs) > 0 {
+		if err := table.AllocatePaths(wl, pathIDs); err != nil {
+			return nil, fmt.Errorf("allocation failed: %w", err)
+		}
+	}
 	result.Paths = successPaths
 	return result, nil
 }
@@ -212,7 +287,7 @@ func ComputePrefixPaths(
 
 	// --- 5. Compute paths -------------------------------------------------
 	prefix := fmt.Sprintf("%s-%d", req.WorkloadID, time.Now().UnixNano())
-	pairResults := ComputeAllPairs(g, pairs, constraints, req.WorkloadID, prefix, PairingAllDirected)
+	pairResults := ComputeAllPairs(g, pairs, constraints, req.WorkloadID, prefix, PairingAllDirected, nil)
 
 	// --- 6. Separate successes from failures ------------------------------
 	result := &PrefixComputeResult{

@@ -244,10 +244,36 @@ type WorkloadEvent struct {
 // FlowsResponse is returned by GET /paths/{workload_id}/flows.
 // It carries the encoded SRv6 segment lists for each src→dst flow in the
 // workload, ready for host-side programming via setsockopt or iproute2.
+//
+// Flows contains one entry per endpoint pair (O(GPU²) for large workloads).
+// LeafPairFlows contains one entry per unique (srcNodeID, dstNodeID) pair
+// (O(leaf²)), which is orders of magnitude smaller when many endpoints share
+// the same attachment node. The host-side agent selects the right segment
+// list by matching its own leaf attachment.
 type FlowsResponse struct {
-	WorkloadID string      `json:"workload_id"`
-	TopologyID string      `json:"topology_id"`
-	Flows      []FlowEntry `json:"flows"`
+	WorkloadID    string              `json:"workload_id"`
+	TopologyID    string              `json:"topology_id"`
+	Flows         []FlowEntry         `json:"flows"`
+	LeafPairFlows []LeafPairFlowEntry `json:"leaf_pair_flows,omitempty"`
+}
+
+// LeafPairFlowEntry describes the SRv6 encapsulation for all flows that share
+// the same (srcNodeID, dstNodeID) attachment-node pair. In a Clos fabric,
+// srcNodeID and dstNodeID are leaf node IDs; every GPU on src-leaf sending to
+// any GPU on dst-leaf uses the same segment list.
+type LeafPairFlowEntry struct {
+	// SrcNodeID / DstNodeID are the attachment Node vertex IDs (leaf IDs).
+	SrcNodeID string `json:"src_node_id"`
+	DstNodeID string `json:"dst_node_id"`
+
+	// SegmentList, EncapFlavor, OuterDA, SRHRaw — same semantics as FlowEntry.
+	SegmentList []string `json:"segment_list"`
+	EncapFlavor string   `json:"encap_flavor"`
+	OuterDA     string   `json:"outer_da,omitempty"`
+	SRHRaw      string   `json:"srh_raw,omitempty"`
+
+	// FlowCount is the number of individual endpoint flows that use this entry.
+	FlowCount int `json:"flow_count"`
 }
 
 // FlowEntry describes the SRv6 encapsulation parameters for one src→dst flow.

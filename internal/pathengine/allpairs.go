@@ -51,6 +51,11 @@ type PairResult struct {
 // Mode PairingBiDirPaired: pairs are unidirectional (N*(N-1)/2), but each
 // yields two results — forward and reverse on the same physical path.
 // Disjointness exclusions cover both physical directions together.
+//
+// cache may be nil (no caching). When non-nil, SPF results for
+// constraint-free pairs are looked up and stored in the cache, reducing
+// Dijkstra runs from O(pairs) to O(unique node pairs) for large workloads
+// where many endpoints share the same attachment node (leaf).
 func ComputeAllPairs(
 	g *graph.Graph,
 	pairs []PairRequest,
@@ -58,11 +63,12 @@ func ComputeAllPairs(
 	workloadID string,
 	pairIDPrefix string,
 	mode PairingMode,
+	cache *SPFCache,
 ) []PairResult {
 	if mode == PairingBiDirPaired {
-		return computeBiDirPairs(g, pairs, constraints, workloadID, pairIDPrefix)
+		return computeBiDirPairs(g, pairs, constraints, workloadID, pairIDPrefix, cache)
 	}
-	return computeAllDirected(g, pairs, constraints, workloadID, pairIDPrefix)
+	return computeAllDirected(g, pairs, constraints, workloadID, pairIDPrefix, cache)
 }
 
 // --- All-directed mode ---------------------------------------------------
@@ -73,13 +79,14 @@ func computeAllDirected(
 	constraints graph.PathConstraints,
 	workloadID string,
 	prefix string,
+	cache *SPFCache,
 ) []PairResult {
 	cf := metricTypeFromConstraints(constraints)
 	ex := NewExcludedSet()
 	results := make([]PairResult, len(pairs))
 
 	for i, pair := range pairs {
-		path, err := computeOnePair(g, pair, cf, constraints, ex, prefix, i)
+		path, err := computeOnePair(g, pair, cf, constraints, ex, prefix, i, cache)
 		results[i] = PairResult{Err: err}
 		if err != nil {
 			results[i].Pair = graph.Path{SrcID: pair.SrcEndpointID, DstID: pair.DstEndpointID}
@@ -102,6 +109,7 @@ func computeBiDirPairs(
 	constraints graph.PathConstraints,
 	workloadID string,
 	prefix string,
+	cache *SPFCache,
 ) []PairResult {
 	cf := metricTypeFromConstraints(constraints)
 	ex := NewExcludedSet()
@@ -113,7 +121,7 @@ func computeBiDirPairs(
 		revID := fmt.Sprintf("%s-rev-%d", prefix, i)
 
 		// 1. Compute forward path A→B.
-		fwd, err := computeOnePairWithID(g, pair, cf, constraints, ex, fwdID)
+		fwd, err := computeOnePairWithID(g, pair, cf, constraints, ex, fwdID, cache)
 		if err != nil {
 			results = append(results,
 				PairResult{Pair: graph.Path{SrcID: pair.SrcEndpointID, DstID: pair.DstEndpointID}, Err: err},
@@ -314,9 +322,22 @@ func computeOnePair(
 	ex *ExcludedSet,
 	prefix string,
 	idx int,
+	cache *SPFCache,
 ) (*graph.Path, error) {
 	return computeOnePairWithID(g, pair, cf, constraints, ex,
-		fmt.Sprintf("%s-%d", prefix, idx))
+		fmt.Sprintf("%s-%d", prefix, idx), cache)
+}
+
+// cacheEligible reports whether the given constraints allow a cached SPF
+// result to be used. Caching is only valid when the path is unconstrained
+// (no disjointness exclusions, no bandwidth/latency requirements) so that
+// the cached topology-level shortest path is guaranteed to still apply.
+func cacheEligible(c graph.PathConstraints) bool {
+	return c.Disjointness == graph.DisjointnessNone &&
+		c.MinBandwidthBPS == 0 &&
+		c.MaxLatencyUS == 0 &&
+		c.AdminGroup == 0 &&
+		c.ExcludeGroup == 0
 }
 
 func computeOnePairWithID(
@@ -326,6 +347,7 @@ func computeOnePairWithID(
 	constraints graph.PathConstraints,
 	ex *ExcludedSet,
 	id string,
+	cache *SPFCache,
 ) (*graph.Path, error) {
 	if pair.SrcNodeID == pair.DstNodeID {
 		return &graph.Path{
@@ -335,9 +357,24 @@ func computeOnePairWithID(
 		}, nil
 	}
 
-	spf, err := Dijkstra(g, pair.SrcNodeID, pair.DstNodeID, cf, constraints, ex)
-	if err != nil {
-		return nil, fmt.Errorf("pair %s→%s: %w", pair.SrcEndpointID, pair.DstEndpointID, err)
+	// Attempt cache lookup when eligible (no disjointness or BW constraints).
+	var spf *SPFResult
+	useCache := cache != nil && cacheEligible(constraints)
+	if useCache {
+		if cached, ok := cache.Lookup(pair.SrcNodeID, pair.DstNodeID, constraints.AlgoID, g.WriteSeq()); ok {
+			spf = cached
+		}
+	}
+
+	if spf == nil {
+		var err error
+		spf, err = Dijkstra(g, pair.SrcNodeID, pair.DstNodeID, cf, constraints, ex)
+		if err != nil {
+			return nil, fmt.Errorf("pair %s→%s: %w", pair.SrcEndpointID, pair.DstEndpointID, err)
+		}
+		if useCache {
+			cache.Store(pair.SrcNodeID, pair.DstNodeID, constraints.AlgoID, g.WriteSeq(), spf)
+		}
 	}
 
 	segList, err := BuildSegmentList(g, spf, constraints.AlgoID, constraints.TenantID, SegmentListMode(constraints.SegmentListMode))

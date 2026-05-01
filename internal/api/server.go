@@ -26,10 +26,12 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/jalapeno/syd/internal/allocation"
 	"github.com/jalapeno/syd/internal/graph"
+	"github.com/jalapeno/syd/internal/pathengine"
 	"github.com/jalapeno/syd/internal/southbound"
 	"github.com/jalapeno/syd/pkg/apitypes"
 )
@@ -41,6 +43,11 @@ type Server struct {
 	driver   southbound.SouthboundDriver
 	log      *slog.Logger
 	policies *policyStore
+
+	// spfCaches holds one SPFCache per topology ID, populated after each
+	// compose or topology push. Keyed by topology ID.
+	spfCachesMu sync.RWMutex
+	spfCaches   map[string]*pathengine.SPFCache
 }
 
 // New creates a new API server backed by a no-op southbound driver. The store
@@ -52,7 +59,7 @@ func New(store *graph.Store, tables *allocation.TableSet, log *slog.Logger) *Ser
 // NewWithDriver creates a new API server with an explicit southbound driver.
 // Pass nil for driver to use a no-op (pull-only) driver.
 func NewWithDriver(store *graph.Store, tables *allocation.TableSet, driver southbound.SouthboundDriver, log *slog.Logger) *Server {
-	s := &Server{store: store, tables: tables, driver: driver, log: log, policies: newPolicyStore()}
+	s := &Server{store: store, tables: tables, driver: driver, log: log, policies: newPolicyStore(), spfCaches: make(map[string]*pathengine.SPFCache)}
 	if s.driver == nil {
 		s.driver = noopDriver{}
 	}
@@ -148,7 +155,35 @@ func (s *Server) autoComposeLoop(ctx context.Context, recipe ComposeRecipe) {
 			"sources", recipe.SourceIDs,
 			"stats", composed.Stats(),
 		)
+
+		// Warm up the SPF cache for the newly composed graph in the background
+		// so that the next path request hits cached leaf-pair results instead
+		// of running Dijkstra for every GPU-pair from scratch.
+		go s.warmupCache(recipe.TargetID, composed)
 	}
+}
+
+// warmupCache creates (or replaces) the SPFCache for topoID and runs Warmup
+// against the given graph. Called in a goroutine after each auto-compose.
+func (s *Server) warmupCache(topoID string, g *graph.Graph) {
+	cache := pathengine.NewSPFCache()
+	cache.Warmup(g, 0) // algoID=0 covers the default (unconstrained) case
+
+	s.spfCachesMu.Lock()
+	s.spfCaches[topoID] = cache
+	s.spfCachesMu.Unlock()
+
+	s.log.Info("spf cache warmed up",
+		"topology_id", topoID,
+		"entries", cache.Len(),
+	)
+}
+
+// spfCacheFor returns the SPFCache for the given topology, or nil if none exists.
+func (s *Server) spfCacheFor(topoID string) *pathengine.SPFCache {
+	s.spfCachesMu.RLock()
+	defer s.spfCachesMu.RUnlock()
+	return s.spfCaches[topoID]
 }
 
 // noopDriver is used when no explicit southbound driver is configured.

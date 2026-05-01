@@ -112,7 +112,8 @@ func (s *Server) handlePathRequest(w http.ResponseWriter, r *http.Request) {
 		prefixID = presult.PrefixVertexID
 		bgpNexthop = presult.BGPNexthop
 	} else {
-		result, err := pathengine.Compute(g, table, req, disjointness, sharing)
+		cache := s.spfCacheFor(req.TopologyID)
+		result, err := pathengine.ComputeWithCache(g, table, req, disjointness, sharing, cache)
 		if err != nil {
 			writeError(w, http.StatusUnprocessableEntity, err.Error())
 			return
@@ -407,10 +408,44 @@ func (s *Server) handleWorkloadFlows(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, apitypes.FlowsResponse{
-		WorkloadID: workloadID,
-		TopologyID: topoID,
-		Flows:      entries,
+		WorkloadID:    workloadID,
+		TopologyID:    topoID,
+		Flows:         entries,
+		LeafPairFlows: buildLeafPairFlows(entries),
 	})
+}
+
+// buildLeafPairFlows groups FlowEntries by their (SrcNodeID, DstNodeID) pair,
+// producing a compact O(leaf²) representation. All flows that share the same
+// attachment-node pair use the same segment list; the entry records how many
+// individual GPU-pair flows it covers.
+func buildLeafPairFlows(flows []apitypes.FlowEntry) []apitypes.LeafPairFlowEntry {
+	if len(flows) == 0 {
+		return nil
+	}
+
+	type pairKey struct{ src, dst string }
+	seen := make(map[pairKey]int) // key → index in result
+	var result []apitypes.LeafPairFlowEntry
+
+	for _, f := range flows {
+		k := pairKey{f.SrcNodeID, f.DstNodeID}
+		if idx, ok := seen[k]; ok {
+			result[idx].FlowCount++
+			continue
+		}
+		seen[k] = len(result)
+		result = append(result, apitypes.LeafPairFlowEntry{
+			SrcNodeID:   f.SrcNodeID,
+			DstNodeID:   f.DstNodeID,
+			SegmentList: f.SegmentList,
+			EncapFlavor: f.EncapFlavor,
+			OuterDA:     f.OuterDA,
+			SRHRaw:      f.SRHRaw,
+			FlowCount:   1,
+		})
+	}
+	return result
 }
 
 // resolveServiceLevel maps a PathRequest's ServiceLevel preset (or explicit
