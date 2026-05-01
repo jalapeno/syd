@@ -147,9 +147,33 @@ All endpoints are served on `:8080` (configurable via `--addr`).
     "encap_flavor":  "H.Encaps.Red",
     "outer_da":      "fc00:0:1:e002:4:e004:16:0",
     "srh_raw":       "<base64 Type-4 SRH, present only when len(segment_list)>1>"
+  }],
+  "leaf_pair_flows": [{
+    "src_node_id":   "leaf-01",
+    "dst_node_id":   "leaf-02",
+    "segment_list":  ["fc00:0:9:e001:a:e001:3:0"],
+    "encap_flavor":  "H.Encaps.Red",
+    "outer_da":      "fc00:0:9:e001:a:e001:3:0",
+    "flow_count":    16
   }]
 }
 ```
+
+`flows` — one entry per endpoint pair (O(GPU²)); present for all workloads; backward compatible.
+
+`leaf_pair_flows` — one entry per unique `(src_node_id, dst_node_id)` attachment-node pair (O(leaf²));
+only present when all endpoints are attached via `ETAttachment` edges. In a Clos fabric, every GPU
+on src-leaf sending to any GPU on dst-leaf uses the same segment list. A host-side agent picks the
+right entry by matching its own leaf attachment. 64 leaves → 4,032 entries vs. 65,280 GPU-pair
+entries for 256 GPUs (16× reduction).
+
+`flow_count` — number of individual GPU-pair flows collapsed into this leaf-pair entry.
+
+**SPF cache**: after every auto-compose the server pre-computes all leaf→leaf Dijkstra results and
+stores them in an `SPFCache` (keyed by `(srcNodeID, dstNodeID, algoID)`). Subsequent path requests
+with `disjointness=none` and no BW/latency/admin-group constraints hit the cache directly, reducing
+per-request work from O(GPU² × Dijkstra) to O(GPU² × hash lookup). Cache warmup is logged:
+`"spf cache warmed up" topology_id=<id> entries=<N>`.
 
 ## BMP / NATS topology ingestion
 
@@ -303,24 +327,26 @@ At K=256 GPUs/job: 65,280 Dijkstra runs × ~1 ms each ≈ 65 s (too slow at scal
 
 With K=64 GPUs/job (realistic AI job size today): ~4,000 runs, feasible.
 
-### Path to 8192-GPU scale: leaf-pair pre-computation + ECMP-group output
+### Leaf-pair pre-computation + ECMP-group output (implemented)
 
 **Observation**: in a fixed Clos topology the set of distinct leaf→leaf paths is small
 and stable. A 64-leaf fabric has 64×63 = 4,032 directed leaf pairs (2,016 unordered).
-Pre-compute and cache all leaf-pair segment lists at topology load time.
 
-**ECMP-group output** (roadmap): instead of returning one segment list per GPU-pair,
-return one group per leaf-pair. A job with 8192 GPUs spread across 64 leaves emits a
-64×63 = 4,032-entry response (vs. 8192×8191 ≈ 67M entries today). The host-side agent
-picks the right segment list based on its own leaf attachment.
+**SPFCache** (`internal/pathengine/cache.go`): after every auto-compose `warmupCache()` finds
+all nodes with inbound `ETAttachment` edges (leaf nodes), runs all-pairs Dijkstra, and stores
+results keyed by `(src, dst, algoID)`. Cache is version-aware: a stale `WriteSeq` causes a
+cache miss and re-runs Dijkstra live.
 
-**Result**: per-request work drops from O(K² × Dijkstra) to O(K² × hash lookup), and
-response payload shrinks from O(GPU²) to O(leaf²) regardless of GPU count per leaf.
+**ECMP-group output**: `GET /paths/{workload_id}/flows` returns both:
+- `flows` — one entry per GPU-pair (backward compat, O(GPU²))
+- `leaf_pair_flows` — one entry per leaf-pair (O(leaf²))
 
-### Short-term ceiling
+A job with 256 GPUs across 64 leaves: 4,032 leaf-pair entries vs. 65,280 GPU-pair entries (16×).
+A job with 8192 GPUs across 64 leaves: still 4,032 leaf-pair entries (response size independent
+of GPU count per leaf).
 
-Without leaf-pair caching, the practical limit is ~256 GPUs/job at <5 s response time.
-For the current demo/testbed use case (32 GPUs, 8 GPUs/job) there is no issue.
+**Result**: per-request work is O(K² × hash lookup), and `leaf_pair_flows` response payload
+is O(leaf²) regardless of GPU count per leaf.
 
 ---
 
@@ -413,15 +439,19 @@ Done:
 - Executive demo UI (topology graph, workload list, path/SID display, path-request form)
 - `scripts/test-local.sh` — local integration test suite (no NATS/BMP required)
 - `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf)
+- `test-data/clos-256gpu.json` — 32-spine 64-leaf Clos, 256 GPU endpoints (4/leaf); topology_id `"clos-256gpu"`
+- `test-data/gen-clos.py` — Python generator; `--scale small/medium/large/xl` or `--spines/--leaves/--gpus-per-leaf`;
+  writes to stdout (redirect to file), summary to stderr; regenerate with `python3 gen-clos.py --scale large 2>/dev/null > test-data/clos-256gpu.json`
+- Leaf-pair SPF cache (`internal/pathengine/cache.go`): `SPFCache` keyed by `(src, dst, algoID)`; version-aware
+  (invalidates on graph `WriteSeq` change); `Warmup()` finds attachment nodes, pre-computes all-pairs Dijkstra
+- ECMP-group output: `leaf_pair_flows` field in `FlowsResponse`; groups O(GPU²) flows to O(leaf²) entries;
+  host-side agent picks entry by its leaf attachment
 
 ## No known issues (as of 2026-05-01)
 
 Both `ipv4-graph` and `ipv6-graph` are clean on the 22-node testbed. `go test ./...` passes.
 
 Roadmap:
-- **Leaf-pair caching + ECMP-group output** — pre-compute all leaf→leaf segment lists
-  at topology load; return one group per leaf-pair instead of one per GPU-pair; required
-  for >256 GPUs/job (current ceiling ~256 GPUs/job at <5 s response time)
 - **bmpcollector test fixes** — peer handler and BGP session stub vertex tests have
   pre-existing failures; needs investigation before claiming clean `go test ./...`
 - **L3VPN / EVPN handler support** — VRF/VPN topology ingestion via BMP;
@@ -463,3 +493,51 @@ field on edges was already present: `"igp_adjacency"`, `"bgp_session"`, `"bgp_re
    Auto-detect when `type === "prefix"` or `subtype === "external_bgp"` nodes are
    present and default to force-directed (`"auto"`) layout for those topologies.
    Alternatively, expose a layout toggle in the UI.
+
+## UI agent work needed — leaf-pair flows display
+
+The `/flows` response now includes both `flows` (per GPU-pair, O(GPU²)) and
+`leaf_pair_flows` (per leaf-pair, O(leaf²)). The UI's workload/flows panel needs to
+surface the new grouped view.
+
+### Server-side (already done — `pkg/apitypes/types.go`, `internal/api/paths.go`)
+
+`GET /paths/{workload_id}/flows` response shape:
+```json
+{
+  "workload_id": "...",
+  "topology_id": "...",
+  "flows": [...],
+  "leaf_pair_flows": [
+    {
+      "src_node_id": "leaf-01",
+      "dst_node_id": "leaf-02",
+      "segment_list": ["fc00:0:9:e001:a:e001:3:0"],
+      "encap_flavor": "H.Encaps.Red",
+      "outer_da": "fc00:0:9:e001:a:e001:3:0",
+      "flow_count": 16
+    }
+  ]
+}
+```
+
+`leaf_pair_flows` is omitted (`omitempty`) when no attachment-node grouping is
+possible (e.g. BGP prefix workloads, direct IGP node endpoints).
+
+### Client-side changes needed
+
+1. **Leaf-pair flows panel** — when `leaf_pair_flows` is present and non-empty,
+   show a second table/section labelled "Leaf-pair flows (grouped)". Columns:
+   `src_node_id`, `dst_node_id`, `segment_list`, `encap_flavor`, `outer_da`, `flow_count`.
+   The `flow_count` badge shows how many GPU-pair flows were collapsed into each row.
+
+2. **View toggle** — add a toggle switch above the flows section:
+   `"Per GPU-pair"` / `"Per leaf-pair (grouped)"`. Default to leaf-pair view when
+   `leaf_pair_flows` is present (smaller, faster to render). Remember user preference.
+
+3. **Flow count badge** — in the leaf-pair table, render `flow_count` as a small
+   badge (e.g. grey pill) next to the row or in its own column so operators can
+   immediately see how many actual GPU flows each segment list serves.
+
+4. **Summary line** — above the flows table show a one-line summary:
+   `"X GPU-pair flows · Y leaf-pair groups"` so the operator can compare at a glance.
