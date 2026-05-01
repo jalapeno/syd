@@ -34,34 +34,42 @@ package graph
 // # BGP best-path selection (one edge per prefix)
 //
 // The BMP stream delivers prefix advertisements from every BGP speaker that
-// has the prefix in its RIB, including all re-advertisers along the path.
-// Without filtering, a prefix originated by DC46 would arrive with edges from
-// DC42/43, DC40/41, xrd01/02, and any other speaker — creating a star of
-// connections rather than a clean origin attachment.
+// has the prefix in its RIB, including re-advertisers at every tier. Without
+// filtering, a prefix originated by DC46 arrives with edges from DC42/43,
+// DC40/41, xrd01/02, etc. — creating a dense star rather than a clean origin
+// attachment.
 //
-// Compose retains only the single best BGPReachabilityEdge per prefix vertex,
-// selected by the standard BGP decision process:
+// The pre-pass selects the single best BGPReachabilityEdge per prefix using
+// a simplified BGP decision process:
 //
-//  1. Shortest AS_PATH (fewer hops = closer to the originating router).
-//  2. Highest LocalPref (tiebreak — meaningful for iBGP reflected paths).
-//  3. Lowest MED (tiebreak).
+//  1. Shortest AS_PATH (fewer hops = closer to origin).
+//  2. Highest LocalPref (tiebreak for iBGP-reflected paths).
+//  3. Lowest MED (final tiebreak).
 //
-// The full RIB is preserved in the source prefix graphs; this filtering is
-// applied only to the composed view.
+// OwnershipEdges that connect a prefix to a nexthop stub (pfxown:pfx:…:nh:…)
+// are also suppressed for any prefix that has a BGPReachabilityEdge winner —
+// the stub nexthop model is only needed as a fallback when no eBGP peer is
+// known. After suppression, any nh: vertices left without edges are removed.
+//
+// The full RIB is preserved in the source prefix graphs; filtering is applied
+// only to the composed view.
 //
 // # Algorithm
 //
-//  1. Build a RouterID → nodeID secondary index from all VTNode vertices
-//     across all source graphs (IGP nodes only; NSExternalBGP nodes excluded).
-//  2. Build a dupVertexID → igpNodeID map covering both kinds of duplicates.
-//  3. Pass 1 — copy all vertices, skipping vertices in the dedup map.
-//  4. Pass 2 — process all edges:
-//     - ETBGPSession: rewrite SrcID (IS-IS or peer-vertex stitching); drop if
-//       unresolvable.
-//     - ETBGPReachability: rewrite SrcID if duplicate; accumulate best-path
-//       candidate per prefix DstID (not inserted yet).
-//     - All other types: copy verbatim; silently skip if vertices missing.
-//  5. Insert one winning BGPReachabilityEdge per prefix.
+//  1. Build RouterID → nodeID index (IGP nodes only).
+//  2. Build dupVertexID → igpNodeID dedup map.
+//  3. Pre-pass — scan all source edges to:
+//     a. Identify nh: stubs that have at least one edge (nhWithEdges).
+//     b. Select the best BGPReachabilityEdge per prefix (bestReach), applying
+//        SrcID rewrites for deduped peer nodes.
+//  4. Pass 1 — copy vertices, skipping duplicates and bare stubs.
+//  5. Pass 2 — copy edges:
+//     - ETBGPSession: IS-IS or peer-vertex stitching; drop if unresolvable.
+//     - ETBGPReachability: skipped here (handled by pre-pass + pass 3).
+//     - ETOwnership (pfx→nh): suppressed when prefix has a bestReach winner.
+//     - All other types: copy verbatim.
+//  6. Pass 3 — insert one winning BGPReachabilityEdge per prefix.
+//  7. Pass 4 — remove nh: vertices that ended up with no edges in out.
 //
 // # Staleness
 //
@@ -91,10 +99,8 @@ func Compose(id string, sources ...*Graph) *Graph {
 
 	// --- build dupVertexID → igpNodeID dedup map --------------------------
 	// Covers two cases:
-	//   a) NSExternalBGP peer node whose RouterID maps to a known IGP node
-	//      (e.g. "peer:10.0.0.6_10.6.6.2" → "0000.0000.0006")
-	//   b) Nexthop stub node whose plain-IP ID equals a known RouterID
-	//      (e.g. "10.0.0.6" → "0000.0000.0006")
+	//   a) NSExternalBGP peer node whose RouterID maps to a known IGP node.
+	//   b) Nexthop stub node whose plain-IP ID equals a known RouterID.
 	dupVertexToIGPID := make(map[string]string)
 	for _, src := range sources {
 		src.mu.RLock()
@@ -118,21 +124,40 @@ func Compose(id string, sources ...*Graph) *Graph {
 		src.mu.RUnlock()
 	}
 
-	// --- pre-compute nh: nodes that have at least one edge -------------------
-	// An nh: nexthop stub with incoming edges is a legitimate ownership target
-	// (a prefix with no known eBGP peer uses it as a fallback for path
-	// resolution). An nh: stub with NO edges is an orphan left over from the
-	// startup race: a prefix arrived before its peerSpec was registered,
-	// creating the stub+OwnershipEdge, then a later message added a real
-	// BGPReachabilityEdge and the OwnershipEdge was removed — but the stub
-	// vertex was never cleaned up. Both are excluded from the composed graph
-	// if they have no edges; kept if they have edges.
+	// --- pre-pass: nhWithEdges + bestReach ---------------------------------
+	// Combine two scans into one loop for efficiency.
+	//
+	// nhWithEdges: nh: stubs that have at least one edge in a source graph.
+	// Stubs with NO source edges are orphans from the startup race and are
+	// dropped in pass 1.
+	//
+	// bestReach: best BGPReachabilityEdge per prefix, selected by the BGP
+	// decision process (shortest AS_PATH → highest LocalPref → lowest MED).
+	// SrcID rewrites for deduped peer nodes are applied here so that the
+	// OwnershipEdge suppression check below can use the same pfxID key.
 	nhWithEdges := make(map[string]struct{})
+	bestReach := make(map[string]*BGPReachabilityEdge) // pfxID → best candidate
 	for _, src := range sources {
 		src.mu.RLock()
 		for _, e := range src.edges {
+			// Track nh: destinations (for orphan filtering).
 			if dst := e.GetDstID(); len(dst) > 3 && dst[:3] == "nh:" {
 				nhWithEdges[dst] = struct{}{}
+			}
+			// Accumulate best BGPReachabilityEdge per prefix.
+			typed, ok := e.(*BGPReachabilityEdge)
+			if !ok {
+				continue
+			}
+			candidate := typed
+			if igpID, isDup := dupVertexToIGPID[typed.SrcID]; isDup {
+				rewritten := *typed
+				rewritten.SrcID = igpID
+				rewritten.ID = "bgpreach:" + igpID + ":" + typed.DstID
+				candidate = &rewritten
+			}
+			if existing, ok := bestReach[candidate.DstID]; !ok || betterBGPPath(candidate, existing) {
+				bestReach[candidate.DstID] = candidate
 			}
 		}
 		src.mu.RUnlock()
@@ -147,25 +172,20 @@ func Compose(id string, sources ...*Graph) *Graph {
 			}
 			// Drop plain stub nodes — Node vertices with no RouterID and no
 			// Subtype were auto-created by UpsertBGPSession (LocalBGPID stubs
-			// for the local router) or EnsureNode. In the composed graph they
-			// either duplicate a full IGP node (already handled by dedup above)
-			// or become floating orphans because their BGPSessionEdge is dropped
-			// by the stitching logic (no matching IGP RouterID). Either way they
-			// add noise without contributing connectivity.
+			// for the local router) or EnsureNode. They add noise without
+			// contributing connectivity in the composed graph.
 			//
-			// Exception A: nh: nexthop stubs that still have at least one
-			// incoming OwnershipEdge ARE kept — they are the target of the
-			// ResolvePrefix ownership fallback for prefixes with no known eBGP
-			// peer. Orphaned nh: stubs (no edges) are dropped.
+			// Exception A: nh: nexthop stubs with at least one live source edge
+			// ARE kept — they are the target of the ResolvePrefix ownership
+			// fallback for prefixes with no known eBGP peer.
 			//
 			// Exception B: NSExternalBGP peer nodes always have a Subtype set,
 			// so they are never matched by this filter.
 			if n, ok := v.(*Node); ok && n.RouterID == "" && string(n.Subtype) == "" {
 				id := n.ID
 				if len(id) >= 3 && id[:3] == "nh:" {
-					// Keep only if it has live edges in a source graph.
 					if _, hasEdge := nhWithEdges[id]; !hasEdge {
-						continue
+						continue // orphaned nh: stub — drop
 					}
 				} else {
 					continue // plain IP stub — always drop
@@ -176,11 +196,7 @@ func Compose(id string, sources ...*Graph) *Graph {
 		src.mu.RUnlock()
 	}
 
-	// --- pass 2: copy all edges, stitching BGP sessions and dedup peers ---
-	// BGPReachabilityEdges are not added immediately; candidates are collected
-	// per prefix DstID and the best-path winner is inserted in a final step.
-	bestReach := make(map[string]*BGPReachabilityEdge) // pfxID → best candidate
-
+	// --- pass 2: copy edges, stitching sessions and suppressing overridden nh: edges ---
 	for _, src := range sources {
 		src.mu.RLock()
 		for _, e := range src.edges {
@@ -188,25 +204,17 @@ func Compose(id string, sources ...*Graph) *Graph {
 			case *BGPSessionEdge:
 				// Rewrite SrcID to the canonical vertex ID for the local end.
 				//
-				// Two stitching strategies are tried in order:
+				// Strategy 1 — IS-IS stitching: rewrite LocalBGPID to the
+				// IS-IS system-ID-based node ID via the routerIDToNodeID index.
 				//
-				//  1. IS-IS stitching: LocalBGPID is in the routerIDToNodeID
-				//     index — the local end is an IGP router. Rewrite SrcID to
-				//     the IS-IS system-ID-based node ID (e.g. 0000.0000.0001).
+				// Strategy 2 — peer-vertex stitching: if peer:<LocalBGPID>
+				// exists in the composed graph, rewrite SrcID to that vertex.
+				// Handles DC-only BGP routers (tier-2/1/0) that run BMP but
+				// have no IGP adjacency.
 				//
-				//  2. Peer-vertex stitching: LocalBGPID is NOT an IGP router
-				//     (e.g. a DC tier-2/1/0 node that runs BMP but has no IGP
-				//     adjacency). If a peer:<LocalBGPID> vertex exists in the
-				//     composed graph (copied from the peers source in pass 1),
-				//     rewrite SrcID to that vertex so the session edge remains
-				//     connected. This enables full topology rendering for BGP-
-				//     only parts of the network.
-				//
-				// Edges that match neither strategy are dropped (unresolvable
-				// local end — typically startup-race stubs).
+				// Edges that match neither strategy are dropped.
 				srcID := typed.SrcID
 				if igpID, ok := routerIDToNodeID[srcID]; ok {
-					// Strategy 1: IS-IS node.
 					rewritten := *typed
 					rewritten.SrcID = igpID
 					rewritten.ID = "bgpsess:" + igpID + ":" + typed.RemoteIP
@@ -215,7 +223,6 @@ func Compose(id string, sources ...*Graph) *Graph {
 				}
 				peerID := "peer:" + srcID
 				if out.GetVertex(peerID) != nil {
-					// Strategy 2: non-IGP BGP router with a peer vertex.
 					rewritten := *typed
 					rewritten.SrcID = peerID
 					rewritten.ID = "bgpsess:" + peerID + ":" + typed.RemoteIP
@@ -224,20 +231,24 @@ func Compose(id string, sources ...*Graph) *Graph {
 				}
 				// Unresolvable — drop.
 			case *BGPReachabilityEdge:
-				// Rewrite SrcID if the source vertex was a duplicate, then
-				// accumulate as a best-path candidate for this prefix.
-				var candidate *BGPReachabilityEdge
-				if igpID, isDup := dupVertexToIGPID[typed.SrcID]; isDup {
-					rewritten := *typed
-					rewritten.SrcID = igpID
-					rewritten.ID = "bgpreach:" + igpID + ":" + typed.DstID
-					candidate = &rewritten
-				} else {
-					candidate = typed
+				// Best-path winner selected in pre-pass; inserted in pass 3.
+				// Skip all candidates here to avoid duplicate insertion.
+				_ = typed
+			case *OwnershipEdge:
+				// Suppress prefix→nexthop stub ownership edges for any prefix
+				// that has a BGPReachabilityEdge winner. When the origin peer
+				// is known, the nh: stub fallback model is unnecessary and
+				// creates extra connections in the composed view.
+				//
+				// Interface→node ownership edges (SrcID = "iface:…") are
+				// always kept — they model structural containment, not prefix
+				// reachability.
+				if len(typed.SrcID) >= 4 && typed.SrcID[:4] == "pfx:" {
+					if _, hasBest := bestReach[typed.SrcID]; hasBest {
+						continue
+					}
 				}
-				if existing, ok := bestReach[candidate.DstID]; !ok || betterBGPPath(candidate, existing) {
-					bestReach[candidate.DstID] = candidate
-				}
+				_ = out.AddEdge(e)
 			default:
 				_ = out.AddEdge(e)
 			}
@@ -248,6 +259,25 @@ func Compose(id string, sources ...*Graph) *Graph {
 	// --- pass 3: insert the single best BGPReachabilityEdge per prefix ------
 	for _, e := range bestReach {
 		_ = out.AddEdge(e)
+	}
+
+	// --- pass 4: remove nh: vertices that have no edges in the composed graph ---
+	// An nh: vertex may have been included in pass 1 (it had source edges) but
+	// all its pfx→nh OwnershipEdges were suppressed in pass 2 because the
+	// prefixes got BGPReachabilityEdge winners. Without edges, the vertex is an
+	// invisible orphan — remove it to keep the graph clean.
+	nhEdgeDsts := make(map[string]struct{})
+	for _, e := range out.AllEdges() {
+		if dst := e.GetDstID(); len(dst) > 3 && dst[:3] == "nh:" {
+			nhEdgeDsts[dst] = struct{}{}
+		}
+	}
+	for _, v := range out.AllVertices() {
+		if id := v.GetID(); len(id) > 3 && id[:3] == "nh:" {
+			if _, hasEdge := nhEdgeDsts[id]; !hasEdge {
+				out.RemoveVertex(id)
+			}
+		}
 	}
 
 	return out
