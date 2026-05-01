@@ -138,14 +138,24 @@ func Compose(id string, sources ...*Graph) *Graph {
 		src.mu.RUnlock()
 	}
 
-	// --- pre-pass: nhWithEdges + bestReach ---------------------------------
+	// --- pre-pass: nhWithEdges + bestReach + pfxWithEdges -------------------
 	nhWithEdges := make(map[string]struct{})
+	pfxWithEdges := make(map[string]struct{}) // pfxIDs that have at least one edge
 	bestReach := make(map[string]*reachGroup) // pfxID → group
 	for _, src := range sources {
 		src.mu.RLock()
 		for _, e := range src.edges {
 			if dst := e.GetDstID(); len(dst) > 3 && dst[:3] == "nh:" {
 				nhWithEdges[dst] = struct{}{}
+			}
+			// Track prefix vertices that have at least one edge (BGPReachability
+			// or OwnershipEdge). Bare prefix vertices left by withdrawn routes
+			// are excluded from the composed graph to prevent resolution errors.
+			switch src := e.GetSrcID(); {
+			case len(e.GetDstID()) > 4 && e.GetDstID()[:4] == "pfx:":
+				pfxWithEdges[e.GetDstID()] = struct{}{}
+			case len(src) > 4 && src[:4] == "pfx:":
+				pfxWithEdges[src] = struct{}{}
 			}
 			typed, ok := e.(*BGPReachabilityEdge)
 			if !ok {
@@ -195,6 +205,14 @@ func Compose(id string, sources ...*Graph) *Graph {
 		for _, v := range src.vertices {
 			if _, isDup := dupVertexToIGPID[v.GetID()]; isDup {
 				continue
+			}
+			// Drop orphaned prefix vertices — prefix with no edges means the
+			// route was withdrawn but the vertex was not cleaned up in the
+			// source graph. Including it causes resolution errors.
+			if _, isPrefix := v.(*Prefix); isPrefix {
+				if _, hasEdge := pfxWithEdges[v.GetID()]; !hasEdge {
+					continue
+				}
 			}
 			// Drop bare stub nodes: no RouterID, no Subtype, AND no Protocol.
 			// The Protocol guard exempts IGP nodes — translateLSNode always
