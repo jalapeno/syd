@@ -89,6 +89,20 @@ function nodeStyle(d: any, tier: number): { fill: string; stroke: string; radius
   if (d.type === 'prefix') {
     return { fill: '#0a2e1a', stroke: '#40b870', radius: 7 };
   }
+  // PolarFly vertex types (when labels are present)
+  const vType = d.labels?.vType;
+  if (vType === '0') {
+    // W (quadric/absolute): gold ring — backbone nodes
+    return { fill: '#2d1f00', stroke: '#e8c840', radius: 14 };
+  }
+  if (vType === '1') {
+    // V1 (cluster hub): bright cyan — fan blade centers
+    return { fill: '#0a3040', stroke: '#40d8e8', radius: 12 };
+  }
+  if (vType === '2') {
+    // V2 (fin vertex): muted teal — petal leaves
+    return { fill: '#061e2e', stroke: '#2aa0b0', radius: 8 };
+  }
   // Fabric nodes: tier-based Kraken palette
   const fills = ['#0f4477', '#0a3358', '#061e38'];
   const strokes = ['#68e8e8', '#3fbfbf', '#2a8a8a'];
@@ -96,7 +110,171 @@ function nodeStyle(d: any, tier: number): { fill: string; stroke: string; radius
   return { fill: fills[tier], stroke: strokes[tier], radius: radii[tier] };
 }
 
-export type LayoutMode = 'auto' | 'clos' | 'ring';
+export type LayoutMode = 'auto' | 'clos' | 'ring' | 'polarfly';
+
+// ── PolarFly cluster construction ──
+//
+// Two strategies, chosen automatically:
+//
+// A. LABEL-BASED (preferred): when nodes carry `labels.vType` ("0"/"1"/"2")
+//    and `labels.cluster`, use the exact PolarFly partition:
+//      vType "0" (W) = quadric/absolute backbone nodes
+//      vType "1" (V1) = off-quadric cluster hubs (cluster == self)
+//      vType "2" (V2) = fin vertices (cluster == their V1 hub)
+//
+// B. HEURISTIC (fallback): for arbitrary topologies without labels, use a
+//    greedy independent set as quadric analog, then Algorithm 1-style
+//    cluster construction.
+
+interface PolarFlyCluster {
+  id: number;
+  type: 'quadric' | 'nonquadric';
+  center: string;       // node ID of cluster center ('' for quadric)
+  nodes: string[];      // all node IDs in this cluster
+}
+
+interface PolarFlyLayout {
+  clusters: PolarFlyCluster[];
+  nodeCluster: Map<string, number>;   // nodeID → clusterID
+  quadricNodes: string[];             // backbone ring node IDs
+}
+
+function buildPolarFlyClusters(
+  nodes: GraphNode[],
+  adjacency: Map<string, Set<string>>,
+  degreeMap: Map<string, number>,
+): PolarFlyLayout {
+  // ── Strategy A: label-based classification ──
+  // Check if the topology carries PolarFly labels.
+  const hasLabels = nodes.some(n => n.labels?.vType !== undefined);
+
+  if (hasLabels) {
+    const wNodes: string[] = [];          // vType "0" — quadric backbone
+    const v1Nodes: string[] = [];         // vType "1" — cluster hubs
+    const v2ByCluster = new Map<string, string[]>(); // hub ID → [fin IDs]
+
+    for (const n of nodes) {
+      const vt = n.labels?.vType;
+      if (vt === '0') {
+        wNodes.push(n.id);
+      } else if (vt === '1') {
+        v1Nodes.push(n.id);
+        // Initialize cluster fins list
+        if (!v2ByCluster.has(n.id)) v2ByCluster.set(n.id, []);
+      } else if (vt === '2') {
+        const hub = n.labels?.cluster || '';
+        if (!v2ByCluster.has(hub)) v2ByCluster.set(hub, []);
+        v2ByCluster.get(hub)!.push(n.id);
+      }
+    }
+
+    const clusters: PolarFlyCluster[] = [];
+    const nodeCluster = new Map<string, number>();
+
+    // C0: quadric cluster
+    clusters.push({ id: 0, type: 'quadric', center: '', nodes: [...wNodes] });
+    for (const nid of wNodes) nodeCluster.set(nid, 0);
+
+    // C1..Cq: one cluster per V1 hub
+    v1Nodes.sort((a, b) => a.localeCompare(b));
+    let clusterIdx = 1;
+    for (const hub of v1Nodes) {
+      const fins = v2ByCluster.get(hub) || [];
+      fins.sort((a, b) => a.localeCompare(b));
+      const clusterNodes = [hub, ...fins];
+      clusters.push({ id: clusterIdx, type: 'nonquadric', center: hub, nodes: clusterNodes });
+      for (const nid of clusterNodes) nodeCluster.set(nid, clusterIdx);
+      clusterIdx++;
+    }
+
+    // Assign any uncategorized nodes (endpoints, etc.) to quadric cluster
+    for (const n of nodes) {
+      if (!nodeCluster.has(n.id)) {
+        nodeCluster.set(n.id, 0);
+        clusters[0].nodes.push(n.id);
+      }
+    }
+
+    return { clusters, nodeCluster, quadricNodes: wNodes };
+  }
+
+  // ── Strategy B: heuristic fallback for arbitrary topologies ──
+  const nodeIds = nodes.map(n => n.id);
+  const nodeSet = new Set(nodeIds);
+
+  // Sort by descending degree for greedy independent set
+  const sorted = [...nodeIds].sort((a, b) => (degreeMap.get(b) || 0) - (degreeMap.get(a) || 0));
+
+  // Greedy maximal independent set (quadric analog)
+  const backbone = new Set<string>();
+  const excluded = new Set<string>();
+  for (const nid of sorted) {
+    if (excluded.has(nid)) continue;
+    backbone.add(nid);
+    const neighbors = adjacency.get(nid) || new Set();
+    for (const nb of neighbors) excluded.add(nb);
+  }
+
+  if (backbone.size < 2) {
+    return {
+      clusters: [{ id: 0, type: 'quadric', center: '', nodes: nodeIds }],
+      nodeCluster: new Map(nodeIds.map(id => [id, 0])),
+      quadricNodes: nodeIds,
+    };
+  }
+
+  const clusters: PolarFlyCluster[] = [];
+  const nodeCluster = new Map<string, number>();
+
+  const quadricNodes = [...backbone];
+  clusters.push({ id: 0, type: 'quadric', center: '', nodes: quadricNodes });
+  for (const nid of quadricNodes) nodeCluster.set(nid, 0);
+
+  const starter = quadricNodes[0];
+  const starterNeighbors = adjacency.get(starter) || new Set();
+  const centers = [...starterNeighbors].filter(n => !backbone.has(n) && nodeSet.has(n));
+
+  let clusterIdx = 1;
+  for (const center of centers) {
+    if (nodeCluster.has(center)) continue;
+    const clusterNodes = [center];
+    nodeCluster.set(center, clusterIdx);
+
+    const centerNeighbors = adjacency.get(center) || new Set();
+    for (const nb of centerNeighbors) {
+      if (!backbone.has(nb) && !nodeCluster.has(nb) && nodeSet.has(nb)) {
+        clusterNodes.push(nb);
+        nodeCluster.set(nb, clusterIdx);
+      }
+    }
+
+    clusters.push({ id: clusterIdx, type: 'nonquadric', center, nodes: clusterNodes });
+    clusterIdx++;
+  }
+
+  for (const nid of nodeIds) {
+    if (nodeCluster.has(nid)) continue;
+    const neighbors = adjacency.get(nid) || new Set();
+    let bestCluster = 0;
+    let bestCount = 0;
+    for (const nb of neighbors) {
+      const c = nodeCluster.get(nb);
+      if (c !== undefined && c > 0) {
+        const count = clusters[c].nodes.filter(cn =>
+          (adjacency.get(cn) || new Set()).has(nid)
+        ).length;
+        if (count > bestCount) {
+          bestCount = count;
+          bestCluster = c;
+        }
+      }
+    }
+    nodeCluster.set(nid, bestCluster);
+    clusters[bestCluster].nodes.push(nid);
+  }
+
+  return { clusters, nodeCluster, quadricNodes };
+}
 
 export default function TopologyCanvas({
   topologyId,
@@ -281,7 +459,8 @@ export default function TopologyCanvas({
     } else if (layoutMode === 'clos') {
       // Fixed-position Clos layout: spines top row, leaves middle, endpoints bottom.
       // Nodes are pinned (fx/fy) so the simulation can't move them.
-      // Scales to any fabric size (512 leaves, 256 spines, etc.)
+      // Scales to large fabrics (512+ endpoints, 64 leaves, 32 spines) by expanding
+      // the layout canvas beyond the viewport and relying on zoom/pan.
       const tierNodes: GraphNode[][] = [[], [], []];
       for (const node of nodes) {
         tierNodes[getTier(node.id)].push(node);
@@ -292,29 +471,101 @@ export default function TopologyCanvas({
         tier.sort((a, b) => a.id.localeCompare(b.id));
       }
 
-      // Compute vertical positions — distribute tiers evenly with padding
-      const padding = 60;
-      const usableHeight = height - padding * 2;
-      const tierYPositions = [
-        padding + usableHeight * 0.08,  // spines at top
-        padding + usableHeight * 0.38,  // leaves in middle
-        padding + usableHeight * 0.68,  // endpoints — above path panel
-      ];
+      const spineCount = tierNodes[0].length;
+      const leafCount = tierNodes[1].length;
+      const epCount = tierNodes[2].length;
+      const maxTierCount = Math.max(spineCount, leafCount, epCount);
 
-      // Place each tier in a horizontal line
-      for (let tier = 0; tier < 3; tier++) {
-        const nodesInTier = tierNodes[tier];
-        const count = nodesInTier.length;
-        if (count === 0) continue;
-        const spacing = (width - padding * 2) / (count + 1);
-        for (let i = 0; i < count; i++) {
-          const node = nodesInTier[i];
-          node.x = padding + spacing * (i + 1);
-          node.y = tierYPositions[tier];
-          node.fx = node.x;
-          node.fy = node.y;
+      // Adaptive spacing: ensure minimum pixel gap between nodes per tier
+      // For small fabrics, fit in viewport; for large, expand canvas
+      const minSpacing = maxTierCount > 100 ? 18 : maxTierCount > 32 ? 28 : 50;
+      const padding = 40;
+
+      // Group endpoints by parent leaf for columnar layout
+      const epsByLeaf = new Map<string, GraphNode[]>();
+      for (const ep of tierNodes[2]) {
+        const neighbors = adjacency.get(ep.id) || new Set();
+        const parentLeaf = Array.from(neighbors).find((nb) => leafIds.has(nb));
+        if (parentLeaf) {
+          if (!epsByLeaf.has(parentLeaf)) epsByLeaf.set(parentLeaf, []);
+          epsByLeaf.get(parentLeaf)!.push(ep);
+        } else {
+          // Orphan endpoint — group under a dummy key
+          if (!epsByLeaf.has('__orphan__')) epsByLeaf.set('__orphan__', []);
+          epsByLeaf.get('__orphan__')!.push(ep);
         }
       }
+      const maxEpsPerLeaf = Math.max(1, ...Array.from(epsByLeaf.values()).map((v) => v.length));
+
+      // Layout width driven by leaf count (endpoints are grouped under leaves)
+      const leafSpacing = Math.max(minSpacing * maxEpsPerLeaf, minSpacing * 2);
+      const canvasWidth = Math.max(width, padding * 2 + leafCount * leafSpacing);
+
+      // Spine spacing — center spines over the leaf span
+      const spineSpacing = leafCount > 0
+        ? (canvasWidth - padding * 2) / (spineCount + 1)
+        : minSpacing;
+
+      // Adaptive node sizing based on scale
+      const scaleFactor = maxTierCount > 200 ? 0.35
+        : maxTierCount > 100 ? 0.5
+        : maxTierCount > 32 ? 0.7
+        : 1.0;
+
+      // Vertical positions — compute from canvas dimensions
+      const rowGap = Math.max(150, height * 0.35);
+      const tierYPositions = [
+        padding + 20,                          // spines at top
+        padding + 20 + rowGap,                 // leaves in middle
+        padding + 20 + rowGap * 2,             // endpoint row start
+      ];
+      const canvasHeight = tierYPositions[2] + maxEpsPerLeaf * (minSpacing * scaleFactor) + padding + 40;
+
+      // Place spines — evenly across canvas width
+      for (let i = 0; i < spineCount; i++) {
+        const node = tierNodes[0][i];
+        node.x = padding + spineSpacing * (i + 1);
+        node.y = tierYPositions[0];
+        node.fx = node.x;
+        node.fy = node.y;
+      }
+
+      // Place leaves — evenly across canvas width
+      const leafXStart = padding + leafSpacing / 2;
+      const leafPositions = new Map<string, number>(); // leafID → x position
+      for (let i = 0; i < leafCount; i++) {
+        const node = tierNodes[1][i];
+        const xPos = leafXStart + i * leafSpacing;
+        node.x = xPos;
+        node.y = tierYPositions[1];
+        node.fx = node.x;
+        node.fy = node.y;
+        leafPositions.set(node.id, xPos);
+      }
+
+      // Place endpoints — columnar under their parent leaf
+      const epSpacingY = Math.max(minSpacing * scaleFactor, 12);
+      const epSpacingX = Math.max(minSpacing * scaleFactor, 12);
+      for (const [leafId, eps] of epsByLeaf) {
+        const leafX = leafPositions.get(leafId) ?? (padding + canvasWidth / 2);
+        eps.sort((a, b) => a.id.localeCompare(b.id));
+        const cols = Math.ceil(Math.sqrt(eps.length));
+        for (let i = 0; i < eps.length; i++) {
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          const xOffset = (col - (cols - 1) / 2) * epSpacingX;
+          eps[i].x = leafX + xOffset;
+          eps[i].y = tierYPositions[2] + row * epSpacingY;
+          eps[i].fx = eps[i].x;
+          eps[i].fy = eps[i].y;
+        }
+      }
+
+      // Store layout parameters for reuse (node sizing, zoom-to-fit, drag snap-back)
+      const closLayout = { canvasWidth, canvasHeight, scaleFactor, tierYPositions,
+        spineSpacing, leafSpacing, leafXStart, padding, epSpacingX, epSpacingY,
+        leafPositions, epsByLeaf, maxEpsPerLeaf };
+      (simulation as any).__closLayout = closLayout;
 
       // Minimal simulation — just needed for D3 link rendering, nodes won't move
       simulation
@@ -323,6 +574,134 @@ export default function TopologyCanvas({
           d3.forceLink<GraphNode, GraphLink>(links).id((d) => d.id)
         )
         .alpha(0.01); // near-zero alpha so it settles immediately
+
+      // Zoom-to-fit the full Clos layout
+      const fitScale = Math.min(
+        width / canvasWidth,
+        height / canvasHeight,
+        1.0  // don't zoom in beyond 1:1
+      ) * 0.95; // small margin
+      const fitX = (width - canvasWidth * fitScale) / 2;
+      const fitY = (height - canvasHeight * fitScale) / 2;
+      svg.call(zoom.transform, d3.zoomIdentity.translate(fitX, fitY).scale(fitScale));
+    } else if (layoutMode === 'polarfly') {
+      // ── PolarFly layout ──
+      // Quadric ring at center, cluster petals radiating outward like fan blades.
+      // 2D top-down projection of the PolarFly cylinder layout.
+      const pfLayout = buildPolarFlyClusters(nodes, adjacency, degreeMap);
+      const { clusters: pfClusters, quadricNodes } = pfLayout;
+
+      const nonQuadricClusters = pfClusters.filter(c => c.type === 'nonquadric');
+      const nC = nonQuadricClusters.length;
+      const q = quadricNodes.length; // approximate q+1
+
+      // Sizing: scale ring radius with node count
+      const baseRadius = Math.min(width, height) * 0.18;
+      const ringRadius = Math.max(baseRadius, 80 + q * 4);
+      const cx = width / 2;
+      const cy = height / 2;
+
+      // Place quadric nodes in a ring
+      for (let i = 0; i < quadricNodes.length; i++) {
+        const theta = (2 * Math.PI * i) / quadricNodes.length - Math.PI / 2;
+        const node = nodes.find(n => n.id === quadricNodes[i]);
+        if (node) {
+          node.x = cx + ringRadius * Math.cos(theta);
+          node.y = cy + ringRadius * Math.sin(theta);
+          node.fx = node.x;
+          node.fy = node.y;
+        }
+      }
+
+      // Place each non-quadric cluster as a radial petal
+      const sliceAngle = nC > 0 ? (2 * Math.PI) / nC : 0;
+      const centerDistance = ringRadius * 1.6;  // cluster centers just outside the ring
+      const finStartDistance = ringRadius * 2.0; // fins start further out
+      const finEndDistance = ringRadius * 3.2;   // fins extend to here
+
+      for (let ci = 0; ci < nonQuadricClusters.length; ci++) {
+        const cluster = nonQuadricClusters[ci];
+        const baseTheta = sliceAngle * ci - Math.PI / 2;
+        const center = cluster.center;
+        const others = cluster.nodes.filter(n => n !== center);
+
+        // Place cluster center
+        const centerNode = nodes.find(n => n.id === center);
+        if (centerNode) {
+          centerNode.x = cx + centerDistance * Math.cos(baseTheta);
+          centerNode.y = cy + centerDistance * Math.sin(baseTheta);
+          centerNode.fx = centerNode.x;
+          centerNode.fy = centerNode.y;
+        }
+
+        // Discover triangle pairs (a, b) where adj[a] contains b
+        const paired = new Set<string>();
+        const tris: string[][] = [];
+        for (const a of others) {
+          if (paired.has(a)) continue;
+          const aNeighbors = adjacency.get(a) || new Set();
+          const b = others.find(x => x !== a && !paired.has(x) && aNeighbors.has(x));
+          if (b) {
+            tris.push([a, b]);
+            paired.add(a);
+            paired.add(b);
+          }
+        }
+        // Unpaired leftovers
+        for (const n of others) {
+          if (!paired.has(n)) tris.push([n]);
+        }
+
+        const nTris = tris.length;
+        // Angular spread for fins within this cluster's wedge (70% of wedge)
+        const angularSpread = sliceAngle * 0.7;
+
+        tris.forEach((pair, ti) => {
+          const finFrac = nTris > 1 ? (ti - (nTris - 1) / 2) / nTris : 0;
+          const finTheta = baseTheta + finFrac * angularSpread;
+
+          // Radial distance: interpolate between finStart and finEnd
+          const tFrac = nTris > 1 ? ti / (nTris - 1) : 0.5;
+          const finR = finStartDistance + (finEndDistance - finStartDistance) * tFrac;
+
+          pair.forEach((nid, ni) => {
+            const node = nodes.find(n => n.id === nid);
+            if (!node) return;
+            // Split pair endpoints slightly in angle so triangles are visible
+            const pairOffset = pair.length > 1 ? (ni === 0 ? -0.02 : 0.02) : 0;
+            const theta = finTheta + pairOffset;
+            // Also split radially: inner/outer for the two endpoints
+            const rOffset = pair.length > 1 ? (ni === 0 ? -8 : 8) : 0;
+            node.x = cx + (finR + rOffset) * Math.cos(theta);
+            node.y = cy + (finR + rOffset) * Math.sin(theta);
+            node.fx = node.x;
+            node.fy = node.y;
+          });
+        });
+      }
+
+      // Store layout info for node sizing
+      const pfScaleFactor = nodes.length > 200 ? 0.5 : nodes.length > 80 ? 0.7 : 1.0;
+      (simulation as any).__closLayout = { scaleFactor: pfScaleFactor };
+
+      // Minimal simulation for link rendering
+      simulation
+        .force(
+          'link',
+          d3.forceLink<GraphNode, GraphLink>(links).id((d) => d.id)
+        )
+        .alpha(0.01);
+
+      // Zoom-to-fit
+      const maxR = finEndDistance + 40;
+      const fitScale = Math.min(
+        width / (maxR * 2 + 80),
+        height / (maxR * 2 + 80),
+        1.0
+      ) * 0.95;
+      const fitX = (width - width * fitScale) / 2;
+      const fitY = (height - height * fitScale) / 2;
+      svg.call(zoom.transform, d3.zoomIdentity.translate(fitX, fitY).scale(fitScale));
     } else {
       // Auto: pure force-directed, no tier constraints — spacious layout
       simulation
@@ -352,7 +731,10 @@ export default function TopologyCanvas({
       }
     };
 
-    // Render links
+    // Render links — scale stroke for dense fabrics
+    const linkSf = (simulation as any).__closLayout?.scaleFactor ?? 1.0;
+    const baseLinkWidth = Math.max(0.5, 1.8 * linkSf);
+    const baseLinkOpacity = links.length > 2000 ? 0.3 : links.length > 500 ? 0.5 : 0.7;
     const linkGroup = g
       .append('g')
       .attr('class', 'links')
@@ -360,8 +742,8 @@ export default function TopologyCanvas({
       .data(links)
       .join('line')
       .attr('stroke', (d) => edgeStyle(d).stroke)
-      .attr('stroke-width', 1.8)
-      .attr('stroke-opacity', 0.7)
+      .attr('stroke-width', baseLinkWidth)
+      .attr('stroke-opacity', baseLinkOpacity)
       .attr('stroke-dasharray', (d) => edgeStyle(d).dash)
       .style('cursor', 'pointer')
       .on('mouseenter', function (event, d) {
@@ -405,22 +787,39 @@ export default function TopologyCanvas({
           })
           .on('end', (event, d) => {
             if (!event.active) simulation.alphaTarget(0);
-            if (layoutMode === 'clos') {
-              // In Clos mode, snap back to original grid position
-              const tier = getTier(d.id);
-              const tieredNodes = nodes.filter((n) => getTier(n.id) === tier);
-              tieredNodes.sort((a, b) => a.id.localeCompare(b.id));
-              const idx = tieredNodes.findIndex((n) => n.id === d.id);
-              const count = tieredNodes.length;
-              const padding = 60;
-              const spacing = (width - padding * 2) / (count + 1);
-              const tierYPositions = [
-                padding + (height - padding * 2) * 0.08,
-                padding + (height - padding * 2) * 0.38,
-                padding + (height - padding * 2) * 0.68,
-              ];
-              d.fx = padding + spacing * (idx + 1);
-              d.fy = tierYPositions[tier];
+            if (layoutMode === 'clos' || layoutMode === 'polarfly') {
+              // In Clos mode, snap back to the originally computed position
+              // which was stored in __closLayout on the simulation
+              const cl = (simulation as any).__closLayout;
+              if (cl) {
+                const tier = getTier(d.id);
+                if (tier === 0) {
+                  // Spine: find index in sorted spine tier
+                  const spineNodes = nodes.filter((n) => getTier(n.id) === 0);
+                  spineNodes.sort((a, b) => a.id.localeCompare(b.id));
+                  const idx = spineNodes.findIndex((n) => n.id === d.id);
+                  d.fx = cl.padding + cl.spineSpacing * (idx + 1);
+                  d.fy = cl.tierYPositions[0];
+                } else if (tier === 1) {
+                  // Leaf: find index in sorted leaf tier
+                  d.fx = cl.leafPositions.get(d.id) ?? d.x;
+                  d.fy = cl.tierYPositions[1];
+                } else {
+                  // Endpoint: find position in parent leaf's column
+                  for (const [leafId, eps] of cl.epsByLeaf) {
+                    const epIdx = eps.findIndex((e: GraphNode) => e.id === d.id);
+                    if (epIdx >= 0) {
+                      const leafX = cl.leafPositions.get(leafId) ?? cl.padding;
+                      const cols = Math.ceil(Math.sqrt(eps.length));
+                      const col = epIdx % cols;
+                      const row = Math.floor(epIdx / cols);
+                      d.fx = leafX + (col - (cols - 1) / 2) * cl.epSpacingX;
+                      d.fy = cl.tierYPositions[2] + row * cl.epSpacingY;
+                      break;
+                    }
+                  }
+                }
+              }
             } else {
               d.fx = null;
               d.fy = null;
@@ -429,25 +828,32 @@ export default function TopologyCanvas({
       );
 
     // Node circles with type/subtype-aware styling
+    // Scale factor for large Clos fabrics
+    const sf = (simulation as any).__closLayout?.scaleFactor ?? 1.0;
     nodeGroup
       .append('circle')
-      .attr('r', (d) => nodeStyle(d, getTier(d.id)).radius)
+      .attr('r', (d) => nodeStyle(d, getTier(d.id)).radius * sf)
       .attr('fill', (d) => nodeStyle(d, getTier(d.id)).fill)
       .attr('stroke', (d) => nodeStyle(d, getTier(d.id)).stroke)
-      .attr('stroke-width', 2.5);
+      .attr('stroke-width', Math.max(1, 2.5 * sf));
 
-    // Node labels
-    nodeGroup
-      .append('text')
-      .text((d) => d.name || d.id)
-      .attr('dy', (d) => {
-        const tier = getTier(d.id);
-        return tier === 2 ? 20 : -22;
-      })
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#a0cfdf')
-      .attr('font-size', '10px')
-      .attr('font-family', 'JetBrains Mono, monospace');
+    // Node labels — hide at very small scales, shrink at medium
+    const labelSize = Math.max(5, Math.round(10 * sf));
+    const showLabels = sf >= 0.35;
+    if (showLabels) {
+      nodeGroup
+        .append('text')
+        .text((d) => d.name || d.id)
+        .attr('dy', (d) => {
+          const tier = getTier(d.id);
+          const r = nodeStyle(d, tier).radius * sf;
+          return tier === 2 ? r + 10 : -(r + 8);
+        })
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#a0cfdf')
+        .attr('font-size', `${labelSize}px`)
+        .attr('font-family', 'JetBrains Mono, monospace');
+    }
 
     // Node interactions
     nodeGroup
@@ -463,11 +869,12 @@ export default function TopologyCanvas({
       })
       .on('mouseleave', function (_event, d) {
         const tier = getTier(d.id);
+        const style = nodeStyle(d, tier);
         const isSelected = selectedNodes.some((n) => n.id === d.id);
         d3.select(this)
           .select('circle')
-          .attr('stroke-width', isSelected ? 3.5 : 2.5)
-          .attr('stroke', isSelected ? '#ff2d55' : tier === 0 ? '#68e8e8' : tier === 1 ? '#3fbfbf' : '#2a8a8a');
+          .attr('stroke-width', isSelected ? 3.5 * sf : Math.max(1, 2.5 * sf))
+          .attr('stroke', isSelected ? '#ff2d55' : style.stroke);
         onHover(null);
       })
       .on('click', (event, d) => {
@@ -657,35 +1064,54 @@ export default function TopologyCanvas({
       />
       {/* Layout toggle toolbar */}
       <div className="absolute top-4 right-4 z-20 flex bg-kraken-navy/90 backdrop-blur-sm border border-kraken-border rounded-lg overflow-hidden">
-        {(['auto', 'clos', 'ring'] as LayoutMode[]).map((mode) => (
+        {(['auto', 'clos', 'ring', 'polarfly'] as LayoutMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => setLayoutMode(mode)}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors capitalize ${
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
               layoutMode === mode
                 ? 'bg-kraken-ice/20 text-kraken-ice border-kraken-ice'
                 : 'text-kraken-muted hover:text-kraken-frost hover:bg-kraken-dark/50'
             }`}
           >
-            {mode}
+            {mode === 'polarfly' ? 'PolarFly' : mode.charAt(0).toUpperCase() + mode.slice(1)}
           </button>
         ))}
       </div>
       {/* Legend */}
       <div className="absolute bottom-4 right-4 z-20 bg-kraken-navy/80 backdrop-blur-sm border border-kraken-border rounded-lg px-3 py-2">
         <div className="flex items-center gap-4 text-xs text-kraken-muted">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full border-2 border-kraken-ice bg-kraken-mid" />
-            <span>Spine</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full border-2 border-kraken-ice-dim bg-kraken-surface" />
-            <span>Leaf</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full border-2 border-kraken-border bg-kraken-navy" />
-            <span>Endpoint</span>
-          </div>
+          {layoutMode === 'polarfly' ? (
+            <>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3.5 h-3.5 rounded-full border-2" style={{ borderColor: '#e8c840', background: '#2d1f00' }} />
+                <span>W (quadric)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full border-2" style={{ borderColor: '#40d8e8', background: '#0a3040' }} />
+                <span>V1 (hub)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full border-2" style={{ borderColor: '#2aa0b0', background: '#061e2e' }} />
+                <span>V2 (fin)</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full border-2 border-kraken-ice bg-kraken-mid" />
+                <span>Spine</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full border-2 border-kraken-ice-dim bg-kraken-surface" />
+                <span>Leaf</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full border-2 border-kraken-border bg-kraken-navy" />
+                <span>Endpoint</span>
+              </div>
+            </>
+          )}
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full border-2 border-kraken-red bg-kraken-red/20" />
             <span>Selected</span>

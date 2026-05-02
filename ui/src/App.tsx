@@ -5,7 +5,7 @@ import Popover from './components/Popover';
 import PathRequestPanel from './components/PathRequestPanel';
 import type { GraphNode, GraphLink, PathResponse } from './types/api';
 
-export type SidebarView = 'menu' | 'detail' | 'paths' | 'workloads';
+export type SidebarView = 'menu' | 'detail' | 'paths' | 'workloads' | 'endpoints';
 
 export interface PopoverData {
   x: number;
@@ -67,6 +67,10 @@ function App() {
     setSidebarView('menu');
   }, []);
 
+  const handleSelectionChange = useCallback((nodes: GraphNode[]) => {
+    setSelectedNodes(nodes);
+  }, []);
+
   return (
     <div className="flex h-full">
       <Sidebar
@@ -80,6 +84,7 @@ function App() {
         onClearSelection={handleClearSelection}
         onClearPaths={handleClearPaths}
         onPathResponse={handlePathResponse}
+        onSelectionChange={handleSelectionChange}
       />
       <main className="flex-1 relative overflow-hidden">
         <TopologyCanvas

@@ -10,10 +10,11 @@ import (
 // --- Topology graph API for UI visualization ---
 
 type uiGraphNode struct {
-	ID      string `json:"id"`
-	Name    string `json:"name,omitempty"`
-	Type    string `json:"type,omitempty"`
-	Subtype string `json:"subtype,omitempty"`
+	ID      string            `json:"id"`
+	Name    string            `json:"name,omitempty"`
+	Type    string            `json:"type,omitempty"`
+	Subtype string            `json:"subtype,omitempty"`
+	Labels  map[string]string `json:"labels,omitempty"`
 }
 
 type uiGraphLink struct {
@@ -51,8 +52,9 @@ func (s *Server) handleTopologyGraph(w http.ResponseWriter, r *http.Request) {
 			continue // skip interfaces — they're internal to link modeling
 		}
 		n := uiGraphNode{
-			ID:   v.GetID(),
-			Type: string(vt),
+			ID:     v.GetID(),
+			Type:   string(vt),
+			Labels: v.GetLabels(),
 		}
 		// Resolve display name and subtype per vertex type.
 		switch tv := v.(type) {

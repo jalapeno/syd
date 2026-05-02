@@ -129,6 +129,7 @@ export interface GraphNode {
   name?: string;
   type?: string; // "node" | "endpoint" | "prefix" | "vrf"
   subtype?: string; // "external_bgp" for eBGP peer nodes
+  labels?: Record<string, string>; // arbitrary key/value pairs from topology (vType, cluster, etc.)
   x?: number;
   y?: number;
   fx?: number | null;

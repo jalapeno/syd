@@ -7,6 +7,7 @@ import {
   ChevronRight,
   X,
   Server,
+  Crosshair,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type {
@@ -17,6 +18,7 @@ import type {
 } from '../types/api';
 import type { SidebarView } from '../App';
 import WorkloadList from './WorkloadList';
+import EndpointPicker from './EndpointPicker';
 
 interface SidebarProps {
   view: SidebarView;
@@ -29,6 +31,7 @@ interface SidebarProps {
   onClearSelection: () => void;
   onClearPaths: () => void;
   onPathResponse: (resp: PathResponse) => void;
+  onSelectionChange: (nodes: GraphNode[]) => void;
 }
 
 export default function Sidebar({
@@ -41,6 +44,7 @@ export default function Sidebar({
   onTopologyChange,
   onClearSelection,
   onClearPaths,
+  onSelectionChange,
 }: SidebarProps) {
   const [topologies, setTopologies] = useState<string[]>([]);
   const [policies, setPolicies] = useState<PolicyEntry[]>([]);
@@ -117,6 +121,13 @@ export default function Sidebar({
           active={view === 'workloads'}
           onClick={() => onViewChange('workloads')}
         />
+        <NavItem
+          icon={<Crosshair className="w-4 h-4" />}
+          label="Endpoints"
+          active={view === 'endpoints'}
+          onClick={() => onViewChange('endpoints')}
+          badge={selectedNodes.length || undefined}
+        />
       </nav>
 
       {/* Content Area */}
@@ -139,6 +150,13 @@ export default function Sidebar({
         )}
         {view === 'workloads' && (
           <WorkloadList topologyId={topologyId} />
+        )}
+        {view === 'endpoints' && (
+          <EndpointPicker
+            topologyId={topologyId}
+            selectedNodes={selectedNodes}
+            onSelectionChange={onSelectionChange}
+          />
         )}
       </div>
 
