@@ -217,14 +217,16 @@ func deriveReversePath(
 	metric := pathMetric(revEdges)
 
 	return &graph.Path{
-		ID:          id,
-		SrcID:       pair.DstEndpointID,
-		DstID:       pair.SrcEndpointID,
-		VertexIDs:   revNodeIDs,
-		EdgeIDs:     revEdgeIDs,
-		SegmentList: segList,
-		Metric:      metric,
-		Constraints: fwd.Constraints,
+		ID:              id,
+		SrcID:           pair.DstEndpointID,
+		DstID:           pair.SrcEndpointID,
+		SrcAttachNodeID: pair.DstNodeID,
+		DstAttachNodeID: pair.SrcNodeID,
+		VertexIDs:       revNodeIDs,
+		EdgeIDs:         revEdgeIDs,
+		SegmentList:     segList,
+		Metric:          metric,
+		Constraints:     fwd.Constraints,
 	}, nil
 }
 
@@ -351,9 +353,11 @@ func computeOnePairWithID(
 ) (*graph.Path, error) {
 	if pair.SrcNodeID == pair.DstNodeID {
 		return &graph.Path{
-			ID:    id,
-			SrcID: pair.SrcEndpointID,
-			DstID: pair.DstEndpointID,
+			ID:              id,
+			SrcID:           pair.SrcEndpointID,
+			DstID:           pair.DstEndpointID,
+			SrcAttachNodeID: pair.SrcNodeID,
+			DstAttachNodeID: pair.DstNodeID,
 		}, nil
 	}
 
@@ -385,14 +389,16 @@ func computeOnePairWithID(
 	metric := pathMetric(spf.Edges)
 
 	return &graph.Path{
-		ID:          id,
-		SrcID:       pair.SrcEndpointID,
-		DstID:       pair.DstEndpointID,
-		VertexIDs:   spf.NodeIDs,
-		EdgeIDs:     spf.EdgeIDs,
-		SegmentList: segList,
-		Metric:      metric,
-		Constraints: constraints,
+		ID:              id,
+		SrcID:           pair.SrcEndpointID,
+		DstID:           pair.DstEndpointID,
+		SrcAttachNodeID: pair.SrcNodeID,
+		DstAttachNodeID: pair.DstNodeID,
+		VertexIDs:       spf.NodeIDs,
+		EdgeIDs:         spf.EdgeIDs,
+		SegmentList:     segList,
+		Metric:          metric,
+		Constraints:     constraints,
 	}, nil
 }
 

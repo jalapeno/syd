@@ -407,19 +407,27 @@ func (s *Server) handleWorkloadFlows(w http.ResponseWriter, r *http.Request) {
 		entries = append(entries, e)
 	}
 
+	// Build a path-ID → attach-node index so buildLeafPairFlows can group
+	// by leaf node rather than by GPU endpoint ID.
+	attachIndex := make(map[string][2]string, len(paths))
+	for _, p := range paths {
+		attachIndex[p.ID] = [2]string{p.SrcAttachNodeID, p.DstAttachNodeID}
+	}
+
 	writeJSON(w, http.StatusOK, apitypes.FlowsResponse{
 		WorkloadID:    workloadID,
 		TopologyID:    topoID,
 		Flows:         entries,
-		LeafPairFlows: buildLeafPairFlows(entries),
+		LeafPairFlows: buildLeafPairFlows(entries, attachIndex),
 	})
 }
 
-// buildLeafPairFlows groups FlowEntries by their (SrcNodeID, DstNodeID) pair,
-// producing a compact O(leaf²) representation. All flows that share the same
-// attachment-node pair use the same segment list; the entry records how many
-// individual GPU-pair flows it covers.
-func buildLeafPairFlows(flows []apitypes.FlowEntry) []apitypes.LeafPairFlowEntry {
+// buildLeafPairFlows groups FlowEntries by their attachment-node pair
+// (SrcAttachNodeID, DstAttachNodeID from the path engine), producing a compact
+// O(leaf²) representation. All GPU-pair flows that share the same attachment
+// nodes use the same segment list; the entry records how many individual flows
+// it covers. attachIndex maps path ID → [srcAttach, dstAttach].
+func buildLeafPairFlows(flows []apitypes.FlowEntry, attachIndex map[string][2]string) []apitypes.LeafPairFlowEntry {
 	if len(flows) == 0 {
 		return nil
 	}
@@ -429,15 +437,25 @@ func buildLeafPairFlows(flows []apitypes.FlowEntry) []apitypes.LeafPairFlowEntry
 	var result []apitypes.LeafPairFlowEntry
 
 	for _, f := range flows {
-		k := pairKey{f.SrcNodeID, f.DstNodeID}
+		attach := attachIndex[f.PathID]
+		srcAttach, dstAttach := attach[0], attach[1]
+		// Fall back to endpoint IDs if attach nodes are not populated
+		// (e.g. prefix paths or legacy paths without attach node tracking).
+		if srcAttach == "" {
+			srcAttach = f.SrcNodeID
+		}
+		if dstAttach == "" {
+			dstAttach = f.DstNodeID
+		}
+		k := pairKey{srcAttach, dstAttach}
 		if idx, ok := seen[k]; ok {
 			result[idx].FlowCount++
 			continue
 		}
 		seen[k] = len(result)
 		result = append(result, apitypes.LeafPairFlowEntry{
-			SrcNodeID:   f.SrcNodeID,
-			DstNodeID:   f.DstNodeID,
+			SrcNodeID:   srcAttach,
+			DstNodeID:   dstAttach,
 			SegmentList: f.SegmentList,
 			EncapFlavor: f.EncapFlavor,
 			OuterDA:     f.OuterDA,

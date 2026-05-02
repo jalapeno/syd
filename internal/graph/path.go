@@ -63,6 +63,13 @@ type Path struct {
 	SrcID string `json:"src_id"`
 	DstID string `json:"dst_id"`
 
+	// SrcAttachNodeID / DstAttachNodeID are the resolved attachment Node vertex
+	// IDs (e.g. leaf-01) for the src and dst endpoints. For endpoints that are
+	// already IGP nodes these equal SrcID/DstID. Used by the flows handler to
+	// group GPU-pair flows into leaf-pair groups (ECMP-group output).
+	SrcAttachNodeID string `json:"src_attach_node_id,omitempty"`
+	DstAttachNodeID string `json:"dst_attach_node_id,omitempty"`
+
 	// Ordered traversal through the graph.
 	// VertexIDs lists Node vertices visited; EdgeIDs lists LinkEdges traversed.
 	VertexIDs []string `json:"vertex_ids"`

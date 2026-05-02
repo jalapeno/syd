@@ -1118,6 +1118,98 @@ curl -s -X POST http://localhost:30080/paths/request \
 
 Each PathResult carries bgp_nexthop (the BGP next-hop the border router uses after SRv6 decap) and prefix_id (the resolved prefix vertex). The segment list terminates at the SRv6 domain edge — the border router.
 
+### Leaf-Pairs and ECMP Group
+Step 1 — Push the small Clos topology
+```bash
+curl -s -X POST http://localhost:30080/topology \
+  -H "Content-Type: application/json" \
+  -d @/Users/brucemcdougall/src/syd/test-data/clos-fabric.json | jq .
+```
+This gives you clos-32gpu (4 spines, 8 leaves, 4 GPUs/leaf). The leaf_pair_flows grouping effect is easier to read at this scale.
+
+Step 2 — Request paths for GPUs spanning exactly 2 leaves
+Pick gpu-001..gpu-008 — those are the 4 GPUs on leaf-01 and the 4 GPUs on leaf-02:
+
+```bash
+curl -s -X POST http://localhost:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "workload_id": "validate-leaf-pairs",
+    "endpoints": [
+      {"id": "gpu-001"}, {"id": "gpu-002"}, {"id": "gpu-003"}, {"id": "gpu-004"},
+      {"id": "gpu-005"}, {"id": "gpu-006"}, {"id": "gpu-007"}, {"id": "gpu-008"}
+    ],
+    "pairing_mode": "all_directed",
+    "disjointness": "none"
+  }' | jq '{paths_count: (.paths | length)}'
+```
+8 GPUs → 56 directed pairs total.
+
+Step 3 — Fetch flows and inspect the grouping
+```bash
+curl -s http://localhost:30080/paths/validate-leaf-pairs/flows | jq '{
+  flows_count:      (.flows | length),
+  leaf_pair_count:  (.leaf_pair_flows | length),
+  leaf_pairs:       [.leaf_pair_flows[] | {
+    pair:       "\(.src_node_id) → \(.dst_node_id)",
+    sid:        .segment_list,
+    flow_count: .flow_count
+  }]
+}'
+```
+What to expect
+Thing	Value	Why
+flows_count	56	8×7 directed GPU-pairs
+leaf_pair_count	4	(leaf-01→leaf-01), (leaf-01→leaf-02), (leaf-02→leaf-01), (leaf-02→leaf-02)
+flow_count on cross-leaf entries	16	4 GPUs on src-leaf × 4 GPUs on dst-leaf
+flow_count on same-leaf entries	12	4×3 same-leaf pairs (zero-hop paths)
+SID list	identical across all 16 flows in a leaf-pair group	the whole point — same physical path
+Step 4 — Verify SID consistency within a group
+Pick a cross-leaf pair and verify all 16 GPU-pair flows in flows that share that leaf-pair really do have the same segment list:
+
+
+FLOWS=$(curl -s http://localhost:8080/paths/validate-leaf-pairs/flows)
+
+# Grab the leaf-01→leaf-02 segment list from the grouped view
+LEAF_SID=$(echo "$FLOWS" | jq -r '
+  .leaf_pair_flows[]
+  | select(.src_node_id == "leaf-01" and .dst_node_id == "leaf-02")
+  | .segment_list[0]')
+
+echo "Leaf-pair SID: $LEAF_SID"
+
+# Count how many individual GPU flows match it
+echo "$FLOWS" | jq --arg sid "$LEAF_SID" '
+  [.flows[] | select(.segment_list[0] == $sid)] | length'
+That count should match the flow_count from the grouped entry.
+
+Step 5 — Scale up to 256 GPUs
+
+curl -s -X POST http://localhost:8080/topology \
+  -H "Content-Type: application/json" \
+  -d @/Users/brucemcdougall/src/syd/test-data/clos-256gpu.json | jq .
+
+curl -s -X POST http://localhost:8080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-256gpu",
+    "workload_id": "validate-256",
+    "endpoints": [
+      {"id": "gpu-001"}, {"id": "gpu-002"}, {"id": "gpu-003"}, {"id": "gpu-004"},
+      {"id": "gpu-005"}, {"id": "gpu-006"}, {"id": "gpu-007"}, {"id": "gpu-008"}
+    ],
+    "pairing_mode": "all_directed",
+    "disjointness": "none"
+  }' | jq .
+
+curl -s http://localhost:8080/paths/validate-256/flows | jq '{
+  flows_count: (.flows | length),
+  leaf_pair_count: (.leaf_pair_flows | length)
+}'
+With 256 GPUs total in the topology but only 8 in the job (2 leaves), the reduction numbers are the same as Step 3. To see the full leaf² vs GPU² contrast, request all 256 GPUs — flows_count will be 65,280, leaf_pair_count will be 4,032 (64×63 directed leaf-pairs).
+
+
 ### Polarfly
 
 Post polarfly topology data
