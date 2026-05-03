@@ -1119,15 +1119,15 @@ curl -s -X POST http://localhost:30080/paths/request \
 Each PathResult carries bgp_nexthop (the BGP next-hop the border router uses after SRv6 decap) and prefix_id (the resolved prefix vertex). The segment list terminates at the SRv6 domain edge — the border router.
 
 ### Leaf-Pairs and ECMP Group
-Step 1 — Push the small Clos topology
+#### Step 1 — Push the small Clos topology
 ```bash
 curl -s -X POST http://localhost:30080/topology \
   -H "Content-Type: application/json" \
-  -d @/Users/brucemcdougall/src/syd/test-data/clos-fabric.json | jq .
+  -d @test-data/clos-32gpu.json | jq .
 ```
 This gives you clos-32gpu (4 spines, 8 leaves, 4 GPUs/leaf). The leaf_pair_flows grouping effect is easier to read at this scale.
 
-Step 2 — Request paths for GPUs spanning exactly 2 leaves
+#### Step 2 — Request paths for GPUs spanning exactly 2 leaves
 Pick gpu-001..gpu-008 — those are the 4 GPUs on leaf-01 and the 4 GPUs on leaf-02:
 
 ```bash
@@ -1144,9 +1144,26 @@ curl -s -X POST http://localhost:30080/paths/request \
     "disjointness": "none"
   }' | jq '{paths_count: (.paths | length)}'
 ```
+
+#### uA mode
+```bash
+curl -s -X POST http://198.18.133.102:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "workload_id": "validate-leaf-pairs",
+    "endpoints": [
+      {"id": "gpu-001"}, {"id": "gpu-002"}, {"id": "gpu-003"}, {"id": "gpu-004"},
+      {"id": "gpu-005"}, {"id": "gpu-006"}, {"id": "gpu-007"}, {"id": "gpu-008"}
+    ],
+    "pairing_mode": "all_directed",
+    "disjointness": "none",
+    "segment_list_mode": "ua"
+  }' | jq .
+```
 8 GPUs → 56 directed pairs total.
 
-Step 3 — Fetch flows and inspect the grouping
+#### Step 3 — Fetch flows and inspect the grouping
 ```bash
 curl -s http://localhost:30080/paths/validate-leaf-pairs/flows | jq '{
   flows_count:      (.flows | length),
@@ -1158,20 +1175,23 @@ curl -s http://localhost:30080/paths/validate-leaf-pairs/flows | jq '{
   }]
 }'
 ```
-What to expect
-Thing	Value	Why
-flows_count	56	8×7 directed GPU-pairs
-leaf_pair_count	4	(leaf-01→leaf-01), (leaf-01→leaf-02), (leaf-02→leaf-01), (leaf-02→leaf-02)
-flow_count on cross-leaf entries	16	4 GPUs on src-leaf × 4 GPUs on dst-leaf
-flow_count on same-leaf entries	12	4×3 same-leaf pairs (zero-hop paths)
-SID list	identical across all 16 flows in a leaf-pair group	the whole point — same physical path
-Step 4 — Verify SID consistency within a group
+What to expect 
+| Thing	| Value	| Why
+| flows_count	| 56	| 8×7 directed GPU-pairs
+| leaf_pair_count	| 4	| (leaf-01→leaf-01), (leaf-01→leaf-02), (leaf-02→leaf-01), (leaf-02→leaf-02)
+| flow_count on cross-leaf entries	| 16	| 4 GPUs on src-leaf × 4 GPUs on dst-leaf
+| flow_count on same-leaf entries	| 12	| 4×3 same-leaf pairs (zero-hop paths)
+| SID list	| identical across all 16 flows in a leaf-pair group	the whole point — same physical path
+
+#### Step 4 — Verify SID consistency within a group
+
 Pick a cross-leaf pair and verify all 16 GPU-pair flows in flows that share that leaf-pair really do have the same segment list:
 
+```bash
+FLOWS=$(curl -s http://localhost:30080/paths/validate-leaf-pairs/flows)
+```
 
-FLOWS=$(curl -s http://localhost:8080/paths/validate-leaf-pairs/flows)
-
-# Grab the leaf-01→leaf-02 segment list from the grouped view
+#### Grab the leaf-01→leaf-02 segment list from the grouped view
 LEAF_SID=$(echo "$FLOWS" | jq -r '
   .leaf_pair_flows[]
   | select(.src_node_id == "leaf-01" and .dst_node_id == "leaf-02")
@@ -1180,17 +1200,20 @@ LEAF_SID=$(echo "$FLOWS" | jq -r '
 echo "Leaf-pair SID: $LEAF_SID"
 
 # Count how many individual GPU flows match it
+```bash
 echo "$FLOWS" | jq --arg sid "$LEAF_SID" '
   [.flows[] | select(.segment_list[0] == $sid)] | length'
+```
 That count should match the flow_count from the grouped entry.
 
-Step 5 — Scale up to 256 GPUs
-
-curl -s -X POST http://localhost:8080/topology \
+#### Step 5 — Scale up to 256 GPUs
+```bash
+curl -s -X POST http://localhost:30080/topology \
   -H "Content-Type: application/json" \
-  -d @/Users/brucemcdougall/src/syd/test-data/clos-256gpu.json | jq .
-
-curl -s -X POST http://localhost:8080/paths/request \
+  -d @test-data/clos-256gpu.json | jq .
+```
+```bash
+curl -s -X POST http://localhost:30080/paths/request \
   -H "Content-Type: application/json" \
   -d '{
     "topology_id": "clos-256gpu",
@@ -1200,14 +1223,63 @@ curl -s -X POST http://localhost:8080/paths/request \
       {"id": "gpu-005"}, {"id": "gpu-006"}, {"id": "gpu-007"}, {"id": "gpu-008"}
     ],
     "pairing_mode": "all_directed",
-    "disjointness": "none"
+    "disjointness": "none",
+    "segment_list_mode": "ua"
   }' | jq .
-
-curl -s http://localhost:8080/paths/validate-256/flows | jq '{
+```
+```bash
+curl -s http://localhost:30080/paths/validate-256/flows | jq '{
   flows_count: (.flows | length),
   leaf_pair_count: (.leaf_pair_flows | length)
 }'
+```
 With 256 GPUs total in the topology but only 8 in the job (2 leaves), the reduction numbers are the same as Step 3. To see the full leaf² vs GPU² contrast, request all 256 GPUs — flows_count will be 65,280, leaf_pair_count will be 4,032 (64×63 directed leaf-pairs).
+
+256 endpoint IDs is too many to hand-write, so use a shell loop to build the JSON:
+
+#### Build the endpoint list and fire the request
+```bash
+ENDPOINTS=$(python3 -c "
+import json
+eps = [{'id': f'gpu-{i:03d}'} for i in range(1, 257)]
+print(json.dumps(eps))
+")
+```
+```bash
+curl -s -X POST http://localhost:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"topology_id\": \"clos-256gpu\",
+    \"workload_id\": \"validate-256\",
+    \"endpoints\": $ENDPOINTS,
+    \"pairing_mode\": \"all_directed\",
+    \"disjointness\": \"none\",
+    \"segment_list_mode\": \"ua\"
+  }" | jq '{paths_count: (.paths | length)}'
+```
+Then fetch flows and show each GPU-to-GPU SID:
+
+```bash
+curl -s http://localhost:30080/paths/validate-256/flows | jq '
+  .flows[] | "\(.src_node_id) → \(.dst_node_id)  \(.segment_list[0])"'
+```
+That will be 65,280 lines. To spot-check a specific source GPU instead:
+
+```bash
+curl -s http://localhost:30080/paths/validate-256/flows | jq '
+  [.flows[] | select(.src_node_id == "gpu-001")]
+  | .[] | "\(.src_node_id) → \(.dst_node_id)  \(.segment_list[0])"'
+```
+And to compare how many distinct SIDs gpu-001 uses vs how many the leaf-pair view collapses it to:
+
+```bash
+curl -s http://localhost:30080/paths/validate-256/flows | jq '{
+  gpu001_flows:      [.flows[]           | select(.src_node_id == "gpu-001")] | length,
+  leaf01_leafpairs:  [.leaf_pair_flows[] | select(.src_node_id == "leaf-01")]  | length,
+  sample_sid:        (.leaf_pair_flows[] | select(.src_node_id == "leaf-01" and .dst_node_id == "leaf-02") | .segment_list[0])
+}'
+```
+You should see gpu001_flows: 255 (one per remote GPU), leaf01_leafpairs: 63 (one per remote leaf), and each leaf-pair entry's SID being shared by all 4 GPUs on that leaf.
 
 
 ### Polarfly
@@ -1216,3 +1288,198 @@ Post polarfly topology data
 ```
 curl -s -X POST http://localhost:30080/topology   -H 'Content-Type: application/json'   -d @q7/q7-fabric.json | python3 -m json.tool
 ```
+
+---
+
+## Testing VRF multi-tenancy + uDT segment list (static SRv6 uDT)
+
+These steps test the full VRF pipeline end-to-end against the small Clos test
+topology running on the k8s node at `198.18.133.102:30080`. Adjust the host/port
+as needed.
+
+### Step 1 — Push a Clos topology with two VRFs and endpoint membership
+
+The topology below extends `clos-32gpu` with:
+- Two VRF vertices (`vrf:tenant-a` and `vrf:tenant-b`), each owned by a different leaf
+- GPU endpoints on `leaf-01` assigned to `tenant-a`
+- GPU endpoints on `leaf-02` assigned to `tenant-b`
+- All other endpoints (leaves 3–8) have no VRF membership
+
+```bash
+curl -s -X POST http://198.18.133.102:30080/topology \
+  -H "Content-Type: application/json" \
+  -d @/Users/brucemcdougall/src/syd/test-data/clos-32gpu.json | jq .
+```
+
+Then push the VRF overlay (creates a second topology that adds VRFs + membership
+edges on top — or add the vrfs/edges sections directly to clos-32gpu.json):
+
+```bash
+curl -s -X POST http://198.18.133.102:30080/topology \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "vrfs": [
+      {
+        "id": "vrf:tenant-a",
+        "name": "tenant-a",
+        "owner_node_id": "leaf-01",
+        "srv6_udt_sid": {
+          "sid": "fc00:0:9:d001::",
+          "behavior": "End.DT6"
+        }
+      },
+      {
+        "id": "vrf:tenant-b",
+        "name": "tenant-b",
+        "owner_node_id": "leaf-02",
+        "srv6_udt_sid": {
+          "sid": "fc00:0:a:d001::",
+          "behavior": "End.DT6"
+        }
+      }
+    ],
+    "edges": [
+      {"id": "vrfmem:gpu-001:vrf:tenant-a", "type": "vrf_membership",
+       "src_id": "gpu-001", "dst_id": "vrf:tenant-a", "directed": true},
+      {"id": "vrfmem:gpu-002:vrf:tenant-a", "type": "vrf_membership",
+       "src_id": "gpu-002", "dst_id": "vrf:tenant-a", "directed": true},
+      {"id": "vrfmem:gpu-003:vrf:tenant-a", "type": "vrf_membership",
+       "src_id": "gpu-003", "dst_id": "vrf:tenant-a", "directed": true},
+      {"id": "vrfmem:gpu-004:vrf:tenant-a", "type": "vrf_membership",
+       "src_id": "gpu-004", "dst_id": "vrf:tenant-a", "directed": true},
+      {"id": "vrfmem:gpu-005:vrf:tenant-b", "type": "vrf_membership",
+       "src_id": "gpu-005", "dst_id": "vrf:tenant-b", "directed": true},
+      {"id": "vrfmem:gpu-006:vrf:tenant-b", "type": "vrf_membership",
+       "src_id": "gpu-006", "dst_id": "vrf:tenant-b", "directed": true},
+      {"id": "vrfmem:gpu-007:vrf:tenant-b", "type": "vrf_membership",
+       "src_id": "gpu-007", "dst_id": "vrf:tenant-b", "directed": true},
+      {"id": "vrfmem:gpu-008:vrf:tenant-b", "type": "vrf_membership",
+       "src_id": "gpu-008", "dst_id": "vrf:tenant-b", "directed": true}
+    ]
+  }' | jq '{vrfs: .stats.vrfs, nodes: .stats.nodes}'
+```
+
+Expected: `vrfs: 2`
+
+### Step 2 — Explicit tenant_id path request
+
+Request paths for gpu-001 and gpu-002 (both tenant-a, same leaf) with explicit
+`tenant_id`. The uDT SID `fc00:0:9:d001::` should appear at the tail of the
+segment list for cross-leaf flows.
+
+```bash
+curl -s -X POST http://198.18.133.102:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "workload_id": "vrf-test-explicit",
+    "endpoints": [
+      {"id": "gpu-001"}, {"id": "gpu-002"},
+      {"id": "gpu-003"}, {"id": "gpu-004"}
+    ],
+    "tenant_id": "vrf:tenant-a",
+    "pairing_mode": "all_directed",
+    "disjointness": "none",
+    "segment_list_mode": "ua"
+  }' | jq '{
+    paths_count: (.paths | length),
+    sample_sid: .paths[0].segment_list.sids
+  }'
+```
+
+**What to look for**: the last SID in `sample_sid` should be `fc00:0:9:d001::` (the
+tenant-a uDT SID). Same-leaf paths (gpu-001↔gpu-002 etc.) will have an empty or
+zero-hop segment list — the uDT SID still appears as the sole SID for those.
+
+### Step 3 — Auto-detected tenant_id (omit tenant_id from request)
+
+Same request but without `tenant_id`. The engine should follow the
+`VRFMembershipEdges` from each endpoint and auto-populate `vrf:tenant-a`.
+
+```bash
+curl -s -X POST http://198.18.133.102:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "workload_id": "vrf-test-auto",
+    "endpoints": [
+      {"id": "gpu-001"}, {"id": "gpu-002"},
+      {"id": "gpu-003"}, {"id": "gpu-004"}
+    ],
+    "pairing_mode": "all_directed",
+    "disjointness": "none",
+    "segment_list_mode": "ua"
+  }' | jq '{
+    paths_count: (.paths | length),
+    sample_sid: .paths[0].segment_list.sids
+  }'
+```
+
+**Expected**: identical output to Step 2. The uDT SID is auto-appended.
+
+### Step 4 — Cross-VRF rejection
+
+Request paths spanning both tenant-a and tenant-b endpoints. The engine should
+return a 422 error.
+
+```bash
+curl -s -X POST http://198.18.133.102:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "workload_id": "vrf-test-cross",
+    "endpoints": [
+      {"id": "gpu-001"},
+      {"id": "gpu-005"}
+    ],
+    "pairing_mode": "all_directed",
+    "disjointness": "none"
+  }' | jq .
+```
+
+**Expected**: HTTP 422 with `"error"` containing `"endpoints span multiple VRFs"`.
+
+### Step 5 — No-VRF endpoints (backward compat)
+
+Endpoints without any `VRFMembershipEdge` (e.g. gpu-009 through gpu-032) should
+compute paths normally with no uDT SID appended.
+
+```bash
+curl -s -X POST http://198.18.133.102:30080/paths/request \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topology_id": "clos-32gpu",
+    "workload_id": "vrf-test-novrf",
+    "endpoints": [
+      {"id": "gpu-009"}, {"id": "gpu-010"},
+      {"id": "gpu-013"}, {"id": "gpu-014"}
+    ],
+    "pairing_mode": "all_directed",
+    "disjointness": "none",
+    "segment_list_mode": "ua"
+  }' | jq '{
+    paths_count: (.paths | length),
+    sample_sid: .paths[0].segment_list.sids
+  }'
+```
+
+**Expected**: segment list with only uA SIDs, no uDT SID at the tail.
+
+### Step 6 — Verify uDT SID in leaf_pair_flows
+
+Fetch the flows for the auto-detected workload and confirm the leaf-pair grouped
+view also carries the uDT SID.
+
+```bash
+curl -s http://198.18.133.102:30080/paths/vrf-test-auto/flows | jq '
+  .leaf_pair_flows[] | {
+    pair: "\(.src_node_id) → \(.dst_node_id)",
+    last_sid: .segment_list[-1],
+    flow_count: .flow_count
+  }'
+```
+
+**Expected**: every cross-leaf entry ends with `fc00:0:9:d001::` (tenant-a uDT SID).
+Same-leaf entries (`leaf-01 → leaf-01`) will have a segment list containing only the
+uDT SID (zero-hop path, only VRF encap needed).

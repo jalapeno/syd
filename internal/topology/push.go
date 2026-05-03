@@ -408,6 +408,10 @@ func buildEdge(g *graph.Graph, ed EdgeDoc, src graph.TopologySource) error {
 		base.Type = graph.ETOwnership
 		return g.AddEdge(&graph.OwnershipEdge{BaseEdge: base})
 
+	case graph.ETVRFMembership:
+		base.Type = graph.ETVRFMembership
+		return g.AddEdge(&graph.VRFMembershipEdge{BaseEdge: base})
+
 	default:
 		return fmt.Errorf("edge %q: unknown type %q", ed.ID, ed.Type)
 	}

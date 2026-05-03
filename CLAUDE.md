@@ -240,6 +240,7 @@ graph, the rules are:
 | BGPSessionEdge | `bgpsess:<LocalBGPID>:<RemoteIP>` | |
 | BGPReachabilityEdge | `bgpreach:<peerVertexID>:<pfxVertexID>` | |
 | OwnershipEdge | `own:<ifaceID>-><nodeID>` or `pfxown:<pfxID>:<nhID>` | |
+| VRFMembershipEdge | `vrfmem:<endpointOrNodeID>:<vrfID>` | Directed Endpoint/Node → VRF |
 
 **Cross-graph stitching (composite graph):** BGP peer sessions use `LocalBGPID`
 (a BGP router ID, e.g. `10.0.0.6`) as `SrcID`. Two strategies are tried in order:
@@ -436,6 +437,10 @@ Done:
   BGPSessionEdge, any future type); `CostFunc`/`EdgeAllowed`/`pathMetric` all accept
   `graph.Edge`; segment list builder soft-skips hops with no SID data and returns path
   with empty segment list rather than erroring
+- VRF multi-tenancy graph model: `VRFMembershipEdge` (`vrf_membership`) connects Endpoint/Node → VRF vertex;
+  path engine auto-detects `tenant_id` from membership edges when caller omits it; cross-VRF requests
+  (endpoints in different VRFs) are rejected with a clear error; all three trust models (network-based,
+  host-based, hybrid) consume the same uDT SID — the difference is only who applies the encap
 - Executive demo UI (topology graph, workload list, path/SID display, path-request form)
 - `scripts/test-local.sh` — local integration test suite (no NATS/BMP required)
 - `test-data/clos-fabric.json` — 4-spine 8-leaf Clos, 32 GPU endpoints (4/leaf)
@@ -452,8 +457,6 @@ Done:
 Both `ipv4-graph` and `ipv6-graph` are clean on the 22-node testbed. `go test ./...` passes.
 
 Roadmap:
-- **bmpcollector test fixes** — peer handler and BGP session stub vertex tests have
-  pre-existing failures; needs investigation before claiming clean `go test ./...`
 - **L3VPN / EVPN handler support** — VRF/VPN topology ingestion via BMP;
   VRF-scoped prefix keys already in place (`prefixVertexID` with vrfID)
 - **gNMI ToR southbound** — stub exists; needs `openconfig/gnmi` dependency wired up
@@ -462,6 +465,83 @@ Roadmap:
   discover endpoints and request/response schemas without reading source
 - **uDT multi-tenant paths** — `TenantID` field and `tenantUDTSIDItem` are wired;
   needs end-to-end testing with real VRF vertices pushed via the topology API
+
+## Multi-tenancy model
+
+Tenant isolation is expressed as a `VRFMembershipEdge` from an Endpoint or Node vertex
+to a VRF vertex. The VRF vertex carries the `srv6_udt_sid` (uDT SID) that the path
+engine appends as the final segment when building the segment list.
+
+### Three trust models — identical from syd's perspective
+
+| Model | Who encaps | Who decaps | `VRFMembershipEdge` origin |
+|---|---|---|---|
+| Network-based | Ingress leaf (southbound push) | Egress leaf (uDT) | Leaf Node → VRF |
+| Host-based | GPU/NIC (pull model) | Egress leaf (uDT) | Endpoint → VRF |
+| Hybrid | GPU/NIC (pull model) | Egress leaf (uDT) | Endpoint → VRF |
+
+All three models receive the same segment list from syd (uA chain + uDT SID). The
+distinction is in who applies the encap — the path request API and southbound
+programming model are the same.
+
+### VRF auto-detection
+
+When `tenant_id` is omitted from a path request, the path engine follows
+`VRFMembershipEdge` from each resolved endpoint to discover the VRF:
+
+- All endpoints share the same VRF → `tenant_id` auto-populated, uDT SID appended
+- No membership edges → no VRF (default table), backward compatible
+- Endpoints span multiple VRFs → 422 error: `"endpoints span multiple VRFs"`
+
+Explicit `tenant_id` in the request always overrides auto-detection.
+
+### Topology push example with VRF
+
+```json
+{
+  "topology_id": "clos-tenant-a",
+  "nodes": [{"id": "leaf-01", "subtype": "switch"}, ...],
+  "vrfs": [{
+    "id": "vrf:tenant-a:leaf-01",
+    "name": "tenant-a",
+    "owner_node_id": "leaf-01",
+    "srv6_udt_sid": {
+      "sid": "fc00:0:1:d001::",
+      "behavior": "End.DT6"
+    }
+  }],
+  "edges": [
+    {"id": "vrfmem:gpu-001:vrf:tenant-a:leaf-01", "type": "vrf_membership",
+     "src_id": "gpu-001", "dst_id": "vrf:tenant-a:leaf-01", "directed": true},
+    ...
+  ]
+}
+```
+
+### Path request — explicit tenant_id
+
+```json
+{
+  "topology_id": "clos-tenant-a",
+  "workload_id": "job-123",
+  "endpoints": [{"id": "gpu-001"}, {"id": "gpu-005"}],
+  "tenant_id": "vrf:tenant-a:leaf-01",
+  "segment_list_mode": "ua"
+}
+```
+
+### Path request — auto-detected (no tenant_id)
+
+```json
+{
+  "topology_id": "clos-tenant-a",
+  "workload_id": "job-123",
+  "endpoints": [{"id": "gpu-001"}, {"id": "gpu-005"}]
+}
+```
+
+If `gpu-001` and `gpu-005` both have `VRFMembershipEdges` to the same VRF vertex,
+the uDT SID is appended automatically.
 
 ## UI agent work needed — composite graph rendering
 

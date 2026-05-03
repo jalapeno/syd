@@ -72,13 +72,22 @@ func Compute(
 		return nil, fmt.Errorf("at least 2 endpoints must resolve successfully")
 	}
 
-	// --- 3. Resolve pairing mode -----------------------------------------
+	// --- 3. Auto-detect VRF from endpoint membership edges ---------------
+	if constraints.TenantID == "" {
+		vrfID, err := detectTenantVRF(g, resolved)
+		if err != nil {
+			return nil, err
+		}
+		constraints.TenantID = vrfID
+	}
+
+	// --- 4. Resolve pairing mode -----------------------------------------
 	mode := PairingMode(req.PairingMode)
 	if mode != PairingBiDirPaired {
 		mode = PairingAllDirected // safe default
 	}
 
-	// --- 4. Enumerate pairs and compute paths ----------------------------
+	// --- 5. Enumerate pairs and compute paths ----------------------------
 	pairs := EnumeratePairs(resolved, mode)
 	prefix := fmt.Sprintf("%s-%d", req.WorkloadID, time.Now().UnixNano())
 	pairResults := ComputeAllPairs(g, pairs, constraints, req.WorkloadID, prefix, mode, nil)
@@ -154,6 +163,14 @@ func ComputeWithCache(
 	}
 	if len(resolved) < 2 {
 		return nil, fmt.Errorf("at least 2 endpoints must resolve successfully")
+	}
+
+	if constraints.TenantID == "" {
+		vrfID, err := detectTenantVRF(g, resolved)
+		if err != nil {
+			return nil, err
+		}
+		constraints.TenantID = vrfID
 	}
 
 	mode := PairingMode(req.PairingMode)
@@ -337,6 +354,37 @@ func ComputePrefixPaths(
 
 	result.Paths = successPaths
 	return result, nil
+}
+
+// detectTenantVRF infers the tenant VRF vertex ID from VRFMembershipEdges on
+// the resolved endpoints. It checks each endpoint's own vertex ID first, then
+// its attached node ID, looking for outgoing ETVRFMembership edges.
+//
+// Returns the VRF vertex ID if all membered endpoints share the same VRF, ""
+// if no endpoints have membership edges (default/no-VRF), or an error if
+// endpoints span more than one VRF (cross-tenant request).
+func detectTenantVRF(g *graph.Graph, endpoints []ResolvedEndpoint) (string, error) {
+	seen := ""
+	for _, ep := range endpoints {
+		for _, checkID := range []string{ep.EndpointID, ep.NodeID} {
+			for _, e := range g.OutEdges(checkID) {
+				if e.GetType() != graph.ETVRFMembership {
+					continue
+				}
+				vrfID := e.GetDstID()
+				if seen == "" {
+					seen = vrfID
+				} else if seen != vrfID {
+					return "", fmt.Errorf(
+						"endpoints span multiple VRFs (%q and %q): "+
+							"use explicit tenant_id or ensure all endpoints share the same VRF",
+						seen, vrfID,
+					)
+				}
+			}
+		}
+	}
+	return seen, nil
 }
 
 // buildConstraints converts a PathRequest into a graph.PathConstraints.

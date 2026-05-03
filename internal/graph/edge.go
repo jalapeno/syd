@@ -30,6 +30,15 @@ const (
 	// vertices it announces. Directed: BGPPeerNode → Prefix.
 	// Carries path attributes (AS-path, local-pref, MED, origin) on the edge.
 	ETBGPReachability EdgeType = "bgp_reachability"
+
+	// ETVRFMembership connects an Endpoint or Node vertex to the VRF it belongs
+	// to. Directed: Endpoint/Node → VRF.
+	//
+	// This edge enables the path engine to automatically determine tenant
+	// isolation from graph topology when no explicit tenant_id is provided in the
+	// path request, and to validate that all endpoints in a request belong to the
+	// same VRF.
+	ETVRFMembership EdgeType = "vrf_membership"
 )
 
 // Edge is implemented by all edge types in the graph.

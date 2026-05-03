@@ -100,3 +100,17 @@ type BGPReachabilityEdge struct {
 type OwnershipEdge struct {
 	BaseEdge
 }
+
+// VRFMembershipEdge connects an Endpoint or Node vertex to the VRF it belongs
+// to. Directed: Endpoint/Node → VRF.
+//
+// For network-based multi-tenancy the edge originates from the leaf Node (the
+// node performs uDT decapsulation). For host-based or hybrid models the edge
+// originates from the Endpoint (GPU/NIC) vertex.
+//
+// When present, the path engine uses these edges to:
+//   - Auto-populate tenant_id in the segment list when the caller omits it.
+//   - Validate that all endpoints in a path request share the same VRF.
+type VRFMembershipEdge struct {
+	BaseEdge
+}

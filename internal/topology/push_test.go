@@ -123,6 +123,69 @@ func TestBuild_UnknownEdgeType(t *testing.T) {
 	}
 }
 
+func TestBuild_VRFMembershipEdge(t *testing.T) {
+	// Verify that a vrf_membership edge type is parsed and built correctly:
+	// a VRF vertex, an endpoint, and a directed VRFMembershipEdge between them.
+	const doc = `{
+  "topology_id": "t",
+  "nodes": [{"id": "leaf-1"}],
+  "endpoints": [{"id": "gpu-0", "subtype": "gpu"}],
+  "vrfs": [{
+    "id": "vrf-green",
+    "name": "green",
+    "owner_node_id": "leaf-1",
+    "srv6_udt_sid": {
+      "sid": "fc00:0:1:d001::",
+      "behavior": "End.DT6"
+    }
+  }],
+  "edges": [
+    {"id": "attach:gpu-0:leaf-1", "type": "attachment",
+     "src_id": "gpu-0", "dst_id": "leaf-1", "directed": true},
+    {"id": "vrfmem:gpu-0:vrf-green", "type": "vrf_membership",
+     "src_id": "gpu-0", "dst_id": "vrf-green", "directed": true}
+  ]
+}`
+	d, err := Parse(strings.NewReader(doc))
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	g, errs := Build(d)
+	if len(errs) != 0 {
+		t.Fatalf("unexpected build errors: %v", errs)
+	}
+
+	// VRF vertex exists.
+	v := g.GetVertex("vrf-green")
+	if v == nil {
+		t.Fatal("vrf-green vertex not found")
+	}
+	vrf, ok := v.(*graph.VRF)
+	if !ok {
+		t.Fatalf("vrf-green is not a *graph.VRF")
+	}
+	if vrf.SRv6uDTSID == nil || vrf.SRv6uDTSID.Value != "fc00:0:1:d001::" {
+		t.Errorf("unexpected uDT SID: %+v", vrf.SRv6uDTSID)
+	}
+
+	// VRFMembershipEdge exists with the right type.
+	e := g.GetEdge("vrfmem:gpu-0:vrf-green")
+	if e == nil {
+		t.Fatal("vrfmem:gpu-0:vrf-green edge not found")
+	}
+	if e.GetType() != graph.ETVRFMembership {
+		t.Errorf("want ETVRFMembership, got %s", e.GetType())
+	}
+	if e.GetSrcID() != "gpu-0" || e.GetDstID() != "vrf-green" {
+		t.Errorf("edge direction wrong: got %s→%s", e.GetSrcID(), e.GetDstID())
+	}
+
+	// Stats reflect the VRF vertex.
+	if g.Stats().VRFs != 1 {
+		t.Errorf("want 1 VRF in stats, got %d", g.Stats().VRFs)
+	}
+}
+
 func TestBuild_SRv6SIDPreserved(t *testing.T) {
 	// Verify that srv6_locators and srv6_node_sid survive the Parse→Build round-trip.
 	const doc = `{
