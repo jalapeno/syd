@@ -1311,14 +1311,15 @@ curl -s -X POST http://198.18.133.102:30080/topology \
   -d @/Users/brucemcdougall/src/syd/test-data/clos-32gpu.json | jq .
 ```
 
-Then push the VRF overlay (creates a second topology that adds VRFs + membership
-edges on top — or add the vrfs/edges sections directly to clos-32gpu.json):
+Then push the VRF overlay using `"merge": true` — this adds VRF vertices and
+membership edges on top of the existing topology without replacing it:
 
 ```bash
 curl -s -X POST http://198.18.133.102:30080/topology \
   -H "Content-Type: application/json" \
   -d '{
     "topology_id": "clos-32gpu",
+    "merge": true,
     "vrfs": [
       {
         "id": "vrf:tenant-a",

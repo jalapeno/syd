@@ -17,16 +17,23 @@ import (
 // are not relevant to a given deployment (e.g. Prefixes, VRFs for a static
 // AI fabric) can be omitted.
 type Document struct {
-	TopologyID  string            `json:"topology_id"`
-	Description string            `json:"description,omitempty"`
+	TopologyID  string               `json:"topology_id"`
+	Description string               `json:"description,omitempty"`
 	Source      graph.TopologySource `json:"source,omitempty"`
 
-	Nodes      []NodeDoc      `json:"nodes,omitempty"`
-	Interfaces []IfaceDoc     `json:"interfaces,omitempty"`
-	Endpoints  []EndpointDoc  `json:"endpoints,omitempty"`
-	Prefixes   []PrefixDoc    `json:"prefixes,omitempty"`
-	VRFs       []VRFDoc       `json:"vrfs,omitempty"`
-	Edges      []EdgeDoc      `json:"edges,omitempty"`
+	// Merge, if true, overlays this document's elements onto the existing
+	// topology rather than replacing it. Elements not mentioned in the document
+	// are preserved; elements with matching IDs are updated in place. Use this
+	// to incrementally add VRF vertices, membership edges, or other overlays
+	// to a topology that was previously pushed in full.
+	Merge bool `json:"merge,omitempty"`
+
+	Nodes      []NodeDoc     `json:"nodes,omitempty"`
+	Interfaces []IfaceDoc    `json:"interfaces,omitempty"`
+	Endpoints  []EndpointDoc `json:"endpoints,omitempty"`
+	Prefixes   []PrefixDoc   `json:"prefixes,omitempty"`
+	VRFs       []VRFDoc      `json:"vrfs,omitempty"`
+	Edges      []EdgeDoc     `json:"edges,omitempty"`
 }
 
 // --- Vertex document types -----------------------------------------------
@@ -156,12 +163,31 @@ func Parse(r io.Reader) (*Document, error) {
 // accumulate and are returned together so the caller can report them all at
 // once.
 func Build(doc *Document) (*graph.Graph, []error) {
+	return buildInto(graph.New(doc.TopologyID), doc)
+}
+
+// Merge applies the elements in doc directly to the existing graph in place.
+// No graph copy is made — new vertices and edges are upserted into the live
+// graph via its thread-safe AddVertex/AddEdge methods, the same way the BMP
+// collector mutates graphs without going through store.Put.
+//
+// This is O(elements in doc), not O(topology size), so it is safe to call
+// on large production topologies whenever a new tenant or overlay is deployed.
+//
+// Elements not mentioned in doc are left untouched. Elements whose ID already
+// exists are updated in place (upsert semantics).
+func Merge(existing *graph.Graph, doc *Document) (*graph.Graph, []error) {
+	return buildInto(existing, doc)
+}
+
+// buildInto applies all vertices and edges from doc to the given graph g and
+// returns it. Validation errors accumulate so the caller gets a full picture.
+func buildInto(g *graph.Graph, doc *Document) (*graph.Graph, []error) {
 	src := doc.Source
 	if src == "" {
 		src = graph.SourcePush
 	}
 
-	g := graph.New(doc.TopologyID)
 	var errs []error
 
 	collect := func(err error) {

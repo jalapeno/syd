@@ -17,7 +17,17 @@ func (s *Server) handleTopologyPush(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	g, errs := topology.Build(doc)
+	var g *graph.Graph
+	var errs []error
+	if doc.Merge {
+		if existing := s.store.Get(doc.TopologyID); existing != nil {
+			g, errs = topology.Merge(existing, doc)
+		} else {
+			g, errs = topology.Build(doc)
+		}
+	} else {
+		g, errs = topology.Build(doc)
+	}
 	if len(errs) > 0 {
 		detail := make([]string, len(errs))
 		for i, e := range errs {
@@ -27,17 +37,26 @@ func (s *Server) handleTopologyPush(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Incremental update: if a topology with this ID already exists, only
-	// invalidate workloads whose paths traverse elements that were removed.
-	// Workloads on paths that still exist in the new topology remain active.
-	// If this is a first push, create a fresh allocation table.
-	if oldG := s.store.Get(g.ID()); oldG != nil {
-		if table := s.tables.Get(g.ID()); table != nil {
-			invalidateRemovedElements(oldG, g, table)
+	if doc.Merge {
+		// Merge mutates the existing graph in place — no removal detection needed
+		// (we only add elements, never remove). Allocation table already exists.
+		// store.Put with the same pointer updates store metadata and triggers
+		// the SPF cache rewarm via the auto-compose write-seq change.
+		if s.tables.Get(g.ID()) == nil {
+			s.tables.Put(g.ID(), allocation.NewTable(g.ID()))
 		}
-		s.log.Info("topology updated incrementally", "topology_id", g.ID())
+		s.log.Info("topology overlay merged", "topology_id", g.ID())
 	} else {
-		s.tables.Put(g.ID(), allocation.NewTable(g.ID()))
+		// Full replace: invalidate workloads on removed elements, or create
+		// a fresh allocation table on first push.
+		if oldG := s.store.Get(g.ID()); oldG != nil {
+			if table := s.tables.Get(g.ID()); table != nil {
+				invalidateRemovedElements(oldG, g, table)
+			}
+			s.log.Info("topology updated incrementally", "topology_id", g.ID())
+		} else {
+			s.tables.Put(g.ID(), allocation.NewTable(g.ID()))
+		}
 	}
 
 	s.store.Put(g)
