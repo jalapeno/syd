@@ -23,43 +23,55 @@ curl -s http://localhost:8222/jsz | python3 -m json.tool | grep -E "config|memor
 kill %1
 ```
 
-2. Redeploy GoBMP with NATS config
+2. Deploy gobmp-nats — a second GoBMP instance that publishes to NATS (for syd)
 
+The existing Jalapeno gobmp continues on port 30511 → Kafka (keeps igp-graph etc. working).
+gobmp-nats runs separately on port 30512 → NATS JetStream (for syd).
+
+The standard `sbezverk/gobmp:latest` image does not support NATS output. You must build
+`gobmp:nats` from source using the Dockerfile in this repo.
+
+```bash
+# Clone gobmp source (do this once, anywhere)
+git clone https://github.com/sbezverk/gobmp.git ~/gobmp
+
+# Build gobmp:nats — run from INSIDE the gobmp source tree
+cd ~/gobmp
+docker build -f ~/src/syd/deploy/k8s/Dockerfile.gobmp -t gobmp:nats .
+
+# Load into k3s (no registry needed)
+docker save gobmp:nats | sudo k3s ctr images import -
+
+# Deploy the second gobmp instance
+kubectl apply -f deploy/k8s/gobmp-nats.yaml
 ```
-kubectl apply -f deploy/k8s/gobmp-collector.yaml
 ```
-```
-kubectl -n jalapeno rollout status deployment/gobmp
-kubectl -n jalapeno logs -f deployment/gobmp
+kubectl -n jalapeno rollout status deployment/gobmp-nats
+kubectl -n jalapeno logs -f deployment/gobmp-nats
 ```
 
-In the logs you should see GoBMP connecting to NATS and publishing on gobmp.parsed.* subjects once your BMP sources are pointed at it.
+In the logs you should see gobmp-nats connecting to NATS and publishing on gobmp.parsed.*
+subjects once your BMP sources are pointed at port 30512.
+
+Configure your routers to send BMP to BOTH ports:
+- port 30511 → existing gobmp (Kafka / Jalapeno consumers)
+- port 30512 → gobmp-nats (NATS / syd)
 
 3. Build and deploy syd
 
-You'll need to build the image on the node (or on your Mac and load it):
+Build on the k8s node (or Mac + load):
 
 ```
-# On the k8s node, from the repo root:
+# From the repo root:
 docker build -t syd:latest .
 
 # For k3s:
 docker save syd:latest | sudo k3s ctr images import -
-
-# For Kubeadm:
-docker save syd:latest -o syd.tar
-sudo ctr -n=k8s.io images import syd.tar
-
-# For kind:
-kind load docker-image syd:latest
 ```
 
-Then:
+The default configmap.yaml already sets NATS_URL to nats://nats.jalapeno:4222.
+Update it if your NATS service is elsewhere, then:
 
-
-Update the NATS URL in the configmap to point at your jalapeno namespace NATS
-It should be: nats://nats.jalapeno:4222
-(the default in configmap.yaml is already set to that)
 ```
 kubectl apply -k deploy/k8s/
 kubectl -n syd rollout status deployment/syd

@@ -212,12 +212,13 @@ func (c *Collector) Stop() {
 }
 
 // ensureStream creates or updates the goBMP JetStream stream to use
-// LimitsPolicy retention with MemoryStorage. LimitsPolicy retains the last
-// message per subject for up to MaxAge, which allows DeliverLastPerSubject
-// consumers to replay current topology state on startup or reconnect.
+// LimitsPolicy retention. LimitsPolicy retains the last message per subject
+// for up to MaxAge, which allows DeliverLastPerSubject consumers to replay
+// current topology state on startup or reconnect.
 //
-// GoBMP creates the stream with InterestPolicy + FileStorage; we update it
-// here so that messages survive even when syd restarts.
+// When the stream already exists (created by gobmp-nats), only Retention and
+// MaxAge are changed — storage type is preserved from the existing config
+// because NATS does not allow changing storage type on a live stream.
 func (c *Collector) ensureStream() error {
 	cfg := &nats.StreamConfig{
 		Name:      GoBMPStream,
@@ -229,9 +230,17 @@ func (c *Collector) ensureStream() error {
 	}
 	_, err := c.js.AddStream(cfg)
 	if errors.Is(err, nats.ErrStreamNameAlreadyInUse) {
-		// Stream already exists (created by GoBMP or a prior syd run).
-		// Update it to LimitsPolicy so DeliverLastPerSubject works correctly.
-		_, err = c.js.UpdateStream(cfg)
+		// Stream already exists (created by gobmp-nats or a prior syd run).
+		// Read the current config and update only Retention/MaxAge to avoid
+		// triggering the "cannot change storage type" error.
+		info, err := c.js.StreamInfo(GoBMPStream)
+		if err != nil {
+			return fmt.Errorf("stream info: %w", err)
+		}
+		updated := info.Config
+		updated.Retention = nats.LimitsPolicy
+		updated.MaxAge = 1 * time.Hour
+		_, err = c.js.UpdateStream(&updated)
 		if err != nil {
 			return fmt.Errorf("update stream to LimitsPolicy: %w", err)
 		}

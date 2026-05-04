@@ -1,109 +1,109 @@
 # syd Kubernetes Deployment
 
-Deploys syd alongside an existing GoBMP + NATS stack.
+Deploys syd alongside an existing Jalapeno stack (NATS, GoBMP).
 
 ## Architecture
 
 ```
 containerlab (XRd / FRR)
-  └─ BMP/TCP ──→ GoBMP pod (your existing pod)
-                   └─ NATS JetStream ──→ syd pod  ←── scheduler / UI
-                                          (namespace: syd)
+  ├─ BMP/TCP ──→ port 30511 ──→ gobmp pod (existing Jalapeno)
+  │                                └─ Kafka ──→ igp-graph / arango consumers
+  │
+  └─ BMP/TCP ──→ port 30512 ──→ gobmp-nats pod  (deployed here)
+                                   └─ NATS JetStream ──→ syd pod  ←── scheduler / UI
+                                                          (namespace: syd)
 ```
 
-syd does **not** open a BMP port. It only connects **out** to NATS and
-listens on HTTP :8080.
+Routers send BMP to **both** ports. The existing Jalapeno gobmp is left untouched.
+syd only connects **out** to NATS and listens on HTTP :8080.
 
 ---
 
 ## Prerequisites
 
-- GoBMP pod already running and receiving BMP from your containerlab nodes
-- NATS JetStream accessible within the cluster
-  - Find the NATS service: `kubectl get svc -A | grep nats`
-  - Update `NATS_URL` in `configmap.yaml` to match
+- Jalapeno stack already running (NATS, existing gobmp on port 30511)
+- k3s / containerd node with docker available for local image builds
 
 ---
 
-## 1. Build and push the image
+## 1. Build and load the gobmp-nats image
 
-From the repo root:
+The standard `sbezverk/gobmp:latest` image does not support NATS output. You must
+build `gobmp:nats` from source using `Dockerfile.gobmp` in this directory.
 
 ```bash
-# Build (adjust tag and registry as needed)
-docker build -t ghcr.io/jalapeno/syd:latest .
+# Clone gobmp source (do this once, anywhere convenient)
+git clone https://github.com/sbezverk/gobmp.git ~/gobmp
 
-# Push to your registry
-docker push ghcr.io/jalapeno/syd:latest
+# Build — run from INSIDE the gobmp source tree, pointing at syd's Dockerfile
+cd ~/gobmp
+docker build -f ~/src/syd/deploy/k8s/Dockerfile.gobmp -t gobmp:nats .
+
+# Load into k3s (no registry needed)
+docker save gobmp:nats | sudo k3s ctr images import -
 ```
 
-> **Note on the gobmp replace directive**: `go.mod` uses
-> `replace github.com/sbezverk/gobmp => ../gobmp`. The Dockerfile copies
-> `../gobmp/` into the build context. If your gobmp directory is elsewhere,
-> edit the `COPY ../gobmp/` line in the Dockerfile.
+---
 
-For a quick local test without a registry, load directly into the cluster:
+## 2. Deploy gobmp-nats
 
 ```bash
-# kind
-kind load docker-image syd:latest
+kubectl apply -f deploy/k8s/gobmp-nats.yaml
+kubectl -n jalapeno rollout status deployment/gobmp-nats
+kubectl -n jalapeno logs -f deployment/gobmp-nats
+```
 
-# k3s / containerd
-docker save syd:latest | ssh <node> "sudo k3s ctr images import -"
+In the logs you should see gobmp-nats connecting to NATS and starting to publish
+on `gobmp.parsed.*` subjects once your BMP sources are pointed at port 30512.
+
+Configure your routers to send BMP to **both** ports:
+- port **30511** → existing gobmp (Kafka / Jalapeno consumers)
+- port **30512** → gobmp-nats (NATS / syd)
+
+---
+
+## 3. Build and load the syd image
+
+```bash
+# From the repo root:
+docker build -t syd:latest .
+
+# For k3s:
+docker save syd:latest | sudo k3s ctr images import -
 ```
 
 ---
 
-## 2. Configure NATS URL
+## 4. Configure and deploy syd
 
-Edit `deploy/k8s/configmap.yaml` and set `NATS_URL` to the address of your
-NATS service. Common patterns:
+The default `configmap.yaml` already points `NATS_URL` at `nats://nats.jalapeno:4222`.
+If your NATS service is in a different namespace or address, edit it first:
 
-```yaml
-# NATS in the same namespace as GoBMP:
-NATS_URL: "nats://nats.gobmp.svc.cluster.local:4222"
-
-# NATS in the default namespace:
-NATS_URL: "nats://nats.default.svc.cluster.local:4222"
-
-# NATS as a NodePort (if not in k8s):
-NATS_URL: "nats://192.168.1.10:4222"
+```bash
+# Check where NATS is running
+kubectl get svc -A | grep nats
 ```
 
-Also set `BMP_TOPO` to match the topology ID your GoBMP instance uses
-(default: `underlay`).
-
----
-
-## 3. Deploy
+Then deploy:
 
 ```bash
 kubectl apply -k deploy/k8s/
+kubectl -n syd rollout status deployment/syd
+kubectl -n syd logs -f deployment/syd
 ```
 
-Verify:
+Expected startup output:
 
-```bash
-kubectl -n syd get pods
-# NAME                   READY   STATUS    RESTARTS   AGE
-# syd-xxx               1/1     Running   0          30s
-
-kubectl -n syd logs -f deployment/syd
-# time=... level=INFO msg="bmp collector configured" nats_url=... topo_id=underlay
-# time=... level=INFO msg="syd starting" addr=:8080 bmp=true encap_mode=host
+```
+level=INFO msg="bmp collector configured" nats_url=nats://nats.jalapeno:4222
+level=INFO msg="syd starting" addr=:8080 bmp=true encap_mode=host
 ```
 
 ---
 
-## 4. Access the API
+## 5. Access the API
 
-**From inside the cluster** (other pods, e.g. the scheduler sim):
-
-```
-http://syd.syd.svc.cluster.local:8080
-```
-
-**From your laptop / containerlab VM** (NodePort):
+**NodePort (from your laptop or the containerlab VM):**
 
 ```bash
 # Find your node IP
@@ -112,52 +112,38 @@ kubectl get nodes -o wide
 curl http://<node-ip>:30080/topology
 ```
 
-Or use port-forward for one-off testing:
+**Port-forward (one-off testing):**
 
 ```bash
 kubectl -n syd port-forward deployment/syd 8080:8080
 curl http://localhost:8080/topology
 ```
 
+**From inside the cluster:**
+
+```
+http://syd.syd.svc.cluster.local:8080
+```
+
 ---
 
-## 5. Check BMP topology ingestion
+## 6. Verify BMP topology ingestion
 
-Once your containerlab nodes are sending BMP to GoBMP, syd will start
+Once your containerlab nodes are sending BMP to port 30512, syd will start
 building the underlay topology. Watch the log:
 
 ```bash
-kubectl -n syd logs -f deployment/syd | grep -E "topology|workload|bmp"
+kubectl -n syd logs -f deployment/syd | grep -E "topology|bmp"
 ```
 
-Then query the topology:
+Then query:
 
 ```bash
 # List learned topologies
 curl http://<node-ip>:30080/topology
 
-# Inspect the underlay graph
-curl http://<node-ip>:30080/topology/underlay
-```
-
----
-
-## 6. Run the simulated scheduler against k8s syd
-
-```bash
-# From your laptop with port-forward running:
-python3 examples/scheduler-sim/scheduler.py \
-  --syd http://localhost:8080 \
-  --topology underlay \
-  --endpoints <node-id-from-bmp>,<another-node-id> \
-  --scenario basic
-```
-
-Find valid node IDs from the BMP-learned topology:
-
-```bash
-curl http://localhost:8080/topology/underlay | python3 -c \
-  "import sys,json; s=json.load(sys.stdin)['stats']; print(s)"
+# Node list for a topology
+curl http://<node-ip>:30080/topology/underlay-v6/nodes | python3 -m json.tool | grep name
 ```
 
 ---
@@ -165,13 +151,20 @@ curl http://localhost:8080/topology/underlay | python3 -c \
 ## Updating the deployment
 
 ```bash
-# After rebuilding the image:
+# After rebuilding syd image:
 kubectl -n syd rollout restart deployment/syd
 kubectl -n syd rollout status deployment/syd
+
+# After rebuilding gobmp:nats image:
+kubectl -n jalapeno rollout restart deployment/gobmp-nats
 ```
 
 ## Teardown
 
 ```bash
+# Remove syd only (leaves gobmp-nats and NATS in place)
 kubectl delete -k deploy/k8s/
+
+# Remove gobmp-nats (leaves existing Jalapeno gobmp untouched)
+kubectl delete -f deploy/k8s/gobmp-nats.yaml
 ```
