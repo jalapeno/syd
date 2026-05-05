@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
+  - nats.yaml
+  - gobmp-nats.yaml
   - configmap.yaml
   - deployment.yaml
   - service.yaml

@@ -1,16 +1,15 @@
 ---
-# gobmp-nats: a second GoBMP instance that publishes to NATS JetStream.
-# The existing gobmp deployment continues publishing to Kafka for the
-# Jalapeno igp-graph / linkstate-edge / gobmp-arango consumers.
+# gobmp-nats: a GoBMP instance in the syd namespace that publishes to NATS
+# JetStream for syd's bmpcollector. Uses the official gobmp:latest image which
+# includes NATS publisher support.
 #
-# Routers must send BMP to BOTH NodePorts:
-#   port 30511 → gobmp (Kafka, existing)
-#   port 30512 → gobmp-nats (NATS, for syd)
+# Routers send BMP to NodePort 30512. The existing Jalapeno gobmp on port 30511
+# is left untouched — both receive the same BMP stream independently.
 apiVersion: v1
 kind: Service
 metadata:
   name: gobmp-nats
-  namespace: jalapeno
+  namespace: syd
 spec:
   selector:
     app: gobmp-nats
@@ -26,7 +25,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gobmp-nats
-  namespace: jalapeno
+  namespace: syd
 spec:
   replicas: 1
   selector:
@@ -39,15 +38,15 @@ spec:
     spec:
       containers:
         - name: gobmp-nats
-          image: gobmp:nats          # built from source — see instructions below
-          imagePullPolicy: Never     # local image, not from a registry
+          image: docker.io/sbezverk/gobmp:latest
+          imagePullPolicy: Always
           args:
             - --v
             - "5"
             - --source-port
             - "5001"
             - --nats-server
-            - nats://nats.jalapeno:4222
+            - nats://nats:4222
           ports:
             - containerPort: 5001
               protocol: TCP
