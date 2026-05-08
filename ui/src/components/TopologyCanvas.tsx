@@ -680,9 +680,18 @@ export default function TopologyCanvas({
         });
       }
 
-      // Store layout info for node sizing
+      // Store pinned positions so drag-end can restore them
+      const pinnedPositions = new Map<string, { x: number; y: number }>();
+      for (const node of nodes) {
+        if (node.fx != null && node.fy != null) {
+          pinnedPositions.set(node.id, { x: node.fx, y: node.fy });
+        }
+      }
+
+      // Store layout info for node sizing and drag snap-back
       const pfScaleFactor = nodes.length > 200 ? 0.5 : nodes.length > 80 ? 0.7 : 1.0;
       (simulation as any).__closLayout = { scaleFactor: pfScaleFactor };
+      (simulation as any).__pinnedPositions = pinnedPositions;
 
       // Minimal simulation for link rendering
       simulation
@@ -787,7 +796,14 @@ export default function TopologyCanvas({
           })
           .on('end', (event, d) => {
             if (!event.active) simulation.alphaTarget(0);
-            if (layoutMode === 'clos' || layoutMode === 'polarfly') {
+            if (layoutMode === 'polarfly') {
+              // PolarFly: restore the originally pinned position
+              const orig = (simulation as any).__pinnedPositions?.get(d.id);
+              if (orig) {
+                d.fx = orig.x;
+                d.fy = orig.y;
+              }
+            } else if (layoutMode === 'clos') {
               // In Clos mode, snap back to the originally computed position
               // which was stored in __closLayout on the simulation
               const cl = (simulation as any).__closLayout;
