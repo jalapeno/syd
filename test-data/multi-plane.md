@@ -185,3 +185,21 @@ fc00:0000:20:f00<S>:2f:d000::
 
 Yellow paths end with `d001::` (yellow uDT6) targeting the destination NIC rather
 than the egress leaf. The leaf is pure transit; no Vrf-yellow state exists on it.
+
+## Teardown
+
+Delete in reverse order: cluster first (it references the plane graphs), then the
+per-plane fabric graphs.
+
+```bash
+NODE_IP=<node-ip>
+SYD=http://${NODE_IP}:30080
+
+# Delete composed cluster graph
+curl -s -X DELETE ${SYD}/topology/cluster | python3 -m json.tool
+
+# Delete per-plane fabric graphs (compute overlay is merged into fabric-p{P}, not separate)
+for P in 0 1 2 3; do
+  curl -s -X DELETE ${SYD}/topology/fabric-p${P} | python3 -m json.tool
+done
+```
