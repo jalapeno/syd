@@ -1,0 +1,1418 @@
+{
+  "topology_id": "cluster",
+  "description": "Green/hybrid tenant Day-N overlay \u2014 uDT6 Vrf-green on egress leaves; source NIC encapsulates",
+  "source": "push",
+  "merge": true,
+  "vrfs": [
+    {
+      "id": "vrf:green:p0-leaf00",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf00",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf01",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf01",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf02",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf02",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf03",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf03",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf04",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf04",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf05",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf05",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf06",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf06",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf07",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf07",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf08",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf08",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf09",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf09",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf10",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf10",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf11",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf11",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf12",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf12",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf13",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf13",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf14",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf14",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p0-leaf15",
+      "name": "Vrf-green",
+      "owner_node_id": "p0-leaf15",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf00",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf00",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf01",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf01",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf02",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf02",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf03",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf03",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf04",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf04",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf05",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf05",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf06",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf06",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf07",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf07",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf08",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf08",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf09",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf09",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf10",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf10",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf11",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf11",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf12",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf12",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf13",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf13",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf14",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf14",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p1-leaf15",
+      "name": "Vrf-green",
+      "owner_node_id": "p1-leaf15",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf00",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf00",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf01",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf01",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf02",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf02",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf03",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf03",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf04",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf04",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf05",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf05",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf06",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf06",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf07",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf07",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf08",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf08",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf09",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf09",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf10",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf10",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf11",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf11",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf12",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf12",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf13",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf13",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf14",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf14",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p2-leaf15",
+      "name": "Vrf-green",
+      "owner_node_id": "p2-leaf15",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf00",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf00",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf01",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf01",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf02",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf02",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf03",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf03",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf04",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf04",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf05",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf05",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf06",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf06",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf07",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf07",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf08",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf08",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf09",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf09",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf10",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf10",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf11",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf11",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf12",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf12",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf13",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf13",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf14",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf14",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:green:p3-leaf15",
+      "name": "Vrf-green",
+      "owner_node_id": "p3-leaf15",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d000::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "vrfmem:green-host00-p0-nic:vrf:green:p0-leaf00",
+      "type": "vrf_membership",
+      "src_id": "green-host00-p0-nic",
+      "dst_id": "vrf:green:p0-leaf00",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host01-p0-nic:vrf:green:p0-leaf01",
+      "type": "vrf_membership",
+      "src_id": "green-host01-p0-nic",
+      "dst_id": "vrf:green:p0-leaf01",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host02-p0-nic:vrf:green:p0-leaf02",
+      "type": "vrf_membership",
+      "src_id": "green-host02-p0-nic",
+      "dst_id": "vrf:green:p0-leaf02",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host03-p0-nic:vrf:green:p0-leaf03",
+      "type": "vrf_membership",
+      "src_id": "green-host03-p0-nic",
+      "dst_id": "vrf:green:p0-leaf03",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host04-p0-nic:vrf:green:p0-leaf04",
+      "type": "vrf_membership",
+      "src_id": "green-host04-p0-nic",
+      "dst_id": "vrf:green:p0-leaf04",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host05-p0-nic:vrf:green:p0-leaf05",
+      "type": "vrf_membership",
+      "src_id": "green-host05-p0-nic",
+      "dst_id": "vrf:green:p0-leaf05",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host06-p0-nic:vrf:green:p0-leaf06",
+      "type": "vrf_membership",
+      "src_id": "green-host06-p0-nic",
+      "dst_id": "vrf:green:p0-leaf06",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host07-p0-nic:vrf:green:p0-leaf07",
+      "type": "vrf_membership",
+      "src_id": "green-host07-p0-nic",
+      "dst_id": "vrf:green:p0-leaf07",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host08-p0-nic:vrf:green:p0-leaf08",
+      "type": "vrf_membership",
+      "src_id": "green-host08-p0-nic",
+      "dst_id": "vrf:green:p0-leaf08",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host09-p0-nic:vrf:green:p0-leaf09",
+      "type": "vrf_membership",
+      "src_id": "green-host09-p0-nic",
+      "dst_id": "vrf:green:p0-leaf09",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host10-p0-nic:vrf:green:p0-leaf10",
+      "type": "vrf_membership",
+      "src_id": "green-host10-p0-nic",
+      "dst_id": "vrf:green:p0-leaf10",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host11-p0-nic:vrf:green:p0-leaf11",
+      "type": "vrf_membership",
+      "src_id": "green-host11-p0-nic",
+      "dst_id": "vrf:green:p0-leaf11",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host12-p0-nic:vrf:green:p0-leaf12",
+      "type": "vrf_membership",
+      "src_id": "green-host12-p0-nic",
+      "dst_id": "vrf:green:p0-leaf12",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host13-p0-nic:vrf:green:p0-leaf13",
+      "type": "vrf_membership",
+      "src_id": "green-host13-p0-nic",
+      "dst_id": "vrf:green:p0-leaf13",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host14-p0-nic:vrf:green:p0-leaf14",
+      "type": "vrf_membership",
+      "src_id": "green-host14-p0-nic",
+      "dst_id": "vrf:green:p0-leaf14",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host15-p0-nic:vrf:green:p0-leaf15",
+      "type": "vrf_membership",
+      "src_id": "green-host15-p0-nic",
+      "dst_id": "vrf:green:p0-leaf15",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host00-p1-nic:vrf:green:p1-leaf00",
+      "type": "vrf_membership",
+      "src_id": "green-host00-p1-nic",
+      "dst_id": "vrf:green:p1-leaf00",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host01-p1-nic:vrf:green:p1-leaf01",
+      "type": "vrf_membership",
+      "src_id": "green-host01-p1-nic",
+      "dst_id": "vrf:green:p1-leaf01",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host02-p1-nic:vrf:green:p1-leaf02",
+      "type": "vrf_membership",
+      "src_id": "green-host02-p1-nic",
+      "dst_id": "vrf:green:p1-leaf02",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host03-p1-nic:vrf:green:p1-leaf03",
+      "type": "vrf_membership",
+      "src_id": "green-host03-p1-nic",
+      "dst_id": "vrf:green:p1-leaf03",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host04-p1-nic:vrf:green:p1-leaf04",
+      "type": "vrf_membership",
+      "src_id": "green-host04-p1-nic",
+      "dst_id": "vrf:green:p1-leaf04",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host05-p1-nic:vrf:green:p1-leaf05",
+      "type": "vrf_membership",
+      "src_id": "green-host05-p1-nic",
+      "dst_id": "vrf:green:p1-leaf05",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host06-p1-nic:vrf:green:p1-leaf06",
+      "type": "vrf_membership",
+      "src_id": "green-host06-p1-nic",
+      "dst_id": "vrf:green:p1-leaf06",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host07-p1-nic:vrf:green:p1-leaf07",
+      "type": "vrf_membership",
+      "src_id": "green-host07-p1-nic",
+      "dst_id": "vrf:green:p1-leaf07",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host08-p1-nic:vrf:green:p1-leaf08",
+      "type": "vrf_membership",
+      "src_id": "green-host08-p1-nic",
+      "dst_id": "vrf:green:p1-leaf08",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host09-p1-nic:vrf:green:p1-leaf09",
+      "type": "vrf_membership",
+      "src_id": "green-host09-p1-nic",
+      "dst_id": "vrf:green:p1-leaf09",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host10-p1-nic:vrf:green:p1-leaf10",
+      "type": "vrf_membership",
+      "src_id": "green-host10-p1-nic",
+      "dst_id": "vrf:green:p1-leaf10",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host11-p1-nic:vrf:green:p1-leaf11",
+      "type": "vrf_membership",
+      "src_id": "green-host11-p1-nic",
+      "dst_id": "vrf:green:p1-leaf11",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host12-p1-nic:vrf:green:p1-leaf12",
+      "type": "vrf_membership",
+      "src_id": "green-host12-p1-nic",
+      "dst_id": "vrf:green:p1-leaf12",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host13-p1-nic:vrf:green:p1-leaf13",
+      "type": "vrf_membership",
+      "src_id": "green-host13-p1-nic",
+      "dst_id": "vrf:green:p1-leaf13",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host14-p1-nic:vrf:green:p1-leaf14",
+      "type": "vrf_membership",
+      "src_id": "green-host14-p1-nic",
+      "dst_id": "vrf:green:p1-leaf14",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host15-p1-nic:vrf:green:p1-leaf15",
+      "type": "vrf_membership",
+      "src_id": "green-host15-p1-nic",
+      "dst_id": "vrf:green:p1-leaf15",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host00-p2-nic:vrf:green:p2-leaf00",
+      "type": "vrf_membership",
+      "src_id": "green-host00-p2-nic",
+      "dst_id": "vrf:green:p2-leaf00",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host01-p2-nic:vrf:green:p2-leaf01",
+      "type": "vrf_membership",
+      "src_id": "green-host01-p2-nic",
+      "dst_id": "vrf:green:p2-leaf01",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host02-p2-nic:vrf:green:p2-leaf02",
+      "type": "vrf_membership",
+      "src_id": "green-host02-p2-nic",
+      "dst_id": "vrf:green:p2-leaf02",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host03-p2-nic:vrf:green:p2-leaf03",
+      "type": "vrf_membership",
+      "src_id": "green-host03-p2-nic",
+      "dst_id": "vrf:green:p2-leaf03",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host04-p2-nic:vrf:green:p2-leaf04",
+      "type": "vrf_membership",
+      "src_id": "green-host04-p2-nic",
+      "dst_id": "vrf:green:p2-leaf04",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host05-p2-nic:vrf:green:p2-leaf05",
+      "type": "vrf_membership",
+      "src_id": "green-host05-p2-nic",
+      "dst_id": "vrf:green:p2-leaf05",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host06-p2-nic:vrf:green:p2-leaf06",
+      "type": "vrf_membership",
+      "src_id": "green-host06-p2-nic",
+      "dst_id": "vrf:green:p2-leaf06",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host07-p2-nic:vrf:green:p2-leaf07",
+      "type": "vrf_membership",
+      "src_id": "green-host07-p2-nic",
+      "dst_id": "vrf:green:p2-leaf07",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host08-p2-nic:vrf:green:p2-leaf08",
+      "type": "vrf_membership",
+      "src_id": "green-host08-p2-nic",
+      "dst_id": "vrf:green:p2-leaf08",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host09-p2-nic:vrf:green:p2-leaf09",
+      "type": "vrf_membership",
+      "src_id": "green-host09-p2-nic",
+      "dst_id": "vrf:green:p2-leaf09",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host10-p2-nic:vrf:green:p2-leaf10",
+      "type": "vrf_membership",
+      "src_id": "green-host10-p2-nic",
+      "dst_id": "vrf:green:p2-leaf10",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host11-p2-nic:vrf:green:p2-leaf11",
+      "type": "vrf_membership",
+      "src_id": "green-host11-p2-nic",
+      "dst_id": "vrf:green:p2-leaf11",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host12-p2-nic:vrf:green:p2-leaf12",
+      "type": "vrf_membership",
+      "src_id": "green-host12-p2-nic",
+      "dst_id": "vrf:green:p2-leaf12",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host13-p2-nic:vrf:green:p2-leaf13",
+      "type": "vrf_membership",
+      "src_id": "green-host13-p2-nic",
+      "dst_id": "vrf:green:p2-leaf13",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host14-p2-nic:vrf:green:p2-leaf14",
+      "type": "vrf_membership",
+      "src_id": "green-host14-p2-nic",
+      "dst_id": "vrf:green:p2-leaf14",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host15-p2-nic:vrf:green:p2-leaf15",
+      "type": "vrf_membership",
+      "src_id": "green-host15-p2-nic",
+      "dst_id": "vrf:green:p2-leaf15",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host00-p3-nic:vrf:green:p3-leaf00",
+      "type": "vrf_membership",
+      "src_id": "green-host00-p3-nic",
+      "dst_id": "vrf:green:p3-leaf00",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host01-p3-nic:vrf:green:p3-leaf01",
+      "type": "vrf_membership",
+      "src_id": "green-host01-p3-nic",
+      "dst_id": "vrf:green:p3-leaf01",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host02-p3-nic:vrf:green:p3-leaf02",
+      "type": "vrf_membership",
+      "src_id": "green-host02-p3-nic",
+      "dst_id": "vrf:green:p3-leaf02",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host03-p3-nic:vrf:green:p3-leaf03",
+      "type": "vrf_membership",
+      "src_id": "green-host03-p3-nic",
+      "dst_id": "vrf:green:p3-leaf03",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host04-p3-nic:vrf:green:p3-leaf04",
+      "type": "vrf_membership",
+      "src_id": "green-host04-p3-nic",
+      "dst_id": "vrf:green:p3-leaf04",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host05-p3-nic:vrf:green:p3-leaf05",
+      "type": "vrf_membership",
+      "src_id": "green-host05-p3-nic",
+      "dst_id": "vrf:green:p3-leaf05",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host06-p3-nic:vrf:green:p3-leaf06",
+      "type": "vrf_membership",
+      "src_id": "green-host06-p3-nic",
+      "dst_id": "vrf:green:p3-leaf06",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host07-p3-nic:vrf:green:p3-leaf07",
+      "type": "vrf_membership",
+      "src_id": "green-host07-p3-nic",
+      "dst_id": "vrf:green:p3-leaf07",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host08-p3-nic:vrf:green:p3-leaf08",
+      "type": "vrf_membership",
+      "src_id": "green-host08-p3-nic",
+      "dst_id": "vrf:green:p3-leaf08",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host09-p3-nic:vrf:green:p3-leaf09",
+      "type": "vrf_membership",
+      "src_id": "green-host09-p3-nic",
+      "dst_id": "vrf:green:p3-leaf09",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host10-p3-nic:vrf:green:p3-leaf10",
+      "type": "vrf_membership",
+      "src_id": "green-host10-p3-nic",
+      "dst_id": "vrf:green:p3-leaf10",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host11-p3-nic:vrf:green:p3-leaf11",
+      "type": "vrf_membership",
+      "src_id": "green-host11-p3-nic",
+      "dst_id": "vrf:green:p3-leaf11",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host12-p3-nic:vrf:green:p3-leaf12",
+      "type": "vrf_membership",
+      "src_id": "green-host12-p3-nic",
+      "dst_id": "vrf:green:p3-leaf12",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host13-p3-nic:vrf:green:p3-leaf13",
+      "type": "vrf_membership",
+      "src_id": "green-host13-p3-nic",
+      "dst_id": "vrf:green:p3-leaf13",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host14-p3-nic:vrf:green:p3-leaf14",
+      "type": "vrf_membership",
+      "src_id": "green-host14-p3-nic",
+      "dst_id": "vrf:green:p3-leaf14",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:green-host15-p3-nic:vrf:green:p3-leaf15",
+      "type": "vrf_membership",
+      "src_id": "green-host15-p3-nic",
+      "dst_id": "vrf:green:p3-leaf15",
+      "directed": true
+    }
+  ]
+}

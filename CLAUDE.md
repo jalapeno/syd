@@ -468,34 +468,91 @@ Roadmap:
 
 ## Multi-tenancy model
 
-Tenant isolation is expressed as a `VRFMembershipEdge` from an Endpoint or Node vertex
-to a VRF vertex. The VRF vertex carries the `srv6_udt_sid` (uDT SID) that the path
-engine appends as the final segment when building the segment list.
+Reference: `docs/SRv6-MultiTenant-Design.md` (Bruce McDougall, April 2026) — covers
+uSID multi-tenancy design options, trust boundaries, and the two-dimensional bitmask
+ACL enforcement model for AI factory fabrics.
 
-### Three trust models — identical from syd's perspective
+### Three encapsulation options
 
-| Model | Who encaps | Who decaps | `VRFMembershipEdge` origin |
-|---|---|---|---|
-| Network-based | Ingress leaf (southbound push) | Egress leaf (uDT) | Leaf Node → VRF |
-| Host-based | GPU/NIC (pull model) | Egress leaf (uDT) | Endpoint → VRF |
-| Hybrid | GPU/NIC (pull model) | Egress leaf (uDT) | Endpoint → VRF |
+The three options differ in *where* the SRv6 uSID carrier is applied and removed.
+syd's segment list output is identical in all cases — the distinction is entirely
+in how the network and/or hosts consume it.
 
-All three models receive the same segment list from syd (uA chain + uDT SID). The
-distinction is in who applies the encap — the path request API and southbound
-programming model are the same.
+| Option | Who encaps | Who decaps | Leaf state | Graph: uDT SID owner |
+|---|---|---|---|---|
+| 1 — Network-based | Ingress leaf | Egress leaf (uDT6) | Per-tenant VRF + static routes on ingress; uDT on egress | Leaf VRF vertex |
+| 2 — Host-based | Source NIC | Destination NIC (`seg6local End.DT6`) | Only uA SID per NIC-facing port — **no per-tenant VRF** | Host/NIC vertex or none (ACL-only) |
+| 3 — Hybrid | Source NIC | Egress leaf (uDT6) | uDT per tenant on egress leaf only; no ingress leaf state | Leaf VRF vertex |
 
-### VRF auto-detection
+**Note (Option 1 in the whitepaper table was wrong in a prior version of this file):**
+Host-based (Option 2) decapsulates at the **destination NIC**, not the egress leaf.
+Only Options 1 and 3 terminate the tunnel at the leaf.
+
+### PE function placement is deployment-dependent — syd must not be opinionated
+
+The "PE" (provider edge — the node performing uDT decap and VRF lookup) is always
+the egress SRv6 node for the *inner* packet, but where that node lives varies:
+
+- **AI fabric / Option 1 or 3**: egress leaf switch is the PE.
+- **AI fabric / Option 2**: destination NIC/host is the PE. The leaf is a pure
+  transit node performing only uSID Shift-and-Forward. No VRF state on the leaf.
+- **DC / enterprise contexts**: the PE could be a software forwarder *inside* the
+  server — a VPP instance, a CNI plugin (Calico, Cilium), an OVS/DPDK vSwitch, or
+  a DPU/SmartNIC whose SRv6 stack is operator-managed. Same as Option 2 from the
+  fabric's perspective; the leaf still sees only transit.
+
+**Implication for syd's graph model**: A uDT Tenant-ID SID is present in the segment
+list for all three options — it is NOT absent in host-based. The difference is which
+graph vertex owns the uDT SID:
+
+- Options 1 and 3: VRF vertex owned by a **leaf node** (`owner_node_id` = leaf)
+- Option 2: VRF vertex owned by a **host or NIC node** (`owner_node_id` = host)
+
+syd must not be opinionated about which node type owns the VRF vertex. The path
+engine appends the uDT SID from whichever VRF vertex is resolved — leaf or host —
+identically. The only case where the uDT SID is truly absent is a single-tenant or
+unisolated deployment (no tenant segmentation), not the host-based multi-tenant model.
+
+The path engine must never *require* VRF membership for path computation (backward
+compatibility with single-tenant topologies), but when VRF vertices exist on host
+nodes rather than leaf nodes, they must be followed correctly.
+
+### Tenant isolation: bitmask ACL enforcement (Option 2 and 3)
+
+For host-based and hybrid models, tenant isolation uses IPv6 bitmask ACL matching
+rather than (or in addition to) VRF graph state. This scales as O(Tenants), not
+O(Tenants × Paths):
+
+- **Egress bitmask ACL** (bits 64–127 of outer dst): matches Leaf-to-NIC uA + uDT
+  Tenant-ID regardless of steering uA bits. Prevents cross-tenant NIC delivery.
+- **Ingress uA-range ACL** (bits 32–63, hard-pinning only): constrains which uA SID
+  values a tenant NIC may place in the steering slots. Prevents tenant uA injection
+  into another tenant's spine slice.
+
+These are network-programmed ACL rules — syd does not model them in the graph.
+syd's role is to allocate uA SIDs and uDT SID values correctly; enforcement is
+delegated to the network hardware (SONiC `sonic-swss` PR #4404 adds the required
+`DST_IPV6_MASK`/`SRC_IPV6_MASK` fields to the ACL framework).
+
+**Hard vs loose pinning** (uA SID allocation modes for multi-tenant):
+- *Hard pinning*: each tenant gets a power-of-two-aligned uA SID range; ingress leaf
+  ACL enforces it. Deterministic spine slice isolation; requires bitmask ACL hardware.
+- *Loose pinning*: no ingress uA-range ACL; ECN feedback drives NIC re-encapsulation
+  if tenants collide on the same spine node. Lower operational complexity; no hard
+  bandwidth guarantee.
+
+### VRF auto-detection (when VRF vertices are present)
 
 When `tenant_id` is omitted from a path request, the path engine follows
 `VRFMembershipEdge` from each resolved endpoint to discover the VRF:
 
 - All endpoints share the same VRF → `tenant_id` auto-populated, uDT SID appended
-- No membership edges → no VRF (default table), backward compatible
+- No membership edges → no VRF (default table / ACL-only model), backward compatible
 - Endpoints span multiple VRFs → 422 error: `"endpoints span multiple VRFs"`
 
 Explicit `tenant_id` in the request always overrides auto-detection.
 
-### Topology push example with VRF
+### Topology push example with VRF (Options 1 and 3 — leaf as PE)
 
 ```json
 {
@@ -517,6 +574,9 @@ Explicit `tenant_id` in the request always overrides auto-detection.
   ]
 }
 ```
+
+For Option 2 (host-based), the VRF vertex would be owned by the host/NIC node
+rather than the leaf, OR omitted entirely if ACL-only isolation is used.
 
 ### Path request — explicit tenant_id
 
@@ -541,7 +601,69 @@ Explicit `tenant_id` in the request always overrides auto-detection.
 ```
 
 If `gpu-001` and `gpu-005` both have `VRFMembershipEdges` to the same VRF vertex,
-the uDT SID is appended automatically.
+the uDT SID is appended automatically. If no membership edges exist (host-based /
+ACL-only deployment), the segment list is returned without a uDT tail SID.
+
+## Multi-plane fabric model
+
+Reference: `test-topology/` — 4-plane 8-spine×16-leaf SONiC/containerlab lab with
+green (hybrid) and yellow (host-based) tenants. See `test-topology/README.md` and
+`test-topology/design-appendix.md`.
+
+### Planes as independent SRv6 domains
+
+A multi-plane AI fabric assigns each plane its own uSID block (`fc00:000<P>::/32`).
+Planes are:
+- Independent failure/scheduling domains
+- Independently steerable by the controller (a flow is pinned to a specific plane
+  by choosing an outer destination inside that plane's /32)
+- Aggregated at the WAN as a single `/30` per cluster
+
+Each host/NIC has one uplink per plane, giving it N attachment edges (one per plane
+graph) rather than the single attachment assumed in the Clos test data. Plane
+selection is a controller decision, not ECMP.
+
+### Per-plane uSID address conventions (from test-topology)
+
+```
+fc00:0000::/30          cluster aggregate (4 planes)
+fc00:000<P>::/32        plane <P> block (P = 0–3)
+fc00:000<P>:1<S>::/48   spine locator  (e.g. p2-spine03 → fc00:0002:13::/48)
+fc00:000<P>:2<L>::/48   leaf locator   (e.g. p2-leaf10  → fc00:0002:2a::/48)
+fc00:000<P>:f00<S>::/48 leaf→spine uA  ("f" = going up)
+fc00:000<P>:e00<L>::/48 spine→leaf uA  ("e" = going down)
+fc00:000<P>:d000::/48   uDT6 green tenant (on every leaf in plane P)
+fc00:000<P>:d001::/48   uDT6 yellow tenant (on every yellow host in plane P)
+```
+
+The `f`/`e` prefix convention makes SID lists self-describing: `f` = leaf-side uA
+(upward), `e` = spine-side uA (downward). A controller can read any SID list and
+determine tier without out-of-band node-role context.
+
+### Graph model for multi-plane
+
+Each plane maps to a separate graph (or subgraph) in syd's store. A host with
+N plane uplinks has N `AttachmentEdge` entries, each pointing to a different
+leaf in a different plane graph. A composed `cluster-graph` spans all planes.
+
+For host-based (yellow) tenants: the host has `seg6local End.DT6` entries per
+plane NIC (`fc00:000<P>:d001::/48 dev eth<P+1>`). Each is per-plane because the
+outer destination's plane block determines which NIC the packet arrives on; the
+host must match all four. These are modeled as per-plane VRF vertices owned by
+the host node (or omitted if ACL-only enforcement is used).
+
+### Controller responsibilities vs static substrate
+
+The test-topology uses no BGP and no IGP — purely static SRv6 routes as the
+minimum substrate. The controller (syd) is responsible for:
+- Tenant-prefix routes in `Vrf-green` (host /64 reachability per plane)
+- SR policies / per-flow steering (plane affinity, congestion-aware scheduling)
+- Yellow host encap targets (which plane NIC to use as outer destination)
+- uA SID allocation for hard-pinned tenant spine slices
+
+The static `frr.conf` provides only: locator reachability (per-leaf static routes
+to every other leaf via all spines as ECMP), uA SIDs per fabric port, and uDT
+SIDs per tenant. Everything above that is controller-programmed.
 
 ## UI agent work needed — composite graph rendering
 

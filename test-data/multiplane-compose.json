@@ -1,0 +1,10 @@
+{
+  "topology_id": "cluster",
+  "sources": [
+    "fabric-p0",
+    "fabric-p1",
+    "fabric-p2",
+    "fabric-p3"
+  ],
+  "description": "4-plane cluster graph \u2014 composed from fabric-p0, fabric-p1, fabric-p2, fabric-p3"
+}
