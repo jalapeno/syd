@@ -383,6 +383,9 @@ export default function TopologyCanvas({
     // 1. Endpoints = type "endpoint" OR degree-1 nodes
     // 2. Leaves = nodes adjacent to at least one endpoint
     // 3. Spines = nodes adjacent to leaves but NOT adjacent to any endpoint
+    //
+    // When structural detection fails (e.g. Day-0 fabric with no endpoints),
+    // fall back to labels.tier or name heuristics (spine/leaf in the node ID).
     const endpointIds = new Set<string>();
     const leafIds = new Set<string>();
     const spineIds = new Set<string>();
@@ -406,6 +409,23 @@ export default function TopologyCanvas({
       const hasLeafNeighbor = Array.from(neighbors).some((nb) => leafIds.has(nb));
       if (hasLeafNeighbor) {
         spineIds.add(n.id);
+      }
+    }
+
+    // Fallback: if structural detection found no leaves (e.g. fabric-only
+    // topology with no endpoints), use labels.tier or name heuristics.
+    const structuralDetectionWorked = leafIds.size > 0;
+    if (!structuralDetectionWorked) {
+      for (const n of nodes) {
+        const tierLabel = n.labels?.tier;
+        const id = n.id;
+        if (tierLabel === 'spine' || (!tierLabel && id.includes('spine'))) {
+          spineIds.add(n.id);
+        } else if (tierLabel === 'leaf' || (!tierLabel && id.includes('leaf'))) {
+          leafIds.add(n.id);
+        } else if (tierLabel === 'endpoint' || n.type === 'endpoint') {
+          endpointIds.add(n.id);
+        }
       }
     }
 
