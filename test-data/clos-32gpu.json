@@ -1,5 +1,10 @@
 {
   "topology_id": "clos-32gpu",
+  "metadata": [
+    {
+    "topology_type": "clos"
+    }
+  ],
   "description": "Synthetic 4-spine 8-leaf Clos fabric with 32 GPU endpoints (4 per leaf)",
   "nodes": [
     {
