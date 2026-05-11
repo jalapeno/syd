@@ -1,5 +1,10 @@
 {
   "topology_id": "cluster",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
   "description": "Green/hybrid tenant Day-N overlay \u2014 uDT6 Vrf-green on egress leaves; source NIC encapsulates",
   "source": "push",
   "merge": true,

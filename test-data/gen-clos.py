@@ -186,6 +186,7 @@ def generate(n_spines: int, n_leaves: int, gpus_per_leaf: int) -> dict:
 
     return {
         "topology_id": f"clos-{total_gpus}gpu",
+        "metadata": [{"topology_type": "clos"}],
         "description": desc,
         "nodes": nodes,
         "interfaces": interfaces,

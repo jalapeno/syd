@@ -1,5 +1,10 @@
 {
   "topology_id": "cluster",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
   "description": "Yellow/host-based tenant Day-N overlay \u2014 uDT6 End.DT6 on destination NICs; leaf is pure transit",
   "source": "push",
   "merge": true,

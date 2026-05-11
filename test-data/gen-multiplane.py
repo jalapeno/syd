@@ -188,6 +188,7 @@ def gen_fabric(P: int, NS: int, NL: int) -> dict:
 
     return {
         "topology_id":  f"fabric-p{P}",
+        "metadata":     [{"topology_type": "clos"}],
         "description":  (
             f"Plane {P} fabric — {NS} spines × {NL} leaves, "
             f"SRv6 uSID block {usid_block(P)}::/32"
@@ -282,6 +283,7 @@ def gen_compute(P: int, NL: int, NH: int) -> dict:
 
     return {
         "topology_id": f"fabric-p{P}",
+        "metadata":    [{"topology_type": "clos"}],
         "description": (
             f"Plane {P} compute overlay — "
             f"{NH} green NICs (hybrid) + {NH} yellow NICs (host-based)"
@@ -300,6 +302,7 @@ def gen_compute(P: int, NL: int, NH: int) -> dict:
 def gen_compose(NP: int) -> dict:
     return {
         "topology_id": "cluster",
+        "metadata":    [{"topology_type": "clos"}],
         "sources":     [f"fabric-p{P}" for P in range(NP)],
         "description": (
             f"{NP}-plane cluster graph — composed from "
@@ -339,6 +342,7 @@ def gen_tenant_green(NP: int, NL: int, NH: int) -> dict:
 
     return {
         "topology_id": "cluster",
+        "metadata":    [{"topology_type": "clos"}],
         "description": (
             "Green/hybrid tenant Day-N overlay — "
             "uDT6 Vrf-green on egress leaves; source NIC encapsulates"
@@ -380,6 +384,7 @@ def gen_tenant_yellow(NP: int, NH: int) -> dict:
 
     return {
         "topology_id": "cluster",
+        "metadata":    [{"topology_type": "clos"}],
         "description": (
             "Yellow/host-based tenant Day-N overlay — "
             "uDT6 End.DT6 on destination NICs; leaf is pure transit"

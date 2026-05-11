@@ -1,5 +1,10 @@
 {
   "topology_id": "fabric-p2",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
   "description": "Plane 2 fabric \u2014 8 spines \u00d7 16 leaves, SRv6 uSID block fc00:0002::/32",
   "source": "push",
   "nodes": [

@@ -1,5 +1,10 @@
 {
   "topology_id": "polarfly-q13-nodes",
+  "metadata": [
+    {
+    "topology_type": "polarfly"
+    }
+  ],
   "description": "Polarfly PG(2,13) fabric (switches only, no hosts): 183 switches, 1274 fabric links.",
   "nodes": [
     {

@@ -1,5 +1,10 @@
 {
   "topology_id": "fabric-p3",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
   "description": "Plane 3 fabric \u2014 8 spines \u00d7 16 leaves, SRv6 uSID block fc00:0003::/32",
   "source": "push",
   "nodes": [

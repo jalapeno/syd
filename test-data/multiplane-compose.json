@@ -1,5 +1,10 @@
 {
   "topology_id": "cluster",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
   "sources": [
     "fabric-p0",
     "fabric-p1",

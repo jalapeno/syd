@@ -1,5 +1,10 @@
 {
   "topology_id": "fabric-p1",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
   "description": "Plane 1 compute overlay \u2014 16 green NICs (hybrid) + 16 yellow NICs (host-based)",
   "source": "push",
   "merge": true,
