@@ -304,9 +304,16 @@ export default function TopologyCanvas({
       .then((data) => {
         setTopology(data);
         setUsingDemo(false);
-        // Auto-detect composite graphs (contain prefix or external BGP nodes)
-        // and default to force-directed layout since Clos tiers don't apply
-        setLayoutMode('auto');
+        // Auto-select layout mode based on topology_type metadata.
+        // Falls back to force-directed for unrecognized or absent types.
+        const tt = data.topology_type;
+        if (tt === 'clos') {
+          setLayoutMode('clos');
+        } else if (tt === 'polarfly') {
+          setLayoutMode('polarfly');
+        } else {
+          setLayoutMode('auto');
+        }
       })
       .catch(() => {
         // /graph endpoint not available — fall back to /nodes

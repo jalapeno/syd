@@ -28,8 +28,10 @@ type uiGraphLink struct {
 }
 
 type uiTopologyGraph struct {
-	Nodes []uiGraphNode `json:"nodes"`
-	Links []uiGraphLink `json:"links"`
+	Nodes        []uiGraphNode     `json:"nodes"`
+	Links        []uiGraphLink     `json:"links"`
+	TopologyType string            `json:"topology_type,omitempty"`
+	Metadata     map[string]string `json:"metadata,omitempty"`
 }
 
 func (s *Server) handleTopologyGraph(w http.ResponseWriter, r *http.Request) {
@@ -111,8 +113,16 @@ func (s *Server) handleTopologyGraph(w http.ResponseWriter, r *http.Request) {
 		links = append(links, link)
 	}
 
+	meta := g.Metadata()
+	topoType := ""
+	if meta != nil {
+		topoType = meta["topology_type"]
+	}
+
 	writeJSON(w, http.StatusOK, uiTopologyGraph{
-		Nodes: nodes,
-		Links: links,
+		Nodes:        nodes,
+		Links:        links,
+		TopologyType: topoType,
+		Metadata:     meta,
 	})
 }

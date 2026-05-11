@@ -21,6 +21,11 @@ type Document struct {
 	Description string               `json:"description,omitempty"`
 	Source      graph.TopologySource `json:"source,omitempty"`
 
+	// Metadata is a list of key/value objects providing topology-level hints
+	// (e.g. {"topology_type": "clos"}). Flattened into a single map and
+	// stored on the graph so the UI can auto-select layout modes.
+	Metadata []map[string]string `json:"metadata,omitempty"`
+
 	// Merge, if true, overlays this document's elements onto the existing
 	// topology rather than replacing it. Elements not mentioned in the document
 	// are preserved; elements with matching IDs are updated in place. Use this
@@ -194,6 +199,17 @@ func buildInto(g *graph.Graph, doc *Document) (*graph.Graph, []error) {
 		if err != nil {
 			errs = append(errs, err)
 		}
+	}
+
+	// Flatten the metadata array into a single map and store on the graph.
+	if len(doc.Metadata) > 0 {
+		flat := make(map[string]string)
+		for _, m := range doc.Metadata {
+			for k, v := range m {
+				flat[k] = v
+			}
+		}
+		g.MergeMetadata(flat)
 	}
 
 	// Vertices must be added before edges so that edge validation can check

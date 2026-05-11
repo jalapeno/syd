@@ -188,6 +188,18 @@ func (s *Server) handleTopologyCompose(w http.ResponseWriter, r *http.Request) {
 	}
 
 	composed := graph.Compose(req.TopologyID, sources...)
+
+	// Apply compose-level metadata (e.g. topology_type) if provided.
+	if len(req.Metadata) > 0 {
+		flat := make(map[string]string)
+		for _, m := range req.Metadata {
+			for k, v := range m {
+				flat[k] = v
+			}
+		}
+		composed.SetMetadata(flat)
+	}
+
 	s.store.Put(composed)
 
 	// Create or reset the allocation table for the composed topology.

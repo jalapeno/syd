@@ -154,4 +154,6 @@ export interface GraphLink {
 export interface TopologyGraph {
   nodes: GraphNode[];
   links: GraphLink[];
+  topology_type?: string; // "clos" | "polarfly" | undefined
+  metadata?: Record<string, string>;
 }
