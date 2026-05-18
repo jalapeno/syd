@@ -39,7 +39,7 @@ Addressing (from srv6-ai-fabric/AGENTS.md and generators/fabric.py):
 Outputs:
   mrc-p{P}-fabric.json     Day-0: per-plane fabric (spines + leaves + links + SRv6 SIDs)
   mrc-p{P}-compute.json    Day-1: per-plane compute overlay (NICs + attachments)
-  mrc-compose.json         Day-0: POST /topology/compose → mrc-cluster
+  mrc-compose.json         Day-1+: POST /topology/compose → mrc-cluster  *** MUST run after all compute overlays ***
   mrc-tenant-green.json    Day-N: green/hybrid overlay (leaf uDT → Vrf-green)
   mrc-tenant-yellow.json   Day-N: yellow/host-based overlay (NIC uDT → End.DT6)
 
