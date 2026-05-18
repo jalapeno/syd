@@ -23,6 +23,11 @@ type Graph struct {
 	// inEdges[vertexID] → slice of edge IDs arriving at that vertex
 	inEdges map[string][]string
 
+	// metadata holds topology-level key/value pairs supplied at push time
+	// (e.g. "topology_type": "clos"). Exposed via the graph API so the UI
+	// can auto-select layout modes.
+	metadata map[string]string
+
 	// writeSeq is incremented on every structural write (AddVertex, AddEdge,
 	// RemoveVertex, RemoveEdge). It is read by the auto-compose poller to
 	// detect in-place mutations made by the BMP collector — which never calls
@@ -44,6 +49,40 @@ func New(id string) *Graph {
 
 // ID returns the topology identifier.
 func (g *Graph) ID() string { return g.id }
+
+// Metadata returns a copy of the topology-level metadata map.
+func (g *Graph) Metadata() map[string]string {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.metadata == nil {
+		return nil
+	}
+	cp := make(map[string]string, len(g.metadata))
+	for k, v := range g.metadata {
+		cp[k] = v
+	}
+	return cp
+}
+
+// SetMetadata replaces the topology-level metadata map. Existing keys are
+// overwritten; keys not present in m are removed.
+func (g *Graph) SetMetadata(m map[string]string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.metadata = m
+}
+
+// MergeMetadata adds or overwrites keys from m into the existing metadata.
+func (g *Graph) MergeMetadata(m map[string]string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.metadata == nil {
+		g.metadata = make(map[string]string, len(m))
+	}
+	for k, v := range m {
+		g.metadata[k] = v
+	}
+}
 
 // WriteSeq returns the number of structural write operations (AddVertex,
 // AddEdge, RemoveVertex, RemoveEdge) performed on this graph since creation.

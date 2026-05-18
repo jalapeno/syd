@@ -357,6 +357,11 @@ type ComposeRequest struct {
 	// Sources lists the topology IDs to merge, in order. All listed topologies
 	// must already exist in the store.
 	Sources []string `json:"sources"`
+
+	// Metadata is optional topology-level key/value pairs (e.g.
+	// [{"topology_type": "clos"}]). Flattened and stored on the composed
+	// graph so the UI can auto-select layout modes.
+	Metadata []map[string]string `json:"metadata,omitempty"`
 }
 
 // ComposeResponse is returned by POST /topology/compose.
