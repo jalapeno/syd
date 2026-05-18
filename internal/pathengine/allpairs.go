@@ -209,7 +209,10 @@ func deriveReversePath(
 		Edges:   revEdges,
 	}
 
-	segList, err := BuildSegmentList(g, revSPF, algoID, tenantID, mode)
+	// For the reverse path the destination is pair.SrcEndpointID — resolve its
+	// VRF vertex when tenantID is a name rather than a vertex ID.
+	revTenantID := resolveVRFVertex(g, pair.SrcEndpointID, tenantID)
+	segList, err := BuildSegmentList(g, revSPF, algoID, revTenantID, mode)
 	if err != nil {
 		return nil, fmt.Errorf("reverse segment list: %w", err)
 	}
@@ -381,7 +384,14 @@ func computeOnePairWithID(
 		}
 	}
 
-	segList, err := BuildSegmentList(g, spf, constraints.AlgoID, constraints.TenantID, SegmentListMode(constraints.SegmentListMode))
+	// Resolve the tenant VRF vertex for this specific destination. When
+	// detectTenantVRF returned a VRF name (multi-plane case where each endpoint
+	// has its own per-plane VRF vertex), this picks the correct per-plane VRF
+	// on the destination endpoint. When TenantID is already a vertex ID (single-
+	// VRF or explicit caller-supplied ID), resolveVRFVertex returns it unchanged.
+	effectiveTenantID := resolveVRFVertex(g, pair.DstEndpointID, constraints.TenantID)
+
+	segList, err := BuildSegmentList(g, spf, constraints.AlgoID, effectiveTenantID, SegmentListMode(constraints.SegmentListMode))
 	if err != nil {
 		return nil, fmt.Errorf("pair %s→%s segment list: %w", pair.SrcEndpointID, pair.DstEndpointID, err)
 	}

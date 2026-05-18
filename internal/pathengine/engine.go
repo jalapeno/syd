@@ -356,13 +356,19 @@ func ComputePrefixPaths(
 	return result, nil
 }
 
-// detectTenantVRF infers the tenant VRF vertex ID from VRFMembershipEdges on
-// the resolved endpoints. It checks each endpoint's own vertex ID first, then
-// its attached node ID, looking for outgoing ETVRFMembership edges.
+// detectTenantVRF infers the tenant VRF from VRFMembershipEdges on the resolved
+// endpoints. It checks each endpoint's own vertex ID first, then its attached
+// node ID, looking for outgoing ETVRFMembership edges.
 //
-// Returns the VRF vertex ID if all membered endpoints share the same VRF, ""
-// if no endpoints have membership edges (default/no-VRF), or an error if
-// endpoints span more than one VRF (cross-tenant request).
+// Returns the VRF Name (not vertex ID) if all membered endpoints belong to the
+// same-named VRF, "" if no endpoints have membership edges (default/no-VRF),
+// or an error if endpoints span VRFs with different names (cross-tenant).
+//
+// Returning the name rather than a vertex ID enables multi-plane topologies
+// where each endpoint has its own per-plane VRF vertex (different IDs) but all
+// share the same VRF name (same tenant). The caller is expected to resolve the
+// name to the correct per-destination VRF vertex ID via resolveVRFVertex before
+// passing it to BuildSegmentList.
 func detectTenantVRF(g *graph.Graph, endpoints []ResolvedEndpoint) (string, error) {
 	seen := ""
 	for _, ep := range endpoints {
@@ -371,20 +377,94 @@ func detectTenantVRF(g *graph.Graph, endpoints []ResolvedEndpoint) (string, erro
 				if e.GetType() != graph.ETVRFMembership {
 					continue
 				}
-				vrfID := e.GetDstID()
+				// Compare by VRF name so that multi-plane topologies (where each
+				// endpoint has its own per-plane VRF vertex) are accepted when all
+				// VRF vertices share the same name (same tenant).
+				vrfName := vrfNameForVertex(g, e.GetDstID())
+				if vrfName == "" {
+					vrfName = e.GetDstID() // fall back to vertex ID if name is unset
+				}
 				if seen == "" {
-					seen = vrfID
-				} else if seen != vrfID {
+					seen = vrfName
+				} else if seen != vrfName {
 					return "", fmt.Errorf(
 						"endpoints span multiple VRFs (%q and %q): "+
 							"use explicit tenant_id or ensure all endpoints share the same VRF",
-						seen, vrfID,
+						seen, vrfName,
 					)
 				}
 			}
 		}
 	}
 	return seen, nil
+}
+
+// vrfNameForVertex returns the Name field of the VRF vertex with the given ID,
+// or "" if the vertex is not found or is not a VRF.
+func vrfNameForVertex(g *graph.Graph, vrfID string) string {
+	v := g.GetVertex(vrfID)
+	if v == nil {
+		return ""
+	}
+	vrf, ok := v.(*graph.VRF)
+	if !ok {
+		return ""
+	}
+	return vrf.Name
+}
+
+// resolveVRFVertex resolves vrfNameOrID to a VRF vertex ID for the given
+// destination endpoint.
+//
+// If vrfNameOrID is already a VRF vertex ID present in g, it is returned
+// unchanged (explicit vertex ID — backward compatible with single-plane and
+// legacy topologies where tenant_id is a vertex ID).
+//
+// Otherwise vrfNameOrID is treated as a VRF name. The function walks outgoing
+// VRFMembership edges from dstEndpointID and (if dstEndpointID is an Endpoint
+// vertex) from any attached nodes, returning the vertex ID of the first VRF
+// whose Name matches.
+//
+// Returns "" if no matching VRF vertex is found. BuildSegmentList silently
+// omits the uDT tail SID in that case, which is correct for topologies without
+// VRF segmentation.
+func resolveVRFVertex(g *graph.Graph, dstEndpointID, vrfNameOrID string) string {
+	if vrfNameOrID == "" {
+		return ""
+	}
+	// Fast path: vrfNameOrID is already a vertex ID pointing to a VRF vertex.
+	if v := g.GetVertex(vrfNameOrID); v != nil {
+		if _, ok := v.(*graph.VRF); ok {
+			return vrfNameOrID
+		}
+	}
+	// Slow path: vrfNameOrID is a VRF name. Walk membership edges from the
+	// destination endpoint and (via attachment) its attached nodes.
+	checkIDs := []string{dstEndpointID}
+	for _, e := range g.OutEdges(dstEndpointID) {
+		if e.GetType() == graph.ETAttachment {
+			checkIDs = append(checkIDs, e.GetDstID())
+		}
+	}
+	for _, checkID := range checkIDs {
+		for _, e := range g.OutEdges(checkID) {
+			if e.GetType() != graph.ETVRFMembership {
+				continue
+			}
+			v := g.GetVertex(e.GetDstID())
+			if v == nil {
+				continue
+			}
+			vrf, ok := v.(*graph.VRF)
+			if !ok {
+				continue
+			}
+			if vrf.Name == vrfNameOrID {
+				return e.GetDstID()
+			}
+		}
+	}
+	return ""
 }
 
 // buildConstraints converts a PathRequest into a graph.PathConstraints.

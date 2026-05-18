@@ -32,7 +32,7 @@ type PathConstraints struct {
 	AdminGroup      uint32            `json:"admin_group,omitempty"` // affinity include bits
 	ExcludeGroup    uint32            `json:"exclude_group,omitempty"` // affinity exclude bits
 	AlgoID          uint8             `json:"algo_id,omitempty"`  // Flex-Algo
-	TenantID        string            `json:"tenant_id,omitempty"` // VRF vertex ID; appends uDT SID to segment list
+	TenantID        string            `json:"tenant_id,omitempty"` // VRF vertex ID or name; engine resolves per-pair to uDT SID
 
 	// SegmentListMode controls how the SRv6 segment list is encoded.
 	// "ua":  16-bit function slot per hop; falls back to 16-bit node slot when
