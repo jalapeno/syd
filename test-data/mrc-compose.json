@@ -1,0 +1,15 @@
+{
+  "topology_id": "mrc-cluster",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
+  "sources": [
+    "mrc-p0",
+    "mrc-p1",
+    "mrc-p2",
+    "mrc-p3"
+  ],
+  "description": "MRC 4-plane cluster \u2014 composed from mrc-p0, mrc-p1, mrc-p2, mrc-p3"
+}

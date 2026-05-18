@@ -1,0 +1,1169 @@
+{
+  "topology_id": "mrc-p0",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
+  "description": "MRC plane 0 compute overlay \u2014 16 green NICs (hybrid) + 16 yellow NICs (host-based)",
+  "source": "push",
+  "merge": true,
+  "endpoints": [
+    {
+      "id": "green-host00-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host00-plane0",
+      "addresses": [
+        "2001:db8:bbbb:00::2"
+      ],
+      "metadata": {
+        "host": "green-host00",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host00-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host00-plane0",
+      "addresses": [
+        "2001:db8:cccc:00::2"
+      ],
+      "metadata": {
+        "host": "yellow-host00",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host01-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host01-plane0",
+      "addresses": [
+        "2001:db8:bbbb:01::2"
+      ],
+      "metadata": {
+        "host": "green-host01",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host01-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host01-plane0",
+      "addresses": [
+        "2001:db8:cccc:01::2"
+      ],
+      "metadata": {
+        "host": "yellow-host01",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host02-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host02-plane0",
+      "addresses": [
+        "2001:db8:bbbb:02::2"
+      ],
+      "metadata": {
+        "host": "green-host02",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host02-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host02-plane0",
+      "addresses": [
+        "2001:db8:cccc:02::2"
+      ],
+      "metadata": {
+        "host": "yellow-host02",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host03-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host03-plane0",
+      "addresses": [
+        "2001:db8:bbbb:03::2"
+      ],
+      "metadata": {
+        "host": "green-host03",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host03-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host03-plane0",
+      "addresses": [
+        "2001:db8:cccc:03::2"
+      ],
+      "metadata": {
+        "host": "yellow-host03",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host04-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host04-plane0",
+      "addresses": [
+        "2001:db8:bbbb:04::2"
+      ],
+      "metadata": {
+        "host": "green-host04",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host04-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host04-plane0",
+      "addresses": [
+        "2001:db8:cccc:04::2"
+      ],
+      "metadata": {
+        "host": "yellow-host04",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host05-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host05-plane0",
+      "addresses": [
+        "2001:db8:bbbb:05::2"
+      ],
+      "metadata": {
+        "host": "green-host05",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host05-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host05-plane0",
+      "addresses": [
+        "2001:db8:cccc:05::2"
+      ],
+      "metadata": {
+        "host": "yellow-host05",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host06-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host06-plane0",
+      "addresses": [
+        "2001:db8:bbbb:06::2"
+      ],
+      "metadata": {
+        "host": "green-host06",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host06-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host06-plane0",
+      "addresses": [
+        "2001:db8:cccc:06::2"
+      ],
+      "metadata": {
+        "host": "yellow-host06",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host07-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host07-plane0",
+      "addresses": [
+        "2001:db8:bbbb:07::2"
+      ],
+      "metadata": {
+        "host": "green-host07",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host07-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host07-plane0",
+      "addresses": [
+        "2001:db8:cccc:07::2"
+      ],
+      "metadata": {
+        "host": "yellow-host07",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host08-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host08-plane0",
+      "addresses": [
+        "2001:db8:bbbb:08::2"
+      ],
+      "metadata": {
+        "host": "green-host08",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host08-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host08-plane0",
+      "addresses": [
+        "2001:db8:cccc:08::2"
+      ],
+      "metadata": {
+        "host": "yellow-host08",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host09-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host09-plane0",
+      "addresses": [
+        "2001:db8:bbbb:09::2"
+      ],
+      "metadata": {
+        "host": "green-host09",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host09-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host09-plane0",
+      "addresses": [
+        "2001:db8:cccc:09::2"
+      ],
+      "metadata": {
+        "host": "yellow-host09",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host10-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host10-plane0",
+      "addresses": [
+        "2001:db8:bbbb:0a::2"
+      ],
+      "metadata": {
+        "host": "green-host10",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host10-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host10-plane0",
+      "addresses": [
+        "2001:db8:cccc:0a::2"
+      ],
+      "metadata": {
+        "host": "yellow-host10",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host11-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host11-plane0",
+      "addresses": [
+        "2001:db8:bbbb:0b::2"
+      ],
+      "metadata": {
+        "host": "green-host11",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host11-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host11-plane0",
+      "addresses": [
+        "2001:db8:cccc:0b::2"
+      ],
+      "metadata": {
+        "host": "yellow-host11",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host12-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host12-plane0",
+      "addresses": [
+        "2001:db8:bbbb:0c::2"
+      ],
+      "metadata": {
+        "host": "green-host12",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host12-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host12-plane0",
+      "addresses": [
+        "2001:db8:cccc:0c::2"
+      ],
+      "metadata": {
+        "host": "yellow-host12",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host13-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host13-plane0",
+      "addresses": [
+        "2001:db8:bbbb:0d::2"
+      ],
+      "metadata": {
+        "host": "green-host13",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host13-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host13-plane0",
+      "addresses": [
+        "2001:db8:cccc:0d::2"
+      ],
+      "metadata": {
+        "host": "yellow-host13",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host14-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host14-plane0",
+      "addresses": [
+        "2001:db8:bbbb:0e::2"
+      ],
+      "metadata": {
+        "host": "green-host14",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host14-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host14-plane0",
+      "addresses": [
+        "2001:db8:cccc:0e::2"
+      ],
+      "metadata": {
+        "host": "yellow-host14",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    },
+    {
+      "id": "green-host15-p0-nic",
+      "subtype": "gpu",
+      "name": "green-host15-plane0",
+      "addresses": [
+        "2001:db8:bbbb:0f::2"
+      ],
+      "metadata": {
+        "host": "green-host15",
+        "plane": "0",
+        "tenant": "green",
+        "model": "hybrid"
+      }
+    },
+    {
+      "id": "yellow-host15-p0-nic",
+      "subtype": "gpu",
+      "name": "yellow-host15-plane0",
+      "addresses": [
+        "2001:db8:cccc:0f::2"
+      ],
+      "metadata": {
+        "host": "yellow-host15",
+        "plane": "0",
+        "tenant": "yellow",
+        "model": "host-based"
+      }
+    }
+  ],
+  "interfaces": [
+    {
+      "id": "iface:p0-leaf00/Eth32-green",
+      "owner_node_id": "p0-leaf00",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:00::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf00/Eth36-yellow",
+      "owner_node_id": "p0-leaf00",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:00::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf01/Eth32-green",
+      "owner_node_id": "p0-leaf01",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:01::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf01/Eth36-yellow",
+      "owner_node_id": "p0-leaf01",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:01::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf02/Eth32-green",
+      "owner_node_id": "p0-leaf02",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:02::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf02/Eth36-yellow",
+      "owner_node_id": "p0-leaf02",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:02::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf03/Eth32-green",
+      "owner_node_id": "p0-leaf03",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:03::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf03/Eth36-yellow",
+      "owner_node_id": "p0-leaf03",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:03::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf04/Eth32-green",
+      "owner_node_id": "p0-leaf04",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:04::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf04/Eth36-yellow",
+      "owner_node_id": "p0-leaf04",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:04::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf05/Eth32-green",
+      "owner_node_id": "p0-leaf05",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:05::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf05/Eth36-yellow",
+      "owner_node_id": "p0-leaf05",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:05::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf06/Eth32-green",
+      "owner_node_id": "p0-leaf06",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:06::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf06/Eth36-yellow",
+      "owner_node_id": "p0-leaf06",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:06::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf07/Eth32-green",
+      "owner_node_id": "p0-leaf07",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:07::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf07/Eth36-yellow",
+      "owner_node_id": "p0-leaf07",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:07::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf08/Eth32-green",
+      "owner_node_id": "p0-leaf08",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:08::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf08/Eth36-yellow",
+      "owner_node_id": "p0-leaf08",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:08::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf09/Eth32-green",
+      "owner_node_id": "p0-leaf09",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:09::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf09/Eth36-yellow",
+      "owner_node_id": "p0-leaf09",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:09::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf10/Eth32-green",
+      "owner_node_id": "p0-leaf10",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:0a::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf10/Eth36-yellow",
+      "owner_node_id": "p0-leaf10",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:0a::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf11/Eth32-green",
+      "owner_node_id": "p0-leaf11",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:0b::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf11/Eth36-yellow",
+      "owner_node_id": "p0-leaf11",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:0b::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf12/Eth32-green",
+      "owner_node_id": "p0-leaf12",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:0c::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf12/Eth36-yellow",
+      "owner_node_id": "p0-leaf12",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:0c::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf13/Eth32-green",
+      "owner_node_id": "p0-leaf13",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:0d::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf13/Eth36-yellow",
+      "owner_node_id": "p0-leaf13",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:0d::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf14/Eth32-green",
+      "owner_node_id": "p0-leaf14",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:0e::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf14/Eth36-yellow",
+      "owner_node_id": "p0-leaf14",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:0e::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "iface:p0-leaf15/Eth32-green",
+      "owner_node_id": "p0-leaf15",
+      "name": "Ethernet32",
+      "addresses": [
+        "2001:db8:bbbb:0f::1/64"
+      ]
+    },
+    {
+      "id": "iface:p0-leaf15/Eth36-yellow",
+      "owner_node_id": "p0-leaf15",
+      "name": "Ethernet36",
+      "addresses": [
+        "2001:db8:cccc:0f::1/64"
+      ],
+      "srv6_ua_sids": [
+        {
+          "sid": "fc00:0000:e009::",
+          "behavior": "End.X",
+          "structure": {
+            "locator_block_len": 32,
+            "locator_node_len": 16,
+            "function_len": 16,
+            "argument_len": 0
+          }
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "att:green-host00-p0-nic:p0-leaf00",
+      "type": "attachment",
+      "src_id": "green-host00-p0-nic",
+      "dst_id": "p0-leaf00",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf00/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host00-p0-nic:p0-leaf00",
+      "type": "attachment",
+      "src_id": "yellow-host00-p0-nic",
+      "dst_id": "p0-leaf00",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf00/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host01-p0-nic:p0-leaf01",
+      "type": "attachment",
+      "src_id": "green-host01-p0-nic",
+      "dst_id": "p0-leaf01",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf01/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host01-p0-nic:p0-leaf01",
+      "type": "attachment",
+      "src_id": "yellow-host01-p0-nic",
+      "dst_id": "p0-leaf01",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf01/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host02-p0-nic:p0-leaf02",
+      "type": "attachment",
+      "src_id": "green-host02-p0-nic",
+      "dst_id": "p0-leaf02",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf02/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host02-p0-nic:p0-leaf02",
+      "type": "attachment",
+      "src_id": "yellow-host02-p0-nic",
+      "dst_id": "p0-leaf02",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf02/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host03-p0-nic:p0-leaf03",
+      "type": "attachment",
+      "src_id": "green-host03-p0-nic",
+      "dst_id": "p0-leaf03",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf03/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host03-p0-nic:p0-leaf03",
+      "type": "attachment",
+      "src_id": "yellow-host03-p0-nic",
+      "dst_id": "p0-leaf03",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf03/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host04-p0-nic:p0-leaf04",
+      "type": "attachment",
+      "src_id": "green-host04-p0-nic",
+      "dst_id": "p0-leaf04",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf04/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host04-p0-nic:p0-leaf04",
+      "type": "attachment",
+      "src_id": "yellow-host04-p0-nic",
+      "dst_id": "p0-leaf04",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf04/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host05-p0-nic:p0-leaf05",
+      "type": "attachment",
+      "src_id": "green-host05-p0-nic",
+      "dst_id": "p0-leaf05",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf05/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host05-p0-nic:p0-leaf05",
+      "type": "attachment",
+      "src_id": "yellow-host05-p0-nic",
+      "dst_id": "p0-leaf05",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf05/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host06-p0-nic:p0-leaf06",
+      "type": "attachment",
+      "src_id": "green-host06-p0-nic",
+      "dst_id": "p0-leaf06",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf06/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host06-p0-nic:p0-leaf06",
+      "type": "attachment",
+      "src_id": "yellow-host06-p0-nic",
+      "dst_id": "p0-leaf06",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf06/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host07-p0-nic:p0-leaf07",
+      "type": "attachment",
+      "src_id": "green-host07-p0-nic",
+      "dst_id": "p0-leaf07",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf07/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host07-p0-nic:p0-leaf07",
+      "type": "attachment",
+      "src_id": "yellow-host07-p0-nic",
+      "dst_id": "p0-leaf07",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf07/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host08-p0-nic:p0-leaf08",
+      "type": "attachment",
+      "src_id": "green-host08-p0-nic",
+      "dst_id": "p0-leaf08",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf08/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host08-p0-nic:p0-leaf08",
+      "type": "attachment",
+      "src_id": "yellow-host08-p0-nic",
+      "dst_id": "p0-leaf08",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf08/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host09-p0-nic:p0-leaf09",
+      "type": "attachment",
+      "src_id": "green-host09-p0-nic",
+      "dst_id": "p0-leaf09",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf09/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host09-p0-nic:p0-leaf09",
+      "type": "attachment",
+      "src_id": "yellow-host09-p0-nic",
+      "dst_id": "p0-leaf09",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf09/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host10-p0-nic:p0-leaf10",
+      "type": "attachment",
+      "src_id": "green-host10-p0-nic",
+      "dst_id": "p0-leaf10",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf10/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host10-p0-nic:p0-leaf10",
+      "type": "attachment",
+      "src_id": "yellow-host10-p0-nic",
+      "dst_id": "p0-leaf10",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf10/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host11-p0-nic:p0-leaf11",
+      "type": "attachment",
+      "src_id": "green-host11-p0-nic",
+      "dst_id": "p0-leaf11",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf11/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host11-p0-nic:p0-leaf11",
+      "type": "attachment",
+      "src_id": "yellow-host11-p0-nic",
+      "dst_id": "p0-leaf11",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf11/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host12-p0-nic:p0-leaf12",
+      "type": "attachment",
+      "src_id": "green-host12-p0-nic",
+      "dst_id": "p0-leaf12",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf12/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host12-p0-nic:p0-leaf12",
+      "type": "attachment",
+      "src_id": "yellow-host12-p0-nic",
+      "dst_id": "p0-leaf12",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf12/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host13-p0-nic:p0-leaf13",
+      "type": "attachment",
+      "src_id": "green-host13-p0-nic",
+      "dst_id": "p0-leaf13",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf13/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host13-p0-nic:p0-leaf13",
+      "type": "attachment",
+      "src_id": "yellow-host13-p0-nic",
+      "dst_id": "p0-leaf13",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf13/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host14-p0-nic:p0-leaf14",
+      "type": "attachment",
+      "src_id": "green-host14-p0-nic",
+      "dst_id": "p0-leaf14",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf14/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host14-p0-nic:p0-leaf14",
+      "type": "attachment",
+      "src_id": "yellow-host14-p0-nic",
+      "dst_id": "p0-leaf14",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf14/Eth36-yellow"
+    },
+    {
+      "id": "att:green-host15-p0-nic:p0-leaf15",
+      "type": "attachment",
+      "src_id": "green-host15-p0-nic",
+      "dst_id": "p0-leaf15",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf15/Eth32-green"
+    },
+    {
+      "id": "att:yellow-host15-p0-nic:p0-leaf15",
+      "type": "attachment",
+      "src_id": "yellow-host15-p0-nic",
+      "dst_id": "p0-leaf15",
+      "directed": true,
+      "access_iface_id": "iface:p0-leaf15/Eth36-yellow"
+    }
+  ]
+}

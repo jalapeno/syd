@@ -1,0 +1,1423 @@
+{
+  "topology_id": "mrc-cluster",
+  "metadata": [
+    {
+      "topology_type": "clos"
+    }
+  ],
+  "description": "MRC yellow/host-based tenant \u2014 uDT6 d001 End.DT6 on destination NICs; leaf is pure transit",
+  "source": "push",
+  "merge": true,
+  "vrfs": [
+    {
+      "id": "vrf:yellow:yellow-host00-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host00-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host01-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host01-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host02-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host02-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host03-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host03-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host04-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host04-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host05-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host05-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host06-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host06-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host07-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host07-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host08-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host08-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host09-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host09-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host10-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host10-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host11-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host11-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host12-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host12-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host13-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host13-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host14-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host14-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host15-p0",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host15-p0-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0000:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host00-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host00-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host01-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host01-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host02-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host02-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host03-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host03-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host04-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host04-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host05-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host05-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host06-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host06-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host07-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host07-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host08-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host08-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host09-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host09-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host10-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host10-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host11-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host11-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host12-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host12-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host13-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host13-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host14-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host14-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host15-p1",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host15-p1-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0001:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host00-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host00-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host01-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host01-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host02-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host02-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host03-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host03-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host04-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host04-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host05-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host05-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host06-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host06-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host07-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host07-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host08-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host08-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host09-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host09-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host10-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host10-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host11-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host11-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host12-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host12-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host13-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host13-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host14-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host14-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host15-p2",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host15-p2-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0002:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host00-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host00-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host01-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host01-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host02-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host02-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host03-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host03-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host04-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host04-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host05-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host05-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host06-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host06-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host07-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host07-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host08-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host08-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host09-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host09-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host10-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host10-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host11-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host11-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host12-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host12-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host13-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host13-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host14-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host14-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    },
+    {
+      "id": "vrf:yellow:yellow-host15-p3",
+      "name": "yellow-default",
+      "owner_node_id": "yellow-host15-p3-nic",
+      "srv6_udt_sid": {
+        "sid": "fc00:0003:d001::",
+        "behavior": "End.DT6",
+        "structure": {
+          "locator_block_len": 32,
+          "locator_node_len": 16,
+          "function_len": 16,
+          "argument_len": 0
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "vrfmem:yellow-host00-p0-nic:vrf:yellow:yellow-host00-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host00-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host00-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host01-p0-nic:vrf:yellow:yellow-host01-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host01-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host01-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host02-p0-nic:vrf:yellow:yellow-host02-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host02-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host02-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host03-p0-nic:vrf:yellow:yellow-host03-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host03-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host03-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host04-p0-nic:vrf:yellow:yellow-host04-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host04-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host04-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host05-p0-nic:vrf:yellow:yellow-host05-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host05-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host05-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host06-p0-nic:vrf:yellow:yellow-host06-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host06-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host06-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host07-p0-nic:vrf:yellow:yellow-host07-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host07-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host07-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host08-p0-nic:vrf:yellow:yellow-host08-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host08-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host08-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host09-p0-nic:vrf:yellow:yellow-host09-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host09-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host09-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host10-p0-nic:vrf:yellow:yellow-host10-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host10-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host10-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host11-p0-nic:vrf:yellow:yellow-host11-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host11-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host11-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host12-p0-nic:vrf:yellow:yellow-host12-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host12-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host12-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host13-p0-nic:vrf:yellow:yellow-host13-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host13-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host13-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host14-p0-nic:vrf:yellow:yellow-host14-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host14-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host14-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host15-p0-nic:vrf:yellow:yellow-host15-p0",
+      "type": "vrf_membership",
+      "src_id": "yellow-host15-p0-nic",
+      "dst_id": "vrf:yellow:yellow-host15-p0",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host00-p1-nic:vrf:yellow:yellow-host00-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host00-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host00-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host01-p1-nic:vrf:yellow:yellow-host01-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host01-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host01-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host02-p1-nic:vrf:yellow:yellow-host02-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host02-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host02-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host03-p1-nic:vrf:yellow:yellow-host03-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host03-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host03-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host04-p1-nic:vrf:yellow:yellow-host04-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host04-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host04-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host05-p1-nic:vrf:yellow:yellow-host05-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host05-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host05-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host06-p1-nic:vrf:yellow:yellow-host06-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host06-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host06-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host07-p1-nic:vrf:yellow:yellow-host07-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host07-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host07-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host08-p1-nic:vrf:yellow:yellow-host08-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host08-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host08-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host09-p1-nic:vrf:yellow:yellow-host09-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host09-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host09-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host10-p1-nic:vrf:yellow:yellow-host10-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host10-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host10-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host11-p1-nic:vrf:yellow:yellow-host11-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host11-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host11-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host12-p1-nic:vrf:yellow:yellow-host12-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host12-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host12-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host13-p1-nic:vrf:yellow:yellow-host13-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host13-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host13-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host14-p1-nic:vrf:yellow:yellow-host14-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host14-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host14-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host15-p1-nic:vrf:yellow:yellow-host15-p1",
+      "type": "vrf_membership",
+      "src_id": "yellow-host15-p1-nic",
+      "dst_id": "vrf:yellow:yellow-host15-p1",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host00-p2-nic:vrf:yellow:yellow-host00-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host00-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host00-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host01-p2-nic:vrf:yellow:yellow-host01-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host01-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host01-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host02-p2-nic:vrf:yellow:yellow-host02-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host02-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host02-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host03-p2-nic:vrf:yellow:yellow-host03-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host03-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host03-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host04-p2-nic:vrf:yellow:yellow-host04-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host04-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host04-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host05-p2-nic:vrf:yellow:yellow-host05-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host05-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host05-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host06-p2-nic:vrf:yellow:yellow-host06-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host06-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host06-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host07-p2-nic:vrf:yellow:yellow-host07-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host07-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host07-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host08-p2-nic:vrf:yellow:yellow-host08-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host08-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host08-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host09-p2-nic:vrf:yellow:yellow-host09-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host09-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host09-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host10-p2-nic:vrf:yellow:yellow-host10-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host10-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host10-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host11-p2-nic:vrf:yellow:yellow-host11-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host11-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host11-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host12-p2-nic:vrf:yellow:yellow-host12-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host12-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host12-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host13-p2-nic:vrf:yellow:yellow-host13-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host13-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host13-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host14-p2-nic:vrf:yellow:yellow-host14-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host14-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host14-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host15-p2-nic:vrf:yellow:yellow-host15-p2",
+      "type": "vrf_membership",
+      "src_id": "yellow-host15-p2-nic",
+      "dst_id": "vrf:yellow:yellow-host15-p2",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host00-p3-nic:vrf:yellow:yellow-host00-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host00-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host00-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host01-p3-nic:vrf:yellow:yellow-host01-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host01-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host01-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host02-p3-nic:vrf:yellow:yellow-host02-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host02-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host02-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host03-p3-nic:vrf:yellow:yellow-host03-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host03-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host03-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host04-p3-nic:vrf:yellow:yellow-host04-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host04-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host04-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host05-p3-nic:vrf:yellow:yellow-host05-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host05-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host05-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host06-p3-nic:vrf:yellow:yellow-host06-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host06-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host06-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host07-p3-nic:vrf:yellow:yellow-host07-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host07-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host07-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host08-p3-nic:vrf:yellow:yellow-host08-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host08-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host08-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host09-p3-nic:vrf:yellow:yellow-host09-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host09-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host09-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host10-p3-nic:vrf:yellow:yellow-host10-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host10-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host10-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host11-p3-nic:vrf:yellow:yellow-host11-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host11-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host11-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host12-p3-nic:vrf:yellow:yellow-host12-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host12-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host12-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host13-p3-nic:vrf:yellow:yellow-host13-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host13-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host13-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host14-p3-nic:vrf:yellow:yellow-host14-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host14-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host14-p3",
+      "directed": true
+    },
+    {
+      "id": "vrfmem:yellow-host15-p3-nic:vrf:yellow:yellow-host15-p3",
+      "type": "vrf_membership",
+      "src_id": "yellow-host15-p3-nic",
+      "dst_id": "vrf:yellow:yellow-host15-p3",
+      "directed": true
+    }
+  ]
+}
