@@ -4,8 +4,10 @@ metadata:
   name: syd-config
   namespace: syd
 data:
-  # NATS URL — NATS runs in the syd namespace alongside gobmp-nats.
-  NATS_URL: "nats://nats:4222"
+  # NATS URL — when co-deployed with Jalapeno on the same cluster, point syd
+  # at Jalapeno's gobmp-nats NATS instance (NodePort 30512 feeds it).
+  # For a standalone syd deployment with its own gobmp-nats, use nats://nats:4222.
+  NATS_URL: "nats://nats.jalapeno.svc.cluster.local:4222"
 
   # Topology ID assigned to the BMP-learned underlay graph.
   BMP_TOPO: "underlay"

@@ -190,17 +190,32 @@ def gen_fabric(P: int, NS: int, NL: int) -> dict:
                 "srv6_ua_sids":  [ua_sid(leaf_to_spine_ua_sid(P, S))],
             })
 
-    # igp_adjacency edges (bidirectional, one per spine×leaf pair)
+    # igp_adjacency edges — two directed edges per link, matching the BMP/BGP-LS
+    # model where each direction is a separate advertisement. A single undirected
+    # edge causes Dijkstra to miss the reverse direction because GetDstID() on an
+    # undirected edge always returns the original dst, not the traversal neighbor.
     for S in range(NS):
         for L in range(NL):
+            # Spine → Leaf (egress uA on spine interface toward leaf L)
             edges.append({
                 "id":              f"adj:{spine_id(P,S)}:{leaf_id(P,L)}",
                 "type":            "igp_adjacency",
                 "src_id":          spine_id(P, S),
                 "dst_id":          leaf_id(P, L),
-                "directed":        False,
+                "directed":        True,
                 "local_iface_id":  spine_iface_id(P, S, L),
                 "remote_iface_id": leaf_iface_id(P, L, S),
+                "igp_metric":      IGP_METRIC,
+            })
+            # Leaf → Spine (egress uA on leaf interface toward spine S)
+            edges.append({
+                "id":              f"adj:{leaf_id(P,L)}:{spine_id(P,S)}",
+                "type":            "igp_adjacency",
+                "src_id":          leaf_id(P, L),
+                "dst_id":          spine_id(P, S),
+                "directed":        True,
+                "local_iface_id":  leaf_iface_id(P, L, S),
+                "remote_iface_id": spine_iface_id(P, S, L),
                 "igp_metric":      IGP_METRIC,
             })
 

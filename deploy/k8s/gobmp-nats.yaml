@@ -3,8 +3,10 @@
 # JetStream for syd's bmpcollector. Uses the official gobmp:latest image which
 # includes NATS publisher support.
 #
-# Routers send BMP to NodePort 30512. The existing Jalapeno gobmp on port 30511
-# is left untouched — both receive the same BMP stream independently.
+# NOTE: If Jalapeno is co-deployed on the same cluster, its gobmp-nats already
+# occupies NodePort 30512. In that case, disable this manifest and instead set
+# NATS_URL in configmap.yaml to nats://nats.jalapeno.svc.cluster.local:4222 so
+# syd shares the existing gobmp-nats stream rather than running a duplicate.
 apiVersion: v1
 kind: Service
 metadata:

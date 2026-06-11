@@ -71,6 +71,15 @@ func Dijkstra(
 
 		for _, e := range g.OutEdges(u) {
 			v := e.GetDstID()
+			// For undirected edges, AddEdge places the edge in outEdges for
+			// both endpoints. When traversing from the DstID end, GetDstID()
+			// returns the current node — the actual neighbor is GetSrcID().
+			if v == u {
+				v = e.GetSrcID()
+			}
+			if v == u {
+				continue // genuine self-loop
+			}
 
 			// Only traverse edges that lead to a Node vertex. This skips
 			// attachment, ownership, reachability, and other non-transit edges

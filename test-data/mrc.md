@@ -49,5 +49,18 @@ curl -s -X POST ${SYD}/paths/request \
     "pairing_mode": "bidir_paired"
   }' | python3 -m json.tool
 
+# Path request yellow pair
+curl -s -X POST ${SYD}/paths/request \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "topology_id": "mrc-cluster",
+    "workload_id":  "mrc-yellow-test",
+    "endpoints": [
+      {"id": "yellow-host00-p0-nic"},
+      {"id": "yellow-host15-p0-nic"}
+    ],
+    "pairing_mode": "bidir_paired"
+  }' | python3 -m json.tool
+
 # Retrieve segment lists
 curl -s ${SYD}/paths/mrc-green-test/flows | python3 -m json.tool
