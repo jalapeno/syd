@@ -515,7 +515,15 @@ func (h *lsNodeHandler) Handle(data []byte, store *graph.Store) error {
 		}
 		return nil
 	}
-	h.updater.UpsertNode(g, translateLSNode(&msg))
+	node := translateLSNode(&msg)
+	// Resolve the 4-byte BGP OPEN router-ID (TLV 1028, always IPv4) from the
+	// RouterHash → LocalBGPID mapping built by peerHandler. For IPv6 BMP
+	// sessions gobmp stores TLV 1029 (IPv6) in RouterID; without this field
+	// the compose stitch can never match LocalBGPID to the IS-IS node.
+	if bgpID := h.updater.LookupBGPRouterID(msg.RouterHash); bgpID != "" {
+		node.BGPRouterID = bgpID
+	}
+	h.updater.UpsertNode(g, node)
 	// Mirror to the companion v4 graph unconditionally. Previously this only
 	// mirrored when the v4 graph already existed (created lazily by
 	// lsLinkHandler on the first MTID=0 link), which meant nodes replayed
@@ -526,7 +534,7 @@ func (h *lsNodeHandler) Handle(data []byte, store *graph.Store) error {
 	// router-id, etc.) regardless of NATS message ordering.
 	if h.v4TopoID != "" {
 		g4 := h.updater.EnsureGraph(store, h.v4TopoID)
-		h.updater.UpsertNode(g4, translateLSNode(&msg))
+		h.updater.UpsertNode(g4, node)
 	}
 	return nil
 }
@@ -602,8 +610,9 @@ func (h *lsSRv6SIDHandler) Handle(data []byte, store *graph.Store) error {
 
 // peerHandler processes gobmp.parsed.peer messages.
 type peerHandler struct {
-	updater *Updater
-	topoID  string
+	updater  *Updater
+	topoID   string
+	v6TopoID string // underlay IS-IS graph; used for retroactive BGPRouterID backfill
 }
 
 func (h *peerHandler) Subject() string { return SubjectPeer }
@@ -616,6 +625,13 @@ func (h *peerHandler) Handle(data []byte, store *graph.Store) error {
 	if msg.LocalBGPID == "" || msg.RemoteIP == "" {
 		return nil
 	}
+
+	// Record the RouterHash → LocalBGPID mapping for ALL peers (iBGP and eBGP).
+	// LocalBGPID is the stable 4-byte BGP OPEN router-ID; RouterHash is per-session
+	// and changes with each PeerUp. By recording every hash emitted by this router we
+	// ensure that whichever hash appears in a later LSNode message can be resolved to
+	// the stable LocalBGPID and stored in Node.BGPRouterID for the compose stitch.
+	h.updater.RecordBGPRouterID(msg.RouterHash, msg.LocalBGPID, store.Get(h.v6TopoID))
 
 	// Skip iBGP sessions — they are TCP connections over the underlay and add
 	// no new topology information. Only eBGP sessions (differing ASNs) produce
@@ -756,7 +772,7 @@ func DefaultHandlers(updater *Updater, topoID string) []MessageHandler {
 		&lsNodeHandler{updater: updater, topoID: v6TopoID, v4TopoID: v4TopoID},
 		&lsLinkHandler{updater: updater, topoID: v6TopoID, v4TopoID: v4TopoID},
 		&lsSRv6SIDHandler{updater: updater, topoID: v6TopoID},
-		&peerHandler{updater: updater, topoID: peersTopoID},
+		&peerHandler{updater: updater, topoID: peersTopoID, v6TopoID: v6TopoID},
 		&unicastPrefixHandler{updater: updater, topoID: prefV4TopoID, subject: SubjectUnicastV4},
 		&unicastPrefixHandler{updater: updater, topoID: prefV6TopoID, subject: SubjectUnicastV6},
 	}

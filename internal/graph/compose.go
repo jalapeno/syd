@@ -8,9 +8,20 @@ package graph
 // BGP session edges in peer graphs use LocalBGPID (a BGP router-ID such as
 // "10.0.0.6") as SrcID. IGP nodes in underlay graphs are keyed by IS-IS
 // system ID ("0000.0000.0006"). These two IDs refer to the same physical
-// router but don't match. The stitch resolves the discrepancy using
-// graph.Node.RouterID — every IGP-derived node stores its BGP router-ID there,
-// providing the cross-namespace join key.
+// router but don't match. The stitch resolves the discrepancy using two
+// fields on graph.Node:
+//
+//   - RouterID (TLV 1028 / TLV 1029): the primary join key. For IPv4 BMP
+//     sessions gobmp stores TLV 1028 (IPv4 BGP router-ID) here, which matches
+//     LocalBGPID directly.
+//   - BGPRouterID: the secondary join key, always the 4-byte IPv4 BGP OPEN
+//     router-ID (TLV 1028). For IPv6 BMP sessions gobmp stores TLV 1029 (IPv6)
+//     in RouterID, so LocalBGPID never matches it. BGPRouterID is derived at
+//     ingestion time from PeerStateChange.LocalBGPID keyed by BMP RouterHash
+//     and provides the cross-namespace join key for those sessions.
+//
+// Both RouterID and BGPRouterID are indexed in routerIDToNodeID; the BGPSession
+// stitch and dupVertex detection code uses the same index for both.
 //
 // # Duplicate vertex deduplication
 //
@@ -119,6 +130,14 @@ func Compose(id string, sources ...*Graph) *Graph {
 			}
 			if n.RouterID != "" && n.ID != n.RouterID {
 				routerIDToNodeID[n.RouterID] = n.ID
+			}
+			// BGPRouterID carries TLV 1028 (IPv4 BGP OPEN router-ID) derived
+			// from PeerStateChange.LocalBGPID. For IPv6 BMP sessions gobmp
+			// stores TLV 1029 (IPv6) in RouterID, so LocalBGPID never matches
+			// routerIDToNodeID. Indexing BGPRouterID separately lets the stitch
+			// below succeed for both IPv4 and IPv6 BMP sessions.
+			if n.BGPRouterID != "" {
+				routerIDToNodeID[n.BGPRouterID] = n.ID
 			}
 			if n.BMPRouterHash != "" {
 				routerHashToNodeID[n.BMPRouterHash] = n.ID

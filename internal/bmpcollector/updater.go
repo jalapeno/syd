@@ -22,11 +22,57 @@ type Updater struct {
 	// read by unicastPrefixHandler to anchor external prefixes to the correct
 	// peer vertex rather than an anonymous stub nexthop.
 	peerSpecs map[string]*graph.Node
+
+	// localBGPIDByHash maps BMP RouterHash → LocalBGPID (the 4-byte BGP OPEN
+	// router-ID, always IPv4). Populated from ALL PeerStateChange messages —
+	// including iBGP — so that every hash a router ever emits via p.speakerHash
+	// is resolvable to the same stable LocalBGPID. Used to set Node.BGPRouterID
+	// so that compose can stitch BGPSession edges whose SrcID is LocalBGPID even
+	// when Node.RouterID is an IPv6 address (IPv6 BMP sessions, TLV 1029).
+	localBGPIDByHash map[string]string
 }
 
 // NewUpdater creates a ready-to-use Updater.
 func NewUpdater() *Updater {
-	return &Updater{peerSpecs: make(map[string]*graph.Node)}
+	return &Updater{
+		peerSpecs:        make(map[string]*graph.Node),
+		localBGPIDByHash: make(map[string]string),
+	}
+}
+
+// RecordBGPRouterID stores the mapping bmpHash → localBGPID and retroactively
+// sets BGPRouterID on any existing Nodes in gs that share the same BMPRouterHash.
+// Call this for ALL PeerStateChange messages (iBGP and eBGP) so that every hash
+// a physical router has ever emitted maps to its stable IPv4 BGP OPEN router-ID.
+func (u *Updater) RecordBGPRouterID(bmpHash, localBGPID string, gs ...*graph.Graph) {
+	if bmpHash == "" || localBGPID == "" {
+		return
+	}
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.localBGPIDByHash[bmpHash] = localBGPID
+	// Retroactively update Nodes that arrived before this PeerStateChange.
+	for _, g := range gs {
+		if g == nil {
+			continue
+		}
+		for _, v := range g.AllVertices() {
+			n, ok := v.(*graph.Node)
+			if !ok || n.BMPRouterHash != bmpHash || n.BGPRouterID != "" {
+				continue
+			}
+			updated := *n
+			updated.BGPRouterID = localBGPID
+			_ = g.AddVertex(&updated)
+		}
+	}
+}
+
+// LookupBGPRouterID returns the LocalBGPID recorded for bmpHash, or "".
+func (u *Updater) LookupBGPRouterID(bmpHash string) string {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	return u.localBGPIDByHash[bmpHash]
 }
 
 // SetRemovalCallback registers fn to be called after any vertex or edge is
@@ -86,6 +132,12 @@ func (u *Updater) UpsertNode(g *graph.Graph, node *graph.Node) {
 			}
 			if len(node.NodeMSD) == 0 && len(en.NodeMSD) > 0 {
 				node.NodeMSD = en.NodeMSD
+			}
+			// Preserve BGPRouterID once set; a later LSNode may arrive before
+			// the PeerStateChange mapping is populated and would otherwise clear
+			// a BGPRouterID that was backfilled by RecordBGPRouterID.
+			if node.BGPRouterID == "" && en.BGPRouterID != "" {
+				node.BGPRouterID = en.BGPRouterID
 			}
 		}
 	}

@@ -82,4 +82,12 @@ type Node struct {
 	// BMP provenance — empty when source == SourcePush or SourceStatic
 	BMPRouterHash string          `json:"bmp_router_hash,omitempty"`
 	BMPPeerHash   string          `json:"bmp_peer_hash,omitempty"`
+
+	// BGPRouterID is the 4-byte BGP OPEN router-ID (TLV 1028, always IPv4).
+	// For nodes learned via IPv6 BMP sessions gobmp stores TLV 1029 (IPv6) in
+	// RouterID, making the compose BGP-session stitch fail because LocalBGPID
+	// in PeerStateChange is always the 4-byte BGP OPEN identifier. BGPRouterID
+	// is derived from PeerStateChange.LocalBGPID keyed by RouterHash so that
+	// compose can use it as a secondary stitch key.
+	BGPRouterID string          `json:"bgp_router_id,omitempty"`
 }
