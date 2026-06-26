@@ -42,6 +42,11 @@ Point your routers at NodePort 30512 for syd's gobmp-nats.
 (Jalapeno's Kafka-based gobmp uses NodePort 30511; syd owns 30512.)
 Once BMP streams are flowing, the topology will start populating and you can hit http://<node-ip>:30080/topology from your laptop.
 
+4. Destroy syd
+```bash
+kubectl delete namespace syd
+```
+
 ### BMP
 
 Test - get underlay-v6 nodes
