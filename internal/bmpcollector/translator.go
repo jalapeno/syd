@@ -641,11 +641,12 @@ func (h *peerHandler) Handle(data []byte, store *graph.Store) error {
 			DstID:    peerNode.ID,
 			Directed: true,
 		},
-		LocalASN:  msg.LocalASN,
-		RemoteASN: msg.RemoteASN,
-		LocalIP:   msg.LocalIP,
-		RemoteIP:  msg.RemoteIP,
-		IsUp:      strings.EqualFold(msg.Action, "add"),
+		LocalASN:      msg.LocalASN,
+		RemoteASN:     msg.RemoteASN,
+		LocalIP:       msg.LocalIP,
+		RemoteIP:      msg.RemoteIP,
+		IsUp:          strings.EqualFold(msg.Action, "add"),
+		BMPRouterHash: msg.RouterHash,
 	}
 	h.updater.UpsertBGPSession(g, sess)
 

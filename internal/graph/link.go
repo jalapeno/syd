@@ -56,12 +56,13 @@ type LinkEdge struct {
 // Populated by PeerStateChange messages in BMP-sourced topologies.
 type BGPSessionEdge struct {
 	BaseEdge
-	LocalASN  uint32 `json:"local_asn,omitempty"`
-	RemoteASN uint32 `json:"remote_asn,omitempty"`
-	LocalIP   string `json:"local_ip,omitempty"`
-	RemoteIP  string `json:"remote_ip,omitempty"`
-	PeerType  uint8  `json:"peer_type,omitempty"` // iBGP=0, eBGP=1, etc.
-	IsUp      bool   `json:"is_up"`
+	LocalASN      uint32 `json:"local_asn,omitempty"`
+	RemoteASN     uint32 `json:"remote_asn,omitempty"`
+	LocalIP       string `json:"local_ip,omitempty"`
+	RemoteIP      string `json:"remote_ip,omitempty"`
+	PeerType      uint8  `json:"peer_type,omitempty"` // iBGP=0, eBGP=1, etc.
+	IsUp          bool   `json:"is_up"`
+	BMPRouterHash string `json:"bmp_router_hash,omitempty"` // BMP router session hash, used as fallback stitch key when RouterID is unavailable
 }
 
 // AttachmentEdge connects an Endpoint vertex to the Node it is attached to.

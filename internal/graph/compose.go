@@ -104,13 +104,24 @@ func Compose(id string, sources ...*Graph) *Graph {
 
 	// --- build RouterID → nodeID index (IGP nodes only) -------------------
 	routerIDToNodeID := make(map[string]string)
+	// routerHashToNodeID provides a fallback stitch key for BGP sessions where
+	// LocalBGPID (always IPv4 format) doesn't match Node.RouterID (which may be
+	// IPv6 when the BMP session is IPv6, or empty when TLV 1028 is absent).
+	// Node.BMPRouterHash == BGPSessionEdge.BMPRouterHash for the same physical
+	// router because both originate from the same BMP session.
+	routerHashToNodeID := make(map[string]string)
 	for _, src := range sources {
 		src.mu.RLock()
 		for _, v := range src.vertices {
-			if n, ok := v.(*Node); ok && n.RouterID != "" && n.Subtype != NSExternalBGP {
-				if n.ID != n.RouterID {
-					routerIDToNodeID[n.RouterID] = n.ID
-				}
+			n, ok := v.(*Node)
+			if !ok || n.Subtype == NSExternalBGP {
+				continue
+			}
+			if n.RouterID != "" && n.ID != n.RouterID {
+				routerIDToNodeID[n.RouterID] = n.ID
+			}
+			if n.BMPRouterHash != "" {
+				routerHashToNodeID[n.BMPRouterHash] = n.ID
 			}
 		}
 		src.mu.RUnlock()
@@ -280,6 +291,19 @@ func Compose(id string, sources ...*Graph) *Graph {
 					rewritten.ID = "bgpsess:" + igpID + ":" + typed.RemoteIP
 					_ = out.AddEdge(&rewritten)
 					continue
+				}
+				// Fallback: match by BMP router hash. Handles the case where
+				// LocalBGPID (always 4-byte IPv4 format) doesn't match
+				// Node.RouterID (which may be IPv6 when the BMP session runs
+				// over IPv6, or empty when TLV 1028 is absent).
+				if typed.BMPRouterHash != "" {
+					if igpID, ok := routerHashToNodeID[typed.BMPRouterHash]; ok {
+						rewritten := *typed
+						rewritten.SrcID = igpID
+						rewritten.ID = "bgpsess:" + igpID + ":" + typed.RemoteIP
+						_ = out.AddEdge(&rewritten)
+						continue
+					}
 				}
 				peerID := "peer:" + srcID
 				if out.GetVertex(peerID) != nil {
