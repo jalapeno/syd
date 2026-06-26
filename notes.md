@@ -1,15 +1,23 @@
 1. On the k8s node — clone the repo
 
-```
+```bash
 git clone git@github.com:jalapeno/syd.git
 cd syd
 ```
 
 2. Build and load the syd image
 
-```
+```bash
 docker build -t syd:latest .
 docker save syd:latest | sudo k3s ctr images import -
+```
+
+or for kubernetes via script 
+```bash
+#! /bin/bash
+
+docker build -t syd:latest . && docker save syd:latest -o ../syd.tar
+sudo ctr -n=k8s.io images import ../syd.tar 
 ```
 
 3. Deploy everything (NATS + gobmp-nats + syd)
@@ -30,7 +38,8 @@ level=INFO msg="bmp collector configured" nats_url=nats://nats:4222
 level=INFO msg="syd starting" addr=:8080 bmp=true encap_mode=host
 level=INFO msg="bmp collector started" handlers=6
 ```
-Point your routers at NodePort 30512 for gobmp-nats (in addition to 30511 for the existing Jalapeno gobmp).
+Point your routers at NodePort 30512 for syd's gobmp-nats.
+(Jalapeno's Kafka-based gobmp uses NodePort 30511; syd owns 30512.)
 Once BMP streams are flowing, the topology will start populating and you can hit http://<node-ip>:30080/topology from your laptop.
 
 ### BMP
@@ -202,7 +211,7 @@ curl -s http://localhost:30080/topology/underlay-v6/nodes | python3 -m json.tool
 
 nats cli:
 ```
- kubectl -n jalapeno port-forward svc/nats 4222:4222 &
+ kubectl -n syd port-forward svc/nats 4222:4222 &
 ```
 
 ```
@@ -284,7 +293,7 @@ translator now type-asserts this and populates the `Structure` field, which
 
 ```bash
 # Port-forward NATS
-kubectl -n jalapeno port-forward svc/nats 4222:4222 &
+kubectl -n syd port-forward svc/nats 4222:4222 &
 
 # Stream overview: message counts per subject
 curl -s 'http://localhost:8222/jsz/streams/goBMP/subjects' | python3 -m json.tool
@@ -437,7 +446,7 @@ curl -s http://$NODE:30080/topology/underlay-v4 | python3 -m json.tool
 Sanity check via NATS — confirm MTID values in raw ls_link messages:
 
 ```bash
-kubectl -n jalapeno port-forward svc/nats 4222:4222 &
+kubectl -n syd port-forward svc/nats 4222:4222 &
 
 # Show MTID for each link (should see mt_id_tlv.mt_id = 0 for IPv4, 2 for IPv6)
 # Note: nats consumer next --raw interleaves message headers with JSON bodies;
