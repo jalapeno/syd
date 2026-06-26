@@ -52,17 +52,13 @@ func resolveOne(g *graph.Graph, spec apitypes.EndpointSpec) (ResolvedEndpoint, e
 		}
 		switch v.GetType() {
 		case graph.VTNode:
-			// For external BGP peer nodes (no LinkEdges), walk up the BGPSession
-			// chain to find the IS-IS node that ultimately connects to this peer
-			// (may be multiple hops away in a multi-tier DC fabric).
-			if n, ok := v.(*graph.Node); ok && n.Subtype == graph.NSExternalBGP {
-				igpID, err := walkToIGPNode(g, spec.ID, make(map[string]struct{}))
-				if err != nil {
-					return ResolvedEndpoint{}, fmt.Errorf("external BGP peer %q: %w", spec.ID, err)
-				}
-				return ResolvedEndpoint{Spec: spec, EndpointID: spec.ID, NodeID: igpID}, nil
+			// For boundary nodes (no IGP adjacencies, e.g. external BGP peers),
+			// walk inbound edges to find the nearest transit node. For IGP nodes
+			// with adjacency edges, resolveToTransitNode returns the node itself.
+			if nodeID, err := resolveToTransitNode(g, spec.ID, "", make(map[string]struct{})); err == nil {
+				return ResolvedEndpoint{Spec: spec, EndpointID: spec.ID, NodeID: nodeID}, nil
 			}
-			// When the spec ID is an IGP Node directly, EndpointID == NodeID.
+			// No transit node reachable — use the node directly as the SPF endpoint.
 			return ResolvedEndpoint{Spec: spec, EndpointID: spec.ID, NodeID: spec.ID}, nil
 		case graph.VTEndpoint:
 			nodeID, err := attachedNode(g, spec.ID)
