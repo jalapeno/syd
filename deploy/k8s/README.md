@@ -7,24 +7,22 @@ namespace. The existing Jalapeno stack (gobmp → Kafka) is left untouched.
 
 ```
 containerlab (XRd / FRR)
-  ├─ BMP/TCP ──→ port 30511 ──→ gobmp (jalapeno ns, existing)
-  │                                └─ Kafka ──→ igp-graph / arango consumers
-  │
   └─ BMP/TCP ──→ port 30512 ──→ gobmp-nats (syd ns)
                                    └─ NATS JetStream ──→ syd  ←── scheduler / UI
                                         (all in syd namespace)
 ```
 
-Routers send BMP to **both** ports. The syd namespace is fully self-contained —
-no cross-namespace dependencies on the Jalapeno stack.
+The syd namespace is fully self-contained — no dependencies on Jalapeno or any
+other stack. If Jalapeno is also deployed, its Kafka-based gobmp uses port 30511
+and can receive the same BMP stream in parallel; that is purely optional.
 
 ---
 
 ## Prerequisites
 
-- Existing Jalapeno stack running (gobmp on port 30511 → Kafka)
 - k8s node with internet access (pulls `sbezverk/gobmp:latest` and `nats:2-alpine`)
 - `syd:latest` image built and loaded (see step 1 below)
+- Routers configured to send BMP to `<node-ip>:30512`
 
 ---
 
@@ -67,8 +65,9 @@ syd-xxx                       1/1     Running   0          30s
 
 ## 3. Configure routers to send BMP to port 30512
 
-Point your XRd / FRR routers at the k8s node IP on port **30512** (in addition
-to port 30511 for the existing Jalapeno gobmp).
+Point your XRd / FRR routers at the k8s node IP on port **30512**.
+(If Jalapeno is also deployed, its gobmp on port 30511 can receive the same
+stream in parallel — configure both BMP destinations on each router.)
 
 ---
 
