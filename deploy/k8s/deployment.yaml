@@ -15,6 +15,11 @@ spec:
       labels:
         app: syd
     spec:
+      initContainers:
+        - name: wait-for-nats
+          image: busybox
+          command: ['sh', '-c', 'until nc -z nats 4222; do echo "waiting for NATS"; sleep 2; done']
+
       containers:
         - name: syd
           # Replace with your actual registry/image:tag after building.
